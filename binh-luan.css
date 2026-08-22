@@ -1,0 +1,218 @@
+/* ==========================================================================
+   SỔ BÌNH LUẬN — lớp phủ dán lên trang hồ sơ lúc XUẤT BẢN
+   ==========================================================================
+   Trang được đọc NGOÀI CÔNG TRƯỜNG, trên điện thoại, một tay cầm máy. Nên:
+   vùng bấm ≥44px · trạng thái nhìn thấy được mà không cần bấm thử · bản in
+   không có gì của lớp này.
+
+   Không dùng biến màu của tài liệu: lớp này phải chạy y hệt trên Kế hoạch tổng
+   thể lẫn trang con, mà hai nơi đó không cùng một bộ biến.
+   ========================================================================== */
+
+.bl-root {
+  --bl-giay: #fffdf9;
+  --bl-muc: #24211e;
+  --bl-mo: #6b625c;
+  --bl-net: #ddd5cb;
+  --bl-nhan: #a03828;
+  --bl-nhan-nhat: #f6e7e2;
+  --bl-xong: #2f6f4f;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ── Chữ đã có bình luận ─────────────────────────────────────────────────── */
+mark.bl-hl {
+  background: #ffe9a8;
+  color: inherit;
+  padding: 0 1px;
+  border-bottom: 2px solid #e0a800;
+  cursor: pointer;
+}
+mark.bl-hl.bl-xong {
+  background: #dcefe2;
+  border-bottom-color: var(--bl-xong, #2f6f4f);
+}
+/* Con số nằm ở ::after — không phải một nút văn bản thật, nên nó không lọt vào
+   đoạn chữ mà người đọc bôi đen rồi chép đi. */
+mark.bl-hl[data-bl-so]::after {
+  content: attr(data-bl-so);
+  display: inline-block;
+  min-width: 16px;
+  margin-left: 3px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #a03828;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  vertical-align: super;
+}
+
+/* ── Nút nổi "bôi đen để ghi chú" ────────────────────────────────────────── */
+.bl-chon {
+  position: absolute;
+  z-index: 2147483000;
+  min-height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 22px;
+  background: #a03828;
+  color: #fff;
+  font: 600 15px/44px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, .28);
+  cursor: pointer;
+}
+
+/* ── Nút nổi mở sổ ───────────────────────────────────────────────────────── */
+.bl-nut {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2147482000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 24px;
+  background: #24211e;
+  color: #fff;
+  font: 600 15px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, .3);
+  cursor: pointer;
+}
+.bl-nut .bl-dem {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 11px;
+  background: #a03828;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ── Ngăn kéo ────────────────────────────────────────────────────────────── */
+.bl-nen {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482500;
+  background: rgba(20, 18, 16, .38);
+}
+.bl-ngan {
+  position: fixed;
+  z-index: 2147482600;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: min(430px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--bl-giay, #fffdf9);
+  color: var(--bl-muc, #24211e);
+  border-left: 1px solid var(--bl-net, #ddd5cb);
+  box-shadow: -6px 0 26px rgba(0, 0, 0, .22);
+}
+@media (max-width: 560px) {
+  .bl-ngan { top: auto; height: 88vh; width: 100vw; border-left: none; border-top: 1px solid var(--bl-net, #ddd5cb); }
+}
+
+.bl-dau {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--bl-net, #ddd5cb);
+}
+.bl-dau h2 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: .01em; }
+.bl-dong {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--bl-net, #ddd5cb);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.bl-than { flex: 1; overflow-y: auto; padding: 12px 14px 20px; -webkit-overflow-scrolling: touch; }
+
+/* ── Một bình luận ───────────────────────────────────────────────────────── */
+.bl-mot {
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--bl-net, #ddd5cb);
+}
+.bl-mot:last-child { border-bottom: none; }
+.bl-mot.bl-tra { margin-left: 16px; padding-left: 12px; border-left: 3px solid var(--bl-net, #ddd5cb); border-bottom: none; }
+.bl-ai { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--bl-mo, #6b625c); }
+.bl-ai b { color: var(--bl-muc, #24211e); font-size: 14px; }
+.bl-noi { margin: 5px 0 0; font-size: 15px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.bl-trich {
+  margin: 5px 0 0;
+  padding: 5px 0 5px 10px;
+  border-left: 3px solid #e0a800;
+  color: var(--bl-mo, #6b625c);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.bl-viec { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.bl-viec button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--bl-net, #ddd5cb);
+  background: transparent;
+  color: var(--bl-mo, #6b625c);
+  font: 500 13px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  cursor: pointer;
+}
+.bl-viec button:hover { color: var(--bl-nhan, #a03828); border-color: var(--bl-nhan, #a03828); }
+.bl-co-xong {
+  display: inline-block;
+  padding: 1px 7px;
+  background: #dcefe2;
+  color: #2f6f4f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── Ô soạn ──────────────────────────────────────────────────────────────── */
+.bl-soan { border-top: 1px solid var(--bl-net, #ddd5cb); padding: 10px 14px 14px; background: #fff; }
+.bl-soan label { display: block; margin: 8px 0 3px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--bl-mo, #6b625c); }
+.bl-soan input,
+.bl-soan textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--bl-net, #ddd5cb);
+  border-radius: 0;
+  background: #fff;
+  color: var(--bl-muc, #24211e);
+  font: 15px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+.bl-soan textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
+.bl-hang { display: flex; gap: 8px; }
+.bl-hang > div { flex: 1; }
+.bl-gui {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border: none;
+  background: #a03828;
+  color: #fff;
+  font: 600 16px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  cursor: pointer;
+}
+.bl-gui[disabled] { opacity: .55; cursor: default; }
+.bl-bao { margin: 8px 0 0; font-size: 13px; line-height: 1.4; color: var(--bl-nhan, #a03828); }
+.bl-bao.bl-ok { color: #2f6f4f; }
+.bl-trong { margin: 18px 0; color: var(--bl-mo, #6b625c); font-size: 14px; line-height: 1.5; }
+
+@media print {
+  .bl-nut, .bl-nen, .bl-ngan, .bl-chon { display: none !important; }
+  mark.bl-hl { background: none; border-bottom: 1px dotted #999; }
+  mark.bl-hl[data-bl-so]::after { display: none; }
+}

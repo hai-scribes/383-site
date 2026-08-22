@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B3 — Dốc lên hiên · 383 Hải Phòng</title>
+<style>
+  /* ════════════════════════════════════════════════════════════
+     FRAME RETROFIT — 2026-05-18
+     Locked decisions: Merriweather + Roboto + Roboto Mono ·
+     accent terracotta #b8412c · cream paper · Sistema Constructivo
+     archetype reference.
+     ════════════════════════════════════════════════════════════ */
+  * { box-sizing: border-box; }
+  :root {
+    /* Paper & ink */
+    --bg: #f3efe6; --paper: #faf6ec; --paper-deep: #ebe5d6;
+    /* --muted phải đọc được: nó gánh TOÀN BỘ nhãn khung tên, phụ đề mục lục,
+       mô tả ô màu, số hiệu bản vẽ — tất cả ở cỡ 11–12px. Giá trị cũ #8a8780
+       chỉ đạt 3,32:1 trên giấy, dưới ngưỡng AA 4,5:1 cho chữ thường; đọc ngoài sáng là mất chữ. #6f6c64 đạt 4,86:1 trên giấy · 4,57:1 trên nền —
+       qua ngưỡng ở cả hai, sắc độ gần như không đổi. */
+    --ink: #1d1d1b; --ink-soft: #4a4a46; --muted: #6f6c64;
+    --line: #c9c2af; --line-soft: #d8d2c0;
+
+    /* Accent — terracotta (ratified 2026-07-07) */
+    --accent: #b8412c; --accent-soft: #d4856e; --accent-pale: #f0ddd4;
+
+    /* Audience chips (client follows accent = owner primary; kts/contractor as counterpoints) */
+    --client: #b8412c; --kts: #4a6c3f; --contractor: #9a6b13; --all: #2c2c2c;
+
+    /* Priority tiers (P0 = accent terracotta, P1/P2/P3 distinguishable) */
+    --p0: #b8412c; --p1: #9a6b13; --p2: #4a6c3f; --p3: #8a8780;
+
+    /* Thang màu Gantt (§14) — 8 nhóm việc. Đặt thành token vì TRƯỚC ĐÂY thanh
+       và chú giải tô màu ở hai chỗ khác nhau (thanh dùng var(), chú giải dán hex
+       thẳng vào HTML) nên chúng lệch nhau mà không ai kiểm: chú giải ghi "A —
+       Thô & MEP" màu XANH DƯƠNG #3a6fb0 trong khi thanh A thật ra màu XANH LÁ
+       var(--p2), và "Milestone" ghi #b8324a còn mốc thật là terracotta. Nhà thầu
+       đọc lịch theo màu — chú giải sai là lỗi nội dung, không phải lỗi thẩm mỹ.
+
+       Phân biệt bằng SẮC, không bằng độ sáng: cả 8 đều ≥4,5:1 với chữ trắng nằm
+       trên thanh (thấp nhất --g-prep 4,71:1). Trong mỗi nghề, bước sau nhạt hơn
+       bước trước: thô(đậm)→hoàn thiện(nhạt), đi dây(đậm)→lắp thiết bị(nhạt).
+       Terracotta CHỈ dành cho mốc — nó là màu nhấn của cả tài liệu. */
+    --g-prep:      #78736a;   /* chuẩn bị — xám ấm trung tính */
+    --g-a:         #8a5426;   /* A — thô & MEP: nâu đất, việc nặng nhất */
+    --g-b:         #8f6218;   /* B — hoàn thiện: hoàng thổ, cùng họ, nhạt hơn */
+    --g-c:         #46683c;   /* C — điện/nước: sage, cùng họ --kts */
+    --g-cabling:   #33505d;   /* smart đi dây (GĐ1, trong tường) — lam đá đậm */
+    --g-smart:     #54707d;   /* smart lắp đặt (GĐ2, ngoài tường) — cùng họ, nhạt */
+    --g-cooling:   #2a7676;   /* làm mát — lục lam */
+    --g-milestone: #b8412c;   /* mốc — terracotta, dành riêng */
+
+    /* Callout palettes (muted, paper-compatible) */
+    --warn-bg: #f5ecd6; --warn-line: #c9a85a; --warn-ink: #6f4f10;
+    --crit-bg: #f0d9d1; --crit-line: #b86f5a; --crit-ink: #6f2515;
+    --info-bg: #e6e3da; --info-line: #9a9284; --info-ink: #43413a; /* warm neutral note (was cool blue — retuned to fit the warm system) */
+    --ok-bg: #dde3d1; --ok-line: #7a8a5e; --ok-ink: #355020;
+
+    /* Typography stack */
+    --font-serif: "Merriweather", Georgia, "Times New Roman", serif;
+    --font-sans: "Roboto", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", monospace;
+
+    /* Modular type scale (document-design-383 skill; --fs-micro tier for dense
+       technical labels: drawing annotations, sheet-strip, legends) */
+    --fs-micro:   0.6875rem; /* 11px  drawing labels, metadata strips, legends */
+    --fs-cap:     0.75rem;   /* 12px  captions, footnotes */
+    --fs-data:    0.8125rem; /* 13px  dense table cells, HM codes */
+    --fs-small:   0.875rem;  /* 14px  body (this doc's dense base), secondary */
+    --fs-body:    1rem;      /* 16px  comfortable reading */
+    --fs-lead:    1.125rem;  /* 18px  lead paragraph */
+    --fs-h4:      1.25rem;   /* 20px */
+    --fs-h3:      1.5rem;    /* 24px */
+    --fs-h2:      1.875rem;  /* 30px */
+    --fs-h1:      2.375rem;  /* 38px  document / section title */
+    --fs-display: 3.5rem;    /* 56px  cover hero only */
+
+    /* 8pt spacing grid (tokens available for new work; legacy spacing untouched) */
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px; --sp-24: 96px;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--ink);
+    /* Vietnamese: stacked tone marks (ế, ộ, ữ) need generous leading to avoid collision */
+    line-height: 1.62;
+    font-size: var(--fs-small);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    position: relative;
+  }
+  .app, .doc-foot { position: relative; z-index: 1; }
+
+  /* ── SIGNATURE: drawing-sheet frame (crop marks + coordinate grid) ──
+     Frames the entire scroll as one titled architectural sheet. */
+  .sheet-frame { position: fixed; inset: 9px; pointer-events: none; z-index: 60; border: 1px solid var(--ink); }
+  .sheet-frame .cm { position: absolute; width: 15px; height: 15px; border-color: var(--accent); border-style: solid; border-width: 0; }
+  .sheet-frame .cm.tl { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
+  .sheet-frame .cm.tr { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
+  .sheet-frame .cm.bl { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
+  .sheet-frame .cm.br { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+  .sheet-frame .coord { position: absolute; font-family: var(--font-mono); font-size: 9px; color: var(--muted); letter-spacing: 0.05em; background: var(--bg); padding: 0 3px; }
+  .sheet-frame .coord.top { top: -6px; }
+  .sheet-frame .coord.bottom { bottom: -6px; }
+  .sheet-frame .coord.left { left: -6px; writing-mode: vertical-rl; padding: 3px 0; }
+  .sheet-frame .coord.right { right: -6px; writing-mode: vertical-rl; padding: 3px 0; }
+  @media (max-width: 900px) { .sheet-frame { display: none; } }
+
+  /* Sheet window — the document scrolls INSIDE the frame with a 17px gutter
+     to the border line, so content can never pass under it (real drafting
+     sheets keep a margin between border and content). Desktop only; mobile
+     hides the frame and keeps native scroll. */
+  @media (min-width: 901px) {
+    html, body { height: 100%; overflow: hidden; }
+    .page-scroll { position: fixed; inset: 26px; overflow-y: auto; z-index: 1; outline: none; }
+    .toc { height: calc(100vh - 52px); } /* = window height, so the sticky TOC bottom is never clipped */
+  }
+
+  /* === App layout: sticky TOC + main === */
+  .app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+  .toc { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--paper); border-right: 1px solid var(--line); padding: 22px 20px 28px; font-size: var(--fs-data); font-family: var(--font-sans); }
+  .toc h3 { margin: 0 0 4px; font-family: var(--font-serif); font-size: var(--fs-lead); font-weight: 500; letter-spacing: -0.01em; color: var(--ink); font-variation-settings: "opsz" 30; }
+  .toc .sub { color: var(--muted); font-size: var(--fs-micro); margin-bottom: 18px; line-height: 1.4; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .toc ol { list-style: none; padding: 0; margin: 0; counter-reset: tocnum; }
+  .toc li { padding: 0; counter-increment: tocnum; }
+  .toc a { display: block; padding: 6px 10px 6px 30px; color: var(--ink-soft); text-decoration: none; border-left: 1px solid var(--line-soft); position: relative; transition: color 0.12s; }
+  .toc a::before { content: counter(tocnum, decimal-leading-zero); position: absolute; left: 10px; top: 6px; font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); letter-spacing: 0.06em; }
+  .toc a:hover { color: var(--accent); border-left-color: var(--accent-soft); }
+  .toc a.active { color: var(--accent); border-left: 2px solid var(--accent); padding-left: 29px; font-weight: 600; background: var(--accent-pale); }
+  .toc-toggle { display: none; }
+  .toc-sub { list-style: none; margin: 0 0 2px; padding: 0 0 0 24px; }
+  .toc-sub li { counter-increment: none; }
+  .toc-sub a { font-size: 11px; padding: 2px 10px 2px 5px; color: var(--ink-soft); }
+  .toc-sub a::before { content: none; }
+  h3[id] { scroll-margin-top: 14px; }
+
+  .main { padding: 0; width: 100%; max-width: 1280px; margin-inline: auto; }
+  section { padding: 44px 40px; border-bottom: 1px solid var(--line-soft); scroll-margin-top: 10px; }
+  section:last-child { border-bottom: none; }
+
+  /* === Header / Hero === */
+  .doc-header { background: var(--paper); padding: 36px 40px 30px; border-bottom: 2px solid var(--ink); }
+  .meta-top { color: var(--ink-soft); font-size: var(--fs-cap); margin-bottom: 18px; display: flex; flex-wrap: wrap; gap: 14px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .meta-top .version { background: var(--accent); color: var(--paper); padding: 2px 8px; border-radius: 0; font-weight: 600; font-family: var(--font-mono); letter-spacing: 0.06em; }
+  .parti {
+    margin: 0 0 10px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: 0;
+    /* Vietnamese display: extra leading so upper tone marks (Đà, ượ) clear the line above */
+    line-height: 1.22;
+    max-width: 100%;
+  }
+  .parti em { color: var(--accent); font-style: italic; font-weight: 500; }
+  .parti-sub { margin: 0 0 22px; color: var(--ink-soft); font-size: var(--fs-small); max-width: 100%; font-family: var(--font-serif); font-style: italic; font-weight: 400; font-variation-settings: "opsz" 36; }
+
+  .hero-metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .m-card { background: var(--paper); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; padding: 14px 16px; }
+  .m-label { font-family: var(--font-sans); font-size: var(--fs-micro); color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+  .m-value { font-family: var(--font-mono); font-size: var(--fs-h4); font-weight: 500; margin-top: 4px; color: var(--ink); letter-spacing: -0.01em; }
+  .m-sub { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); margin-top: 3px; letter-spacing: 0.04em; }
+
+  /* === Section heading === */
+  h2 {
+    margin: 0 0 12px;
+    font-family: var(--font-sans);
+    font-size: var(--fs-small);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+    color: var(--ink);
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+  }
+  /* terracotta datum segment on the section rule — drafting cue */
+  h2::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 56px; height: 2px; background: var(--accent); }
+  h2 .sec-num { font-family: var(--font-serif); color: var(--accent); font-style: italic; font-weight: 500; font-size: var(--fs-body); text-transform: none; letter-spacing: 0; }
+  h2 .count { color: var(--muted); font-weight: 400; font-size: var(--fs-micro); margin-left: auto; font-family: var(--font-mono); letter-spacing: 0.06em; }
+  h3 { margin: 22px 0 8px; font-family: var(--font-serif); font-size: var(--fs-h4); font-weight: 500; line-height: 1.2; color: var(--ink); font-variation-settings: "opsz" 30; }
+  h4 { margin: 16px 0 6px; font-family: var(--font-sans); font-size: var(--fs-micro); font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.1em; }
+  .lead { color: var(--ink-soft); font-family: var(--font-serif); font-style: italic; font-size: var(--fs-body); margin: 8px 0 18px; max-width: 100%; line-height: 1.5; font-variation-settings: "opsz" 30; font-weight: 400; }
+
+  /* === Audience chips === */
+  .aud-chip { display: inline-block; font-family: var(--font-sans); font-size: var(--fs-micro); font-weight: 600; padding: 2px 9px; border-radius: 0; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid currentColor; }
+  .aud-chip.client { background: var(--accent-pale); color: var(--client); }
+  .aud-chip.kts { background: var(--ok-bg); color: var(--kts); }
+  .aud-chip.contractor { background: var(--warn-bg); color: var(--contractor); }
+  .aud-chip.all { background: var(--paper-deep); color: var(--all); }
+
+  /* === Callouts === */
+  .callout { border-radius:0; padding: 14px 18px; margin: 12px 0 16px; font-size: var(--fs-small); line-height: 1.6; }
+  .callout h4 { margin: 0 0 6px; font-size: var(--fs-small); font-weight: 700; }
+  .callout ul, .callout ol { margin: 4px 0 0; padding-left: 20px; }
+  .callout li { margin-bottom: 3px; }
+  .callout code { background: rgba(255,255,255,0.6); padding: 1px 5px; border-radius:0; font-size: var(--fs-cap); }
+  .callout.critical { background: var(--crit-bg); border: 1px solid var(--crit-line); }
+  .callout.critical h4 { color: var(--crit-ink); }
+  .callout.warning { background: var(--warn-bg); border: 1px solid var(--warn-line); }
+  .callout.warning h4 { color: var(--warn-ink); }
+  .callout.info { background: var(--info-bg); border: 1px solid var(--info-line); }
+  .callout.info h4 { color: var(--info-ink); }
+  .callout.ok { background: var(--ok-bg); border: 1px solid var(--ok-line); }
+  /* Khối «Phải đo» — việc đo tại hiện trường, đặt trong đúng mục của nó.
+     Nhãn .tag-do để lọc lại được cả trang bằng mắt và bằng grep. */
+  .callout.measure { border-left: 4px solid var(--info-ink, #2f6f8f); }
+  /* Mã lớp L1–L7 — cùng bộ mã dùng trong mọi hình của trang, để chữ và hình
+     gọi cùng một lớp bằng cùng một tên. Bảng mã nằm trong HÌNH 2. */
+  .lcode { display: inline-block; font-size: var(--fs-micro); font-weight: 700;
+           letter-spacing: 0.04em; background: #2b2724; color: #ffffff;
+           border-radius: 3px; padding: 0 5px; vertical-align: 1px; }
+  .tag-do { display: inline-block; font-size: var(--fs-cap); font-weight: 700;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            background: #ffffff; color: var(--info-ink, #2f6f8f);
+            border: 1px solid currentColor; padding: 1px 8px; margin-right: 9px;
+            vertical-align: 1px; }
+  .callout.ok h4 { color: var(--ok-ink); }
+
+  /* === Glossary tooltip (CSS only) === */
+  .gloss { border-bottom: 1px dotted var(--muted); cursor: help; position: relative; }
+  .gloss:hover::after, .gloss:focus::after {
+    content: attr(data-gloss);
+    position: absolute; left: 0; top: calc(100% + 6px);
+    background: var(--ink); color: var(--paper); padding: 8px 12px;
+    border: 1px solid var(--accent); font-size: var(--fs-cap); line-height: 1.4;
+    white-space: normal; width: 240px; z-index: 70;
+  }
+
+  /* === Cost range pill === */
+  .cost-range { display: inline-block; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .cost-range .class { color: var(--muted); font-weight: 400; font-size: var(--fs-cap); }
+
+  /* === Tables === */
+  /* Mỗi `table.data` nằm trong một `.table-wrap` — cùng lối với `.gantt-wrap`.
+     Cuộn phải đặt ở KHUNG BAO chứ không đặt trên chính thẻ <table class="cols-3">: cho <table>
+     `display: block; overflow-x: auto` thì bảng co vừa khung thay vì giữ bề rộng
+     tự nhiên, và mỗi ô teo lại còn một chữ mỗi dòng. */
+  .table-wrap { overflow-x: auto; }
+  table.data { width: 100%; border-collapse: collapse; font-size: var(--fs-data); background: var(--paper); border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); margin: 12px 0 16px; font-family: var(--font-sans); }
+  table.data th, table.data td { padding: 9px 14px 9px 0; text-align: left; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  table.data th:first-child, table.data td:first-child { padding-left: 14px; }
+  table.data th { background: transparent; font-family: var(--font-sans); font-weight: 600; font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); border-bottom: 1.5px solid var(--ink); padding-top: 12px; padding-bottom: 8px; }
+  table.data td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  table.data tr.total td { background: var(--paper-deep); font-weight: 600; border-top: 1.5px solid var(--ink); font-family: var(--font-mono); }
+  table.data tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px; border-radius:0; text-transform: uppercase; letter-spacing: 0.3px; }
+  .pill.urgent { background: var(--crit-bg); color: var(--crit-ink); }
+  .pill.soon { background: var(--warn-bg); color: var(--warn-ink); }
+  .pill.later { background: var(--info-bg); color: var(--info-ink); }
+  .pill.done { background: var(--ok-bg); color: var(--ok-ink); }
+  .pill.hoãn { background: #f4f1ea; color: var(--muted); }
+  .hm-tag { display: inline-block; background: #444; color: white; font-size: var(--fs-micro); padding: 2px 7px; border-radius:0; font-family: ui-monospace, monospace; }
+  .hm-tag.smart { background: #8a5cb8; }
+  .hm-tag.cool { background: #2d8a8a; }
+
+  /* === Group / TODO cards (preserved + tweaked) === */
+  .group-card { background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--ink); border-radius:0; padding: 16px 20px; margin-bottom: 12px; }
+  .group-card.p0 { border-left-color: var(--p0); }
+  .group-card.p1 { border-left-color: var(--p1); }
+  .group-card.p2 { border-left-color: var(--p2); }
+  .group-card.p3 { border-left-color: var(--p3); }
+  .group-card .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
+  .group-card h3 { margin: 0; font-size: var(--fs-small); font-weight: 700; }
+  .badge { font-size: var(--fs-micro); font-weight: 700; padding: 3px 8px; border-radius:0; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge.p0 { background: var(--p0); } .badge.p1 { background: var(--p1); }
+  .badge.p2 { background: var(--p2); } .badge.p3 { background: var(--p3); }
+  .group-card .desc { color: var(--muted); font-size: var(--fs-data); margin-bottom: 10px; }
+  .todo-list { list-style: none; padding: 0; margin: 0; }
+  .todo-list li { padding: 8px 0; border-top: 1px solid var(--line-soft); display: grid; grid-template-columns: 24px 80px 1fr 110px; gap: 10px; align-items: center; font-size: var(--fs-data); }
+  .todo-list li:first-child { border-top: none; }
+  .todo-list .cost { display: none; } /* cột tiền không lên bản phát hành */
+  .todo-list .check { color: var(--muted); }
+  .todo-list .task-name { font-weight: 500; }
+  .todo-list .task-note { color: var(--muted); font-size: var(--fs-cap); display: block; margin-top: 2px; line-height: 1.4; }
+  .todo-list .when { color: var(--muted); font-size: var(--fs-cap); text-align: center; }
+  .todo-list .cost { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-cap); }
+
+  /* === Climate strip === */
+  .climate-strip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin: 8px 0 16px; border: 1px solid var(--line); border-radius:0; overflow: hidden; background: var(--paper); }
+  .month-col { padding: 8px 4px; text-align: center; font-size: var(--fs-cap); }
+  .month-col .m { font-weight: 700; font-size: var(--fs-data); }
+  .month-col .t { color: var(--muted); font-size: var(--fs-micro); font-variant-numeric: tabular-nums; }
+  .month-col .bar-t { height: 22px; margin: 4px auto 2px; width: 16px; border-radius:0; }
+  .month-col .bar-r { height: 14px; margin: 1px auto 0; width: 16px; border-radius:0; }
+  .month-col.dry { background: #fef4e6; }
+  .month-col.wet { background: #e6f0fd; }
+  .climate-legend { display: flex; gap: 16px; font-size: var(--fs-cap); color: var(--muted); margin-top: 4px; flex-wrap: wrap; }
+  .climate-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .climate-legend i { display: inline-block; width: 12px; height: 12px; border-radius:0; }
+
+  /* === Palette / Mood board === */
+  .palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 10px 0 14px; }
+  .swatch { background: var(--paper); border: 1px solid var(--line); border-radius:0; overflow: hidden; }
+  .swatch .color { height: 80px; }
+  .swatch .info { padding: 8px 10px; font-size: var(--fs-cap); }
+  .swatch .info b { display: block; font-size: var(--fs-data); margin-bottom: 1px; }
+  .swatch .info span { color: var(--muted); }
+
+  /* === Room walk-through === */
+  .rooms { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+  .room { background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--ink-soft); border-radius: 0; padding: 16px 20px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 18px; }
+  .room:not(:has(.floorplan)) { grid-template-columns: 1fr; }
+  .room.focus { border-left-color: var(--accent); border-left-width: 3px; }
+  .room h3 { margin: 0 0 4px; font-size: var(--fs-body); }
+  .room .head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+  .room .meta { font-size: var(--fs-cap); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .room ul { margin: 6px 0 4px; padding-left: 18px; font-size: var(--fs-data); }
+  .room li { margin-bottom: 2px; }
+  .room .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .tag-hm { font-size: var(--fs-micro); padding: 2px 7px; border-radius:0; background: #f4f1ea; color: #444; font-family: ui-monospace, monospace; }
+  .room .floorplan { background: #faf6ee; border-radius:0; padding: 6px; display: flex; align-items: center; justify-content: center; min-height: 140px; }
+  .room .floorplan svg { width: 100%; height: auto; max-height: 180px; }
+
+  /* === Decisions table emphasis === */
+  .decisions { font-size: var(--fs-data); }
+  .decisions .deadline { font-weight: 700; }
+  .decisions .deadline.soon { color: var(--crit-ink); }
+
+  /* === Risks === */
+  .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; margin-top: 8px; }
+  .risk { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 12px 14px; }
+  .risk h4 { margin: 0 0 4px; font-size: var(--fs-small); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .risk .lvl { font-size: var(--fs-micro); font-weight: 700; padding: 2px 7px; border-radius:0; color: white; }
+  .risk .lvl.high { background: var(--p0); }
+  .risk .lvl.med { background: var(--p1); }
+  .risk .lvl.low { background: var(--p2); }
+  .risk p { margin: 4px 0; font-size: var(--fs-data); }
+  .risk .mit { color: var(--ok-ink); }
+
+  /* === Crew cards (contractor section) === */
+  .crew-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .crew-card { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 14px 18px; }
+  .crew-card h4 { margin: 0 0 3px; font-size: var(--fs-small); font-weight: 700; }
+  .crew-card .role { color: var(--muted); font-size: var(--fs-cap); margin-bottom: 10px; }
+  .crew-card ul { margin: 0; padding-left: 18px; font-size: var(--fs-data); line-height: 1.6; }
+
+  /* === Before/after slider === */
+  .ba-slider { position: relative; max-width: 720px; margin: 10px 0; border: 1px solid var(--line); border-radius:0; overflow: hidden; aspect-ratio: 4/3; background: #faf6ee; user-select: none; }
+  .ba-slider .before, .ba-slider .after { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ba-slider .after { clip-path: inset(0 0 0 50%); }
+  .ba-slider input[type=range] { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 80%; z-index: 4; }
+  .ba-slider .divider { position: absolute; top: 0; bottom: 0; width: 2px; background: white; left: 50%; transform: translateX(-1px); box-shadow: 0 0 6px rgba(0,0,0,0.3); pointer-events: none; z-index: 3; }
+  .ba-slider .lbl { position: absolute; top: 8px; padding: 3px 8px; background: rgba(0,0,0,0.7); color: white; font-size: var(--fs-cap); border-radius:0; z-index: 5; }
+  .ba-slider .lbl.l { left: 10px; } .ba-slider .lbl.r { right: 10px; }
+
+  /* === Zoomable SVG === */
+  .zoom-wrap { position: relative; border: 1px solid var(--line); border-radius:0; background: white; overflow: hidden; }
+  .zoom-wrap svg { display: block; max-width: 100%; height: auto; cursor: grab; }
+  .zoom-wrap.dragging svg { cursor: grabbing; }
+  .zoom-controls { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 4; }
+  .zoom-controls button { background: white; border: 1px solid var(--line); border-radius:0; width: 28px; height: 28px; font-size: var(--fs-small); cursor: pointer; }
+  .zoom-controls button:hover { background: #f4f1ea; }
+
+  /* === Collapsible (for contractor section) === */
+  /* ── Danh sách việc có ô tick ──────────────────────────────────────────
+     Mọi việc phải làm trên trang này đều là một dòng tick được, để nhà thầu
+     và chủ nhà soi chung một danh sách thay vì đọc lại cả đoạn văn. */
+  ul.chk { list-style: none; padding-left: 0; margin: 10px 0; }
+  ul.chk > li { position: relative; padding-left: 30px; margin: 0 0 9px; line-height: 1.55; }
+  ul.chk > li::before { content: ""; position: absolute; left: 0; top: 2px;
+      width: 16px; height: 16px; border: 1.6px solid var(--line); background: #fff; }
+  ul.chk > li.stop::before { border-color: var(--accent); border-width: 2.2px; }
+  ul.chk > li.stop { font-weight: 500; }
+  ul.chk > li .gate { display: block; font-size: var(--fs-cap); color: var(--muted);
+      font-weight: 700; margin-top: 2px; }
+  ul.chk > li .why { display: block; font-size: var(--fs-cap); color: var(--muted); margin-top: 2px; }
+  ul.chk.tight > li { margin-bottom: 5px; }
+  .chk-head { font-size: var(--fs-cap); text-transform: uppercase; letter-spacing: .6px;
+      color: var(--muted); font-weight: 700; margin: 16px 0 4px; }
+  details.collapsible { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 0; margin: 12px 0; }
+  details.collapsible > summary { padding: 12px 16px; cursor: pointer; font-weight: 600; font-size: var(--fs-small); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  details.collapsible > summary::after { content: "▾"; transition: transform 0.2s; }
+  details.collapsible[open] > summary::after { transform: rotate(180deg); }
+  details.collapsible > summary::-webkit-details-marker { display: none; }
+  details.collapsible[open] > summary { border-bottom: 1px solid var(--line-soft); }
+  details.collapsible .body { padding: 14px 18px 18px; }
+
+  /* === Gantt (preserved) === */
+  .gantt-wrap { background: var(--paper); border: 1px solid var(--line); border-radius:0; overflow-x: auto; }
+  table.gantt { border-collapse: collapse; width: 100%; min-width: 1700px; font-size: var(--fs-cap); }
+  table.gantt th, table.gantt td { border-bottom: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft); padding: 0; vertical-align: middle; height: 26px; }
+  table.gantt th { background: #f4f1ea; font-weight: 600; padding: 6px 5px; font-size: var(--fs-micro); text-align: center; }
+  table.gantt th.task-col { text-align: left; padding-left: 12px; min-width: 340px; max-width: 340px; }
+  /* Cột tên việc GHIM lại khi cuộn ngang. Bảng rộng 1700px trong khung ~1060px:
+     cuộn tới T8 mà cột tên trôi mất thì các thanh màu không còn thuộc về việc
+     nào cả. Ghim được vì hai ô này đã có nền đục sẵn (#fdfcf8 / #f4f1ea) —
+     không có nền thì nội dung phía dưới lòi qua. Bản in bỏ qua sticky, không sao:
+     ở đó bảng thu nhỏ zoom .58 và hiện trọn, không có chuyện cuộn. */
+  table.gantt th.task-col, table.gantt td.task-cell {
+    position: sticky; left: 0; z-index: 2;
+    border-right: 1px solid var(--line);
+  }
+  table.gantt tr.section-header td { position: sticky; left: 0; z-index: 2; }
+  /* Nói thẳng ra là bảng cuộn ngang. Mép phải bị cắt giữa chừng ("T6/202…")
+     trông y như lỗi dựng trang, và không có cách nào để người đọc đoán ra. */
+  .gantt-hint {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-sans); font-size: var(--fs-cap);
+    color: var(--muted); margin: 0 0 6px;
+  }
+  @media print { .gantt-hint { display: none; } }
+  table.gantt th.cost-col { width: 70px; }
+  table.gantt th.day-col { width: 14px; padding: 2px 0; font-size: var(--fs-micro); color: var(--muted); }
+  table.gantt td.task-cell { padding-left: 12px; padding-right: 8px; font-weight: 500; background: #fdfcf8; font-size: var(--fs-cap); }
+  table.gantt td.task-cell .hm-tag { font-size: var(--fs-micro); padding: 1px 6px; margin-right: 4px; }
+  table.gantt td.cost-cell { text-align: right; padding-right: 10px; background: #fdfcf8; color: var(--muted); font-variant-numeric: tabular-nums; font-size: var(--fs-micro); }
+  table.gantt td.day-cell { position: relative; padding: 0; }
+  table.gantt tr.section-header td { background: var(--ink); color: white; font-weight: 600; padding: 6px 12px; font-size: var(--fs-cap); letter-spacing: 0.5px; text-transform: uppercase; }
+  table.gantt tr.section-header.smart td { background: #5a3a8a; }
+  .bar { position: absolute; height: 17px; top: 4.5px; border-radius:0; font-size: var(--fs-micro); color: white; padding: 0 6px; line-height: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Màu thanh Gantt — xem chú thích --g-* ở :root. MỘT nguồn cho cả thanh lẫn
+     chú giải: `.legend-swatch` dùng chung đúng biến này, nên không thể lệch. */
+  .bar.prep      { background: var(--g-prep); }
+  .bar.phase-A   { background: var(--g-a); }
+  .bar.phase-B   { background: var(--g-b); }
+  .bar.phase-C   { background: var(--g-c); }
+  .bar.cabling   { background: var(--g-cabling); }
+  .bar.smart     { background: var(--g-smart); }
+  .bar.cooling   { background: var(--g-cooling); }
+  .bar.milestone { background: var(--g-milestone); width: 6px !important; }
+  .month-row th { background: #ebe6dc !important; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0 14px; font-size: var(--fs-data); }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 14px; height: 14px; border-radius:0; }
+  .legend-swatch.prep      { background: var(--g-prep); }
+  .legend-swatch.phase-A   { background: var(--g-a); }
+  .legend-swatch.phase-B   { background: var(--g-b); }
+  .legend-swatch.phase-C   { background: var(--g-c); }
+  .legend-swatch.cabling   { background: var(--g-cabling); }
+  .legend-swatch.smart     { background: var(--g-smart); }
+  .legend-swatch.cooling   { background: var(--g-cooling); }
+  .legend-swatch.milestone { background: var(--g-milestone); }
+
+  /* === Summary grid (existing class kept for Gantt) === */
+  .summary-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 10px 0 18px; }
+  .summary-card { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 14px; }
+  .summary-card .label { font-size: var(--fs-micro); color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .summary-card .value { font-size: var(--fs-h4); font-weight: 700; margin-top: 3px; }
+  .summary-card .sub { font-size: var(--fs-cap); color: var(--muted); margin-top: 2px; }
+
+  /* === Footer === */
+  .doc-foot { padding: 24px 36px; color: var(--muted); font-size: var(--fs-cap); text-align: center; border-top: 1px solid var(--line); }
+  .doc-foot a { color: var(--accent); }
+
+  /* === Mobile === */
+  @media (max-width: 900px) {
+    /* minmax(0, 1fr) chứ KHÔNG phải 1fr: rãnh lưới `1fr` có min-width:auto, nên
+       một thẻ con rộng (bảng Gantt 1700px) BÀNH rãnh ra theo mình. Cả trang khi
+       đó rộng 1246px trên màn 430px — chữ và bảng bị cắt mép phải, và
+       `.gantt-wrap { overflow-x: auto }` cũng vô hiệu vì khung chứa nó đã rộng
+       sẵn 1246px, không còn gì để cuộn. Rãnh desktop ở trên đã dùng minmax(0,1fr)
+       đúng vì lý do này; bản mobile sót lại. */
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .toc { position: fixed; top: 0; left: -260px; width: 240px; z-index: 100; transition: left 0.2s; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+    .toc.open { left: 0; }
+    .toc-toggle { display: block; position: fixed; top: 12px; left: 12px; z-index: 101; background: var(--paper); border: 1px solid var(--line); border-radius:0; width: 38px; height: 38px; font-size: var(--fs-lead); cursor: pointer;
+                  }
+    /* ── Thanh trên cùng cố định cho nút ☰ ────────────────────────────────
+       Trước đây nút ☰ nổi lơ lửng (fixed) trên nền nội dung: nó che vĩnh viễn
+       một mảng 38×38 ở góc trên-trái, nên tiêu đề mục nào trôi qua đó cũng bị
+       nuốt mất mấy chữ đầu. `.doc-header{padding-top:60px}` chỉ chừa chỗ cho
+       MÀN HÌNH ĐẦU, còn 57.000px tài liệu phía dưới thì không.
+       Cách chữa: cho nút một thanh nền ĐỤC chạy hết bề ngang, rồi đẩy cả trang
+       xuống đúng chiều cao thanh đó. Không còn gì trôi bên dưới nút nữa.
+       Làm bằng CSS thuần, không dùng JS ẩn-hiện theo chiều cuộn: tốn 52px chiều
+       cao nhưng không có trạng thái để sai, và kiểm được bằng ảnh chụp. */
+    body { padding-top: 52px; }
+    /* Bấm link mục lục là nhảy tới #anchor và đặt nó ở y=0 — tức là NGAY DƯỚI
+       thanh cố định, tiêu đề mục bị thanh che mất. Chừa sẵn chiều cao thanh. */
+    html { scroll-padding-top: 58px; }
+    /* ⚠ Thanh nền phải là ::before CỦA CHÍNH NÚT, không phải của <body>.
+       `.app` có `position: relative; z-index: 1` ⇒ nó mở một NGỮ CẢNH XẾP LỚP,
+       và nút ☰ nằm trong đó nên `z-index: 101` của nút chỉ có nghĩa BÊN TRONG
+       `.app`. So với `body::before` thì cả cụm `.app` chỉ đứng ở z=1, nên thanh
+       nền vẽ đè lên nút và nút biến mất — đã dựng đúng như vậy một lần rồi. */
+    .toc-toggle { top: 7px; left: 10px; }
+    .toc-toggle::before {
+      content: ''; position: fixed; top: 0; left: 0; right: 0; height: 52px;
+      background: var(--paper); border-bottom: 1px solid var(--line);
+      z-index: -1;              /* sau nền của nút, vẫn trong ngữ cảnh của nút */
+      pointer-events: none;     /* cả dải không thành một vùng bấm khổng lồ */
+    }
+    .doc-header { padding-top: 20px; padding-left: 16px; padding-right: 16px; }
+    .parti { font-size: var(--fs-h3); }
+    section { padding: 22px 16px; }
+    .hero-metrics, .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .room { grid-template-columns: 1fr; }
+    .crew-grid { grid-template-columns: 1fr; }
+    .todo-list li { grid-template-columns: 20px 70px 1fr; }
+    .todo-list .when, .todo-list .cost { display: none; }
+    table.data { font-size: var(--fs-cap); }
+    table.data th, table.data td { padding: 7px 8px; overflow-wrap: break-word; }
+
+    /* Bảng dữ liệu cuộn ngang TRONG khung `.table-wrap` của nó, thay vì kéo cả
+       trang rộng ra. Bảng quyết định có bề rộng tối thiểu 611px, bảng vật liệu
+       558px — không bảng nào bóp vừa màn 390px, và khi chúng đẩy trang thì MỌI
+       đoạn văn khác cũng bị đẩy theo, chữ tràn ra ngoài mép phải.
+       `min-width` là phần quan trọng: không có nó thì bảng co vừa 390px và mỗi
+       ô còn một chữ mỗi dòng — vừa khung nhưng không đọc được. */
+    .table-wrap > table.data { min-width: 560px; }
+
+    /* Dải khí hậu 12 tháng: `overflow: hidden` (bo góc) đang CẮT MẤT mấy tháng
+       cuối chứ không phải thu nhỏ chúng lại — mất dữ liệu mà không có dấu hiệu
+       gì. Cho cuộn, và đặt bề rộng tối thiểu cho mỗi cột để số còn đọc được. */
+    .climate-strip { grid-template-columns: repeat(12, minmax(44px, 1fr));
+                     overflow-x: auto; overflow-y: hidden; }
+    .meta-top { font-size: var(--fs-cap); }
+
+    /* §6 có 5 khối đặt `style="flex:1; min-width:320px|360px"` THẲNG trên thẻ.
+       Trên màn 320–375px, một thẻ con 360px kéo rộng cả trang. Style nội tuyến
+       thắng mọi selector nên phải !important — đây là chỗ dùng nó đúng nghĩa,
+       không phải để chữa cháy độ đặc hiệu. Các khối đó là sơ đồ SVG có viewBox,
+       co lại vẫn đọc được, chỉ là nhỏ hơn. */
+    [style*="min-width"] { min-width: 0 !important; }
+
+    /* Mã vật liệu trong <code> (M-WP-SIKA-LASTIC…) là một khối chữ không có chỗ
+       ngắt — ở 320px nó chọc ra ngoài 18px và kéo cả trang theo. */
+    code { overflow-wrap: anywhere; }
+
+    /* Bản thu nhỏ cho `.sheet-strip` KHÔNG đặt ở đây được — luật gốc của nó nằm
+       PHÍA DƯỚI khối @media này trong cùng một <style>, cùng độ đặc hiệu, nên
+       luật gốc thắng. Xem khối @media riêng ngay sau luật gốc `.sheet-strip`. */
+  }
+
+  /* === THIẾU — CẦN CUNG CẤP ===
+     Chip đánh dấu những thứ còn THIẾU và chủ nhà là người cung cấp.
+     Dùng màu accent để quét mắt ra ngay. */
+  .missing {
+    display: inline-block; font-family: var(--font-sans); font-size: var(--fs-micro);
+    font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--paper); background: var(--accent);
+    padding: 1px 6px; border-radius: 2px; white-space: nowrap;
+  }
+  .missing-box {
+    border: 1px solid var(--accent); border-left: 3px solid var(--accent);
+    background: var(--accent-pale); padding: 10px 12px; margin: 10px 0;
+    font-size: var(--fs-data);
+  }
+  .missing-box > strong:first-child { color: var(--accent); }
+  @media print { .missing { border: 1px solid #000; } }
+
+  /* === Print === (document-design-383 print layer · v2 2026-07-11)
+     .app grid min-content floor made every page overflow A4 width → block layout;
+     long tables flow across pages with repeated headers; Gantt gets a dedicated
+     landscape sheet; collapsibles are opened via beforeprint JS. */
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm 16mm;
+    @bottom-right { content: "Trang " counter(page) " / " counter(pages);
+                    font-family: "Roboto Mono", monospace; font-size: 9pt; color: #8a8780; }
+  }
+  @page gantt-sheet {
+    size: A4 landscape;
+    margin: 12mm 14mm;
+  }
+  @media print {
+    .table-wrap { overflow: visible !important; }
+    .toc, .toc-toggle, .zoom-controls, .ba-slider input, .sheet-frame, .img-lightbox { display: none !important; }
+    html, body { height: auto; overflow: visible; }
+    .page-scroll { position: static; overflow: visible; }
+    .app { display: block; }
+    .main { max-width: none; }
+    body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body::before { display: none; }
+    section { padding: 18px 22px; }
+    h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
+    .group-card, .room, .crew-card, .risk,
+    figure, .callout, .keep-together { page-break-inside: avoid; break-inside: avoid; }
+    table { page-break-inside: auto; }       /* long tables flow across pages… */
+    tr { page-break-inside: avoid; }         /* …but never split mid-row */
+    thead { display: table-header-group; }   /* repeat table headers across pages */
+    table.data { font-size: 8.5pt; }
+    table.data th, table.data td { overflow-wrap: break-word; }
+    p, li { orphans: 3; widows: 3; }
+    a { color: inherit; text-decoration: none; }
+    details.collapsible { border: none; }
+    details.collapsible > summary { padding: 0 0 6px; }
+    details.collapsible > summary::after { display: none; }
+    details.collapsible .body { padding: 0; }
+    .hero-metrics, .summary-grid { grid-template-columns: repeat(5, 1fr); }
+    .sheet-strip { grid-template-columns: repeat(3, minmax(0, auto)); row-gap: 10px; }
+    .risk-grid { grid-template-columns: repeat(2, 1fr); }
+    #gantt { page: gantt-sheet; }
+    .gantt-wrap { overflow: visible; zoom: 0.58; }
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     NEW COMPONENTS — title block, scale bar, north arrow,
+     annotation grammar, placeholder for illustrations to redo.
+     ════════════════════════════════════════════════════════════ */
+
+  /* Sheet metadata strip — sits at top before doc-header */
+  .sheet-strip {
+    background: var(--paper);
+    border-top: 2.5px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 36px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto auto;
+    gap: 28px;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  /* Phải nằm SAU luật gốc ngay trên: cùng độ đặc hiệu thì luật sau thắng, mà
+     khối @media (max-width: 900px) chính của tài liệu lại đứng TRƯỚC luật gốc
+     này. Đặt nhầm chỗ thì rule im lặng không có tác dụng gì.
+     6 cột + gap 28px + padding 36px cần tối thiểu 482px — một mình dải này kéo
+     rộng cả trang trên điện thoại. Xuống 2 cột. (Không phải chừa chỗ cho nút ☰
+     nữa: nút nay nằm trong thanh trên cùng cố định, cả trang đã đẩy xuống 52px.) */
+  @media (max-width: 900px) {
+    .sheet-strip { grid-template-columns: repeat(2, minmax(0, 1fr));
+                   gap: 10px 16px; padding: 14px 16px; }
+    /* Xuống 2 cột thôi vẫn chưa đủ: 6 trường + hoa gió xếp thành ~600px, tức là
+       màn hình ĐẦU TIÊN trên điện thoại toàn thông tin hành chính, phải cuộn
+       một màn rưỡi mới tới tiêu đề tài liệu. Bỏ hai trường đã nói lại ngay bên
+       dưới hoặc không dùng được trên điện thoại:
+         · Project  — dòng đầu phần hero lặp lại y nguyên địa chỉ;
+         · Scale    — "1:50–1:100" vô nghĩa trên màn 390px.
+       GIỮ Issued (kiểm bản), Phát hành để (người nhận là ai) và Trạng thái
+       (CHƯA phải IFC — câu quan trọng nhất của cả dải). */
+    .sheet-strip .field.sec { display: none; }
+    .sheet-strip .north-arrow { width: 46px; height: 46px; }
+  }
+  .sheet-strip .sheet-id {
+    font-family: var(--font-serif);
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+    font-variation-settings: "opsz" 60;
+  }
+  .sheet-strip .sheet-id small {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .sheet-strip .field { display: flex; flex-direction: column; gap: 2px; }
+  /* Ô Project nhận `1fr` trong lưới `auto 1fr auto auto auto auto`, nhưng các ô
+     `auto` sau nó chứa câu dài (Phát hành để / Trạng thái) nên chúng ăn hết bề
+     ngang và bóp `1fr` xuống bằng min-content — tên dự án rơi thành MỘT TỪ MỖI
+     DÒNG. Đặt sàn bề rộng cho ô này; câu dài ở các ô sau xuống dòng thì không sao. */
+  .sheet-strip .field.sec { min-width: 20ch; }
+  .sheet-strip .k {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+  }
+  .sheet-strip .v { color: var(--ink); font-weight: 500; }
+  .sheet-strip .v.accent { color: var(--accent); }
+
+  /* North arrow + scale bar — used inline next to drawings */
+  .north-arrow {
+    display: inline-flex;
+    width: 44px; height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    align-items: center; justify-content: center;
+    background: var(--paper);
+  }
+  .north-arrow svg { width: 32px; height: 32px; }
+
+  .scale-bar {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  .scale-bar .label { display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.12em; font-family: var(--font-sans); color: var(--muted); font-size: var(--fs-micro); }
+  .scale-bar .bar { display: flex; height: 8px; width: 160px; border: 1px solid var(--ink); }
+  .scale-bar .bar div { flex: 1; }
+  .scale-bar .bar div:nth-child(odd) { background: var(--ink); }
+  .scale-bar .ticks { display: flex; justify-content: space-between; width: 160px; margin-top: 2px; }
+
+  /* Drawing frame — wraps drawings with title block & metadata */
+  .dwg-frame {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    margin: 18px 0;
+    position: relative;
+  }
+  .dwg-frame .dwg-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 16px 8px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper-deep);
+  }
+  .dwg-frame .dwg-title {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+  }
+  .dwg-frame .dwg-num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    /* margin-left:auto để khi JS gắn thêm nhãn phóng to (thành 3 con trong một
+       flex space-between) thì số hiệu vẫn dính bên phải cạnh nhãn, chứ không
+       bị đẩy ra giữa. */
+    margin-left: auto;
+  }
+  .dwg-frame .dwg-head { gap: 10px; flex-wrap: wrap; }
+  .dwg-zoom {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  @media print { .dwg-zoom { display: none; } }
+  .dwg-frame .dwg-body { padding: 18px; }
+  .dwg-frame .dwg-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px;
+    border-top: 1px solid var(--line);
+    background: var(--paper-deep);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+
+  /* Placeholder for illustrations awaiting pipeline output */
+  .todo-illustration {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--paper-deep),
+      var(--paper-deep) 8px,
+      var(--paper) 8px,
+      var(--paper) 16px
+    );
+    border: 1.5px dashed var(--accent-soft);
+    padding: 30px 24px;
+    text-align: center;
+    color: var(--ink-soft);
+    margin: 12px 0;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .todo-illustration .label {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .todo-illustration .title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--fs-body);
+    color: var(--ink);
+    font-variation-settings: "opsz" 24;
+  }
+  .todo-illustration .pipeline {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--muted);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 3px 10px;
+    margin-top: 4px;
+  }
+  .todo-illustration .spec {
+    font-family: var(--font-sans);
+    font-size: var(--fs-cap);
+    color: var(--ink-soft);
+    max-width: 50ch;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* Annotation primitives — leader callout & dimension chain */
+  .ann-callout {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+  }
+  .ann-dim {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Pull quote — editorial element */
+  .pullquote {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--fs-h3);
+    line-height: 1.3;
+    color: var(--ink);
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 22px 0;
+    margin: 30px 0;
+    max-width: 38ch;
+    font-variation-settings: "opsz" 60;
+    font-weight: 400;
+  }
+
+  /* Body refinements — reading typography */
+  p { font-family: var(--font-sans); font-size: var(--fs-small); line-height: 1.6; max-width: 100%; }
+  code, .mono { font-family: var(--font-mono); font-size: var(--fs-cap); }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  .doc-foot { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); padding-top: 30px; border-top: 2.5px solid var(--ink); margin-top: 40px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* CAD image lightbox — click a drawing to inspect at full resolution */
+  .dwg-frame > img { cursor: zoom-in; }
+  .img-lightbox { position: fixed; inset: 0; z-index: 300; background: rgba(29,29,27,0.93); overflow: auto; display: none; cursor: zoom-out; }
+  .img-lightbox.open { display: block; }
+  .img-lightbox img { display: block; margin: 24px auto; background: #fff; }
+  .img-lightbox .hint { position: fixed; top: 14px; right: 18px; color: var(--paper); font-family: var(--font-mono); font-size: var(--fs-cap); background: rgba(0,0,0,0.55); padding: 4px 10px; letter-spacing: 0.04em; }
+
+
+  /* ── Hai thẻ: cách làm ↔ nghiệm thu ─────────────────────────────────────
+     Trang chi tiết dài, mà hai câu hỏi người đọc mang tới lại khác hẳn nhau:
+     "làm thế nào" khi đang thi công, và "kiểm cái gì" khi đã xong. Tách làm
+     hai thẻ để phần nghiệm thu không nằm lẫn ở cuối một trang cuộn dài. */
+  .tabbar{display:flex;flex-wrap:wrap;margin:0 0 24px;border-bottom:2px solid var(--accent)}
+  .tabbtn{flex:1 1 160px;min-width:140px;padding:12px 14px;border:1px solid var(--line);border-bottom:none;
+    background:var(--paper);font-family:var(--font-sans);font-size:var(--fs-cap);
+    font-weight:600;letter-spacing:0.04em;color:var(--muted);cursor:pointer;
+    text-align:left;transition:background 0.12s,color 0.12s}
+  .tabbtn+.tabbtn{border-left:none}
+  .tabbtn .sub{display:block;font-weight:400;letter-spacing:0;margin-top:3px;
+    font-size:var(--fs-micro);color:var(--muted)}
+  .tabbtn:hover{color:var(--accent)}
+  .tabbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tabbtn.on .sub{color:#f4dcd5}
+  .tabpane[hidden]{display:none}
+  /* Bản in không có chỗ bấm — in ra cả hai thẻ, nối tiếp nhau. */
+  @media print{.tabbar{display:none}.tabpane[hidden]{display:block!important}}
+
+  /* Mục "phải đo · phải chốt" đứng cuối thẻ VIỆC PHẢI LÀM. Nét ngang để mắt
+     thấy ngay đây là phần khác, không phải bước tiếp theo của danh sách. */
+  .pane-sub{margin-top:34px;padding-top:14px;border-top:2px solid var(--line);
+    font-size:var(--fs-h3)}
+
+  /* ── Danh sách BƯỚC + chi tiết BUNG TẠI CHỖ ─────────────────────────────
+     Chi tiết của từng bước bung ra ngay dưới bước đó, mặc định đóng. Không
+     ngăn kéo, không lớp phủ, không nhảy đi đâu — thợ mở đúng bước đang làm và
+     mọi thứ vẫn nằm trong mạch đọc. Bản in mở hết. */
+  .steps { list-style: none; padding: 0; margin: 14px 0 0; }
+  .step { border: 1px solid var(--line); border-left: 5px solid var(--line-soft);
+          background: var(--paper); padding: 12px 14px; margin: 0 0 10px;
+          display: grid; grid-template-columns: 40px 1fr auto; gap: 12px 12px; align-items: start; }
+  .step.stop { border-left-color: var(--accent); }
+  .step .n { font-family: var(--font-sans); font-weight: 700; font-size: 19px; color: var(--muted); line-height: 1.2; }
+  .step.stop .n { color: var(--accent); }
+  .step .t { font-weight: 600; font-size: var(--fs-small); }
+  .step .w { display: block; font-size: var(--fs-cap); color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .step .g { display: block; font-size: var(--fs-cap); color: var(--accent); margin-top: 6px; line-height: 1.5; }
+
+  /* Nút bung/thu — viền mảnh + mũi tên xoay. Khác hẳn nút điều hướng (không viền)
+     và khác hẳn thẻ (tô đặc). Ba loại điều khiển, ba hình dạng. */
+  .step-more { align-self: start; white-space: nowrap; cursor: pointer;
+               font-family: var(--font-sans); font-size: var(--fs-cap); font-weight: 600;
+               color: var(--accent); background: var(--paper); border: 1px solid var(--accent);
+               padding: 9px 12px; min-height: 44px;
+               display: inline-flex; align-items: center; gap: 7px; }
+  .step-more::after { content: "▾"; font-size: 11px; line-height: 1; transition: transform 0.18s; }
+  .step-more:hover { background: var(--accent); color: #fff; }
+  .step-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .step.open > .step-more::after { transform: rotate(180deg); }
+
+  /* Phần bung ra: chiếm hết bề ngang của thẻ bước, thụt vào cho thẳng cột chữ */
+  .detail-src { display: none; grid-column: 1 / -1; margin: 4px 0 2px 52px;
+                border-left: 3px solid var(--line); padding: 2px 0 2px 16px; }
+  .step.open > .detail-src { display: block; }
+  .detail-src > :first-child { margin-top: 0; }
+  .detail-src > :last-child { margin-bottom: 0; }
+  @media (max-width: 900px) {
+    .step { grid-template-columns: 34px 1fr; }
+    .step-more { grid-column: 1 / -1; justify-content: center; width: 100%; }
+    .detail-src { margin-left: 0; padding-left: 12px; }
+  }
+  @media print {
+    .step-more { display: none !important; }
+    .detail-src { display: block !important; }
+  }
+</style>
+<style>
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 0}
+  /* Ảnh không bao giờ được đẩy trang tràn ngang — hồ sơ này đọc trên điện thoại,
+     một tay cầm máy. Ảnh rộng hơn khung thì co lại, không đẩy cả trang. */
+  img { max-width: 100%; height: auto; }
+  figure { margin: 12px 0 8px; max-width: 100%; }
+  .doc-head h1{margin:0 0 6px}
+  main h2{margin:38px 0 10px}
+  main h3{margin:24px 0 8px}
+  .fig-full{margin:18px 0;padding:14px;border:1px solid var(--line);background:var(--paper)}
+  .table-wrap{overflow-x:auto}
+
+  /* ── DẢI ĐIỀU HƯỚNG — đi sang trang khác ────────────────────────────────
+     Cố ý KHÔNG có hộp và KHÔNG có nền: tô đặc là ngôn ngữ của THẺ đang mở, và
+     hai thứ làm việc khác nhau thì không được trông giống nhau. Ở đây chỉ có
+     một nét mảnh ôm cả dải, nhãn chữ đơn cách ở trên, tên trang ở dưới. */
+  .navbar{display:flex;flex-wrap:wrap;gap:2px 28px;margin:0 0 26px;
+          padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+          background:transparent}
+  .navbar.foot{margin:38px 0 0}
+  .btn-big{display:inline-flex;flex-direction:column;gap:3px;
+    padding:8px 0;min-height:44px;justify-content:center;
+    background:none;border:none;color:var(--ink);text-decoration:none;
+    font-family:var(--font-sans);font-size:var(--fs-small);font-weight:600;line-height:1.3;
+    border-left:3px solid transparent;padding-left:0}
+  .btn-big .k{font-family:var(--font-mono);font-size:var(--fs-micro);
+    text-transform:uppercase;letter-spacing:.14em;font-weight:500;color:var(--muted)}
+  .btn-big::after{content:" →";color:var(--muted);font-weight:400}
+  .btn-big:hover{color:var(--accent)}
+  .btn-big:hover .k{color:var(--accent)}
+  .btn-big:hover::after{color:var(--accent)}
+  .btn-big:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+  /* Nút quay lại: nhận ra bằng một VẠCH NHẤN DỌC, không phải bằng ô tô đặc */
+  .btn-big.primary{border-left:3px solid var(--accent);padding-left:12px}
+  .btn-big.primary .k{color:var(--accent)}
+  .btn-big.primary::after{content:""}
+  @media (max-width: 900px) {
+    .navbar{flex-direction:column;gap:0}
+    .navbar .btn-big + .btn-big{border-top:1px solid var(--line-soft)}
+  }
+  @media print { .navbar{border:none;padding:0} .btn-big::after{content:""} }
+
+  /* Nhãn mã việc gắn vào tiêu đề mục */
+  .jobtag{display:inline-block;font-family:var(--font-mono);font-size:var(--fs-micro);
+    font-weight:600;letter-spacing:.12em;background:var(--ink);color:var(--paper);
+    padding:3px 9px;text-transform:uppercase}
+  .job-lead{border-left:3px solid var(--accent);background:var(--paper);
+    padding:12px 16px;margin:10px 0 18px;font-size:var(--fs-small)}
+  .qbox{border:1px solid var(--line);border-top:3px solid var(--accent);
+    background:var(--paper);padding:16px 20px 6px;margin:16px 0}
+  .qbox h3{margin:0 0 4px;font-size:var(--fs-h4)}
+  .qbox .ans{font-family:var(--font-sans);font-weight:700;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.08em;font-size:var(--fs-micro);margin-bottom:6px}
+
+  /* ── HÌNH VẼ TRÊN ĐIỆN THOẠI ─────────────────────────────────────────────
+     Sơ đồ có viewBox rộng 900–1160 đơn vị. Cho nó co vừa màn 390px thì chữ
+     nhỏ nhất trong hình rơi xuống 3,0–3,8px — đo bằng trình duyệt, không phải
+     ước. Cỡ đó không đọc được, tức là hình có mặt nhưng vô dụng.
+     Cách chữa giống hệt cách đã dùng cho bảng: KHÔNG bóp hình cho vừa khung,
+     mà cho hình giữ bề rộng đủ để chữ còn đọc được rồi CUỘN NGANG bên trong
+     khung của nó. `--figmin` tính riêng cho từng hình = bề rộng viewBox ×
+     8,5px ÷ cỡ chữ nhỏ nhất trong hình, kẹp trong khoảng 520–900px.
+     ⚠ Đặt bằng biến `--figmin` chứ không viết thẳng `min-width` vào thuộc tính
+     style: luật `[style*="min-width"]{min-width:0!important}` ở khối trên sẽ
+     xoá sạch nếu viết thẳng. Và khối này phải nằm SAU luật đó để thắng. */
+  @media (max-width: 900px) {
+    .figscroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+                 overscroll-behavior-x: contain; min-width: 0; }
+    /* Khung chứa hình phải được phép HẸP HƠN nội dung của nó. `.dwg-frame` là ô
+       của một lưới, mà ô lưới mặc định có min-width:auto — nghĩa là nó BÀNH ra
+       theo đứa con rộng nhất, kéo cả trang rộng 855px trên màn 390px. Lúc đó
+       `overflow-x:auto` của khung bên trong thành vô nghĩa vì không còn gì để
+       cuộn. Đây đúng là lỗi đã ghi ở chú thích minmax(0,1fr) phía trên, chỉ
+       khác chỗ xảy ra. */
+    .dwg-frame, .fig-full, .simbar { min-width: 0; }
+    /* !important vì luật `[style*="min-width"]{min-width:0!important}` ở khối
+       trên khớp với những hình có sẵn min-width nội tuyến và sẽ xoá mất
+       --figmin. Phạm vi hẹp (chỉ svg trong .figscroll) nên không lan ra đâu. */
+    .figscroll > svg.figsvg { min-width: var(--figmin, 560px) !important; max-width: none; }
+    .figscroll::-webkit-scrollbar { height: 6px; }
+    .figscroll::-webkit-scrollbar-thumb { background: var(--line, #c9c2af); border-radius: 3px; }
+    /* Dấu hiệu cho biết hình còn kéo được — không có thì người đọc tưởng đã hết. */
+    .figscroll::after { content: "› vuốt ngang để xem hết hình";
+      display: block; font-family: var(--font-mono, monospace); font-size: 10px;
+      color: var(--muted, #6b625c); letter-spacing: 0.04em; padding: 4px 0 0; }
+  }
+  @media print {
+    .figscroll { overflow: visible !important; }
+    .figscroll > svg.figsvg { min-width: 0 !important; }
+    .figscroll::after { display: none !important; }
+  }
+
+  /* ── BỀ RỘNG BẢNG THEO SỐ CỘT ────────────────────────────────────────────
+     Đo ở màn 390px: bảng bóc khối lượng 7 cột bị nén còn 276px, cột «Đơn vị»
+     37px và một ô phải xuống 73 dòng; bảng 2 cột thì cột thứ hai còn 72–106px.
+     Bề rộng tối thiểu đặt theo SỐ CỘT để mỗi cột còn đủ chỗ cho một cụm từ,
+     rồi cuộn ngang trong khung. Số cột gắn sẵn vào class `cols-N` khi dựng. */
+  @media (max-width: 900px) {
+    .table-wrap > table[class*="cols-"] { min-width: 480px; }
+    .table-wrap > table.cols-2 { min-width: 480px; }
+    .table-wrap > table.cols-3 { min-width: 640px; }
+    .table-wrap > table.cols-4 { min-width: 740px; }
+    .table-wrap > table.cols-5 { min-width: 860px; }
+    .table-wrap > table.cols-6 { min-width: 940px; }
+    .table-wrap > table.cols-7 { min-width: 1040px; }
+    .table-wrap > table.cols-8,
+    .table-wrap > table.cols-9 { min-width: 1140px; }
+    .table-wrap > table[class*="cols-"] th,
+    .table-wrap > table[class*="cols-"] td { overflow-wrap: break-word; }
+    .table-wrap { overscroll-behavior-x: contain; }
+    .table-wrap::-webkit-scrollbar { height: 6px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: var(--line, #c9c2af); border-radius: 3px; }
+  }
+  @media print {
+    .table-wrap { overflow: visible !important; }
+    .table-wrap > table[class*="cols-"] { min-width: 0 !important; }
+  }
+
+  /* ── ĐỌC ĐƯỢC VÀ BẤM ĐƯỢC TRÊN ĐIỆN THOẠI ────────────────────────────────
+     (a) Cỡ chữ bảng: bảng giữ bề rộng đủ và cuộn ngang, nên chữ không phải
+         thu nhỏ cho vừa màn — 13px cho ô và 12px cho tiêu đề cột.
+     (b) Vùng bấm: các liên kết trong dải «Trong trang» chỉ cao 14px. Ngón tay
+         cần khoảng 36–44px. Cho chúng nở ra thành ô bấm thật. */
+  @media (max-width: 900px) {
+    .table-wrap > table[class*="cols-"] { font-size: 13px; }
+    /* Phải nhắm THẲNG vào ô, không dựa vào kế thừa từ ‹table›: chỉ cần có một
+       luật nào đó khớp trực tiếp với ‹td› (kể cả luật hạng thấp như .deriv) là
+       nó thắng giá trị kế thừa. Đo được: 159 ô vẫn đứng ở 11px vì lý do này. */
+    .table-wrap > table[class*="cols-"] td,
+    .table-wrap > table[class*="cols-"] th { font-size: 12.5px; }
+    .table-wrap > table[class*="cols-"] th { font-weight: 600; }
+    .table-wrap > table[class*="cols-"] td,
+    .table-wrap > table[class*="cols-"] th { padding: 8px 9px; }
+    .jump { display: flex; flex-wrap: wrap; gap: 6px; }
+    .jump a { display: inline-flex; align-items: center; min-height: 38px;
+              padding: 6px 12px; border: 1px solid var(--line-soft, #ddd); }
+    .sc-btn, .tabbtn { min-height: 38px; }
+    .room-filter button, .rf button { min-height: 38px; }
+  }
+</style>
+<style>
+    .pt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .ph{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:700;fill:#2b2724}
+    .pl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .ps{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .pr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+    .po{font-family:Roboto,Arial,sans-serif;font-size:10.5px;font-weight:700;fill:#6b625c;letter-spacing:0.04em}
+  </style>
+<style>
+    .qt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .qh{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:700;fill:#2b2724}
+    .ql{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .qs{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .qr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+    .qb{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#2f6f8f}
+    .qo{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#9a6b13}
+  </style>
+<style>
+    .gt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .gh{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:700;fill:#2b2724}
+    .gl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .gs{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .gr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+    .gb{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#2f6f8f}
+    .gg{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#4a6c3f}
+    .go{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#9a6b13}
+    .gx{font-family:Roboto,Arial,sans-serif;font-size:10px;font-weight:700;fill:#6b625c;letter-spacing:0.04em}
+  </style>
+<style>
+    .jt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .jh{font-family:Roboto,Arial,sans-serif;font-size:12px;font-weight:700;fill:#2b2724}
+    .jl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .js{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .jr{font-family:Roboto,Arial,sans-serif;font-size:10.5px;font-weight:700;fill:#b8412c}
+    .jnum{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#fff}
+    .jlead{fill:none;stroke:#9a908a;stroke-width:1;stroke-dasharray:4 3}
+  </style>
+<style>
+    .ct{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .ch{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:700;fill:#2b2724}
+    .cn{font-family:Roboto,Arial,sans-serif;font-size:11.5px;font-weight:600;fill:#2b2724}
+    .cs{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .cr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+    .num{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#fff}
+    .lead{fill:none;stroke:#9a908a;stroke-width:1;stroke-dasharray:3 3}
+  </style>
+<style>
+    .dt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .dh{font-family:Roboto,Arial,sans-serif;font-size:12px;font-weight:700;fill:#2b2724}
+    .dl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .ds{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .dr{font-family:Roboto,Arial,sans-serif;font-size:10.5px;font-weight:700;fill:#b8412c}
+    .db{font-family:Roboto,Arial,sans-serif;font-size:10.5px;font-weight:700;fill:#2f6f8f}
+  </style>
+<style>
+    .nt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .nh{font-family:Roboto,Arial,sans-serif;font-size:12px;font-weight:700;fill:#2b2724}
+    .nl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .ns{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .nr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+  </style>
+<style>
+    .st{font-family:Roboto,Arial,sans-serif;font-size:13px;font-weight:700;fill:#2b2724}
+    .sl{font-family:Roboto,Arial,sans-serif;font-size:11.5px;fill:#2b2724}
+    .ss{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .sr{font-family:Roboto,Arial,sans-serif;font-size:11.5px;font-weight:700;fill:#b8412c}
+    .sb{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#2f6f8f}
+    .sd{stroke:#6b625c;stroke-width:1;stroke-dasharray:4 3}
+  </style>
+<style>
+    .tt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .lb{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#2b2724}
+    .lr{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#b8412c}
+    .lc{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#2f6f8f}
+    .lg{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#4a6c3f}
+    .sb{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#6b625c}
+    .hot{stroke:#b8412c;fill:none;stroke-linecap:butt}
+    .cool{stroke:#2f6f8f;fill:none;stroke-linecap:round}
+
+</style>
+<style>
+    .lnf{fill:none;stroke:#2b2724;stroke-width:3}
+    .tt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .lb{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#2b2724}
+    .lr{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#b8412c}
+    .lc{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#2f6f8f}
+    .sb{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#6b625c}
+    .dm{font-family:Roboto,Arial,sans-serif;font-size:10px;fill:#6b625c}
+    .led{fill:none;stroke:#9a908a;stroke-width:1;stroke-dasharray:4 3}
+    .hot{stroke:#b8412c;fill:none;stroke-linecap:butt}
+    .cool{stroke:#2f6f8f;fill:none;stroke-linecap:round}
+  </style>
+<style>
+      .qt{font-family:Roboto,Arial,sans-serif;font-size:12.5px;fill:#2b2724}
+      .qv{font-family:"Roboto Mono",monospace;font-size:12.5px;font-weight:600;fill:#2b2724}
+      .qs{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    </style>
+
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   CSS RIÊNG CỦA TRANG CÔNG CỤ — KHÔI PHỤC.
+   Bộ chuyển sang khuôn thẻ thay CẢ <style> lẫn <script> của trang bằng
+   bản chuẩn của khuôn. Trang này còn chở bố cục riêng cho hai lớp canvas
+   chồng nhau, hộp điều khiển và ô kết luận; mất nó thì canvas không có
+   kích thước để tự đo, resize() trả về 0 và MÔ PHỎNG KHÔNG VẼ GÌ CẢ —
+   trang vẫn hiện đủ ô nhập nên nhìn như bình thường.
+   ⚠ Chuyển khuôn cho TRANG CÔNG CỤ thì giữ lại cả <style> lẫn <script>
+   riêng của trang. Máy kiểm: tools/subpage_check.py.
+   ══════════════════════════════════════════════════════════════════════ */
+.figcap{font-size:var(--fs-cap);color:var(--muted);margin:-6px 0 22px}
+.btn-mp{display:block;margin:0 0 22px;padding:14px 20px;background:var(--accent); color:var(--paper);font-family:var(--font-sans);font-size:var(--fs-body);font-weight:600; text-decoration:none;text-align:center;letter-spacing:0.01em;border:1px solid var(--accent)}
+.btn-mp:hover{background:#9d3524}
+.btn-mp-foot{margin:34px 0 18px}
+.sim{border:1px solid var(--line);background:var(--paper);padding:16px;margin:18px 0 8px}
+.sim-sc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
+.sim-sc-l{font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--muted); letter-spacing:0.06em;text-transform:uppercase;margin-right:4px}
+.sc-btn.is-on{background:var(--accent);color:var(--paper);border-color:var(--accent);font-weight:600}
+.sim-stage{border:1px solid var(--line-soft);background:var(--paper-deep);padding:8px}
+.sim-stage canvas{display:block;width:100%;background:var(--paper)}
+.sim-play{display:flex;align-items:center;gap:12px;margin-top:10px}
+.sim-play button{font-family:var(--font-sans);font-size:var(--fs-data);font-weight:600; padding:7px 16px;cursor:pointer;background:var(--ink);color:var(--paper);border:none;min-width:118px}
+.sim-play .posl{font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--muted); letter-spacing:0.05em;text-transform:uppercase}
+.sim-play input[type=range]{flex:1;accent-color:var(--accent)}
+.sim-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+@media (max-width:760px){
+.sim-cols{grid-template-columns:1fr}
+}
+.ctlbox{border:1px solid var(--line-soft);background:var(--paper-deep);padding:12px 14px}
+.ctlbox h4{margin:0 0 10px;font-family:var(--font-sans);font-size:var(--fs-small); font-weight:700;letter-spacing:0.02em;color:var(--ink)}
+.ctlbox h4 em{font-style:normal;font-weight:400;color:var(--muted);font-size:var(--fs-cap)}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:4px 7px;margin:0 0 11px}
+.ctl-n{flex:0 0 100%}
+.ctl input[type=range]{flex:0 0 100%}
+.ctl-n{font-size:var(--fs-data);line-height:1.35;color:var(--ink)}
+.ctl-n em{font-style:normal;color:var(--muted);font-size:var(--fs-cap)}
+.ctl input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.ctl input[type=number]{width:88px;font-family:var(--font-mono);font-size:var(--fs-data); padding:3px 6px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+.ctl .u{font-family:var(--font-mono);font-size:var(--fs-micro);color:var(--muted)}
+.ctl-chk{flex-wrap:nowrap;align-items:flex-start;gap:8px;margin-top:14px}
+.ctl-chk input{margin:3px 0 0;flex:0 0 auto}
+.ctl-chk label{flex:1 1 auto;font-size:var(--fs-data);line-height:1.4}
+.ctl-note{font-size:var(--fs-cap);color:var(--muted);margin:10px 0 0;line-height:1.5}
+.verdict{display:flex;align-items:center;gap:14px;margin-top:16px;padding:12px 16px; border:2px solid var(--line)}
+.verdict .v-tag{font-family:var(--font-sans);font-weight:700;font-size:var(--fs-h4); letter-spacing:0.04em;white-space:nowrap}
+.verdict .v-txt{font-size:var(--fs-small)}
+.verdict.is-ok{background:var(--ok-bg);border-color:var(--ok-line)}
+.verdict.is-ok .v-tag{color:var(--ok-ink)}
+.verdict.is-tight{background:var(--warn-bg);border-color:var(--warn-line)}
+.verdict.is-tight .v-tag{color:var(--warn-ink)}
+.verdict.is-bad{background:var(--crit-bg);border-color:var(--crit-line)}
+.verdict.is-bad .v-tag{color:var(--crit-ink)}
+.sim-out{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-soft); border:1px solid var(--line-soft);margin-top:14px}
+@media (max-width:760px){
+.sim-out{grid-template-columns:1fr 1fr}
+}
+.ro{background:var(--paper);padding:8px 11px;display:flex;flex-direction:column;gap:2px}
+.ro-l{font-size:var(--fs-micro);color:var(--muted);line-height:1.35}
+.ro-v{font-family:var(--font-mono);font-size:var(--fs-small);font-weight:500;color:var(--ink)}
+.ro-v.ok{color:#355020}
+.ro-v.warn{color:#6f4f10}
+.ro-v.bad{color:var(--accent)}
+.ro-big{grid-column:1 / -1;background:var(--paper-deep)}
+.ro-big .ro-l{font-size:var(--fs-cap);font-weight:600;color:var(--ink-soft)}
+.ro-big .ro-v{font-size:var(--fs-h3)}
+.fixbox{margin-top:14px;padding:12px 16px;border:1px solid var(--line);background:var(--paper-deep)}
+.fixbox h4{margin:0 0 6px;font-size:var(--fs-data);font-family:var(--font-sans); text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)}
+.fixbox ul{margin:0;padding-left:20px}
+.fixbox li{font-size:var(--fs-small);margin:4px 0;line-height:1.55}
+@media (max-width: 560px){
+.verdict { flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px 14px; }
+.verdict .v-tag { white-space: normal; }
+.sim-out { grid-template-columns: 1fr; }
+.sim { padding: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-scroll"><div class="wrap"><main>
+
+<div class="navbar">
+ <a class="btn-big primary" href="index.html#v-hm07"><span class="k">← Quay lại</span>Kế hoạch tổng thể</a>
+</div>
+
+<header class="doc-head">
+ <h1>Dốc lên hiên — xe Vespa lên xuống được</h1>
+ <p class="lead">Chi tiết việc <strong>B3 (dốc lên hiên — xe Vespa phải lên được)</strong>, thuộc <strong>HM07 (lối vào xe Vespa)</strong>. Thẻ 1 có máy tính thử để xem xe có qua được không.</p>
+</header>
+
+<div class="tabbar" role="tablist">
+ <button type="button" class="tabbtn on" role="tab" id="tab-gi"
+ aria-controls="pane-gi" aria-selected="true">1 · Việc này là gì<span class="sub">Máy tính thử khe hở bụng xe</span></button>
+ <button type="button" class="tabbtn" role="tab" id="tab-lam"
+ aria-controls="pane-lam" aria-selected="false">2 · Đích cần đạt<span class="sub">Bốn đích · điều chúng tôi lo · số phải đo</span></button>
+ <button type="button" class="tabbtn" role="tab" id="tab-vt"
+ aria-controls="pane-vt" aria-selected="false">3 · Chúng tôi tìm hiểu được<span class="sub">Hai ngưỡng hình học · hai bộ số đã thử</span></button>
+ <button type="button" class="tabbtn" role="tab" id="tab-nt"
+ aria-controls="pane-nt" aria-selected="false">4 · Nghiệm thu<span class="sub">Chạy thử bằng chính chiếc xe</span></button>
+ <button type="button" class="tabbtn" role="tab" id="tab-vs"
+ aria-controls="pane-vs" aria-selected="false">5 · Vì sao<span class="sub">Xem lại khi cần giải thích</span></button>
+</div>
+
+<div class="tabpane" id="pane-gi" role="tabpanel" aria-labelledby="tab-gi">
+<h2 id="s1"><span class="sec-num">1.</span> Việc này là gì</h2>
+<h3 id="m2">Mô phỏng — chỉnh số và xem xe có qua được không</h3>
+<p>Kéo thanh trượt, hình vẽ và các con số đổi theo ngay. Đường màu đỏ trên hình là chỗ bụng xe chạm mặt dốc. Bấm <strong>Chạy thử</strong> để cho xe đi hết con dốc.</p>
+
+<div class="sim" id="sim">
+
+ <div class="sim-sc">
+ <span class="sim-sc-l">Nạp sẵn:</span>
+ <button type="button" class="sc-btn is-on" data-sc="ht">Hiện trạng</button>
+ <button type="button" class="sc-btn" data-sc="pa1">Phương án 1 — gọt trong + nâng mép ngoài</button>
+ <button type="button" class="sc-btn" data-sc="pa2">Phương án 2 — chỉnh hình dạng + miếng đệm rời</button>
+ </div>
+
+ <div class="sim-stage">
+ <canvas id="cv" width="1240" height="430" aria-label="Mặt cắt dọc con dốc và chiếc xe chạy trên đó"></canvas>
+ <canvas id="cv2" width="1240" height="150" aria-label="Biểu đồ khe hở bụng xe theo vị trí xe trên dốc"></canvas>
+ <div class="sim-play">
+ <button type="button" id="btnPlay">▶ Chạy thử</button>
+ <label class="posl" for="c_POS">Vị trí xe</label>
+ <input type="range" id="c_POS" min="0" max="1000" step="1" value="0">
+ </div>
+ </div>
+
+ <div class="sim-cols">
+
+ <div class="ctlbox">
+ <h4>Con dốc</h4>
+
+ <div class="ctl"><span class="ctl-n">Chênh cao cần vượt <em>mặt hẻm → cốt hiên</em></span>
+ <input type="range" id="c_H" min="200" max="1200" step="10" value="750">
+ <input type="number" id="n_H" min="200" max="1200" step="10" value="750"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Chiều dài dốc <em>ngoài mép nhà</em></span>
+ <input type="range" id="c_L" min="600" max="4000" step="50" value="2100">
+ <input type="number" id="n_L" min="600" max="4000" step="50" value="2100"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Gọt vào trong nhà <em>kéo dài dốc về phía trong</em></span>
+ <input type="range" id="c_G" min="0" max="800" step="10" value="0">
+ <input type="number" id="n_G" min="0" max="800" step="10" value="0"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Nâng mép ngoài của dốc</span>
+ <input type="range" id="c_U" min="0" max="450" step="10" value="0">
+ <input type="number" id="n_U" min="0" max="450" step="10" value="0"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Chiều dài phần chân dốc kéo dài <em>miếng đệm rời hoặc phần đắp</em></span>
+ <input type="range" id="c_A" min="0" max="2500" step="50" value="0">
+ <input type="number" id="n_A" min="0" max="2500" step="50" value="0"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Bo cong chân dốc <em>bán kính</em></span>
+ <input type="range" id="c_RB" min="0" max="5000" step="100" value="0">
+ <input type="number" id="n_RB" min="0" max="5000" step="100" value="0"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Bo cong đỉnh dốc <em>bán kính</em></span>
+ <input type="range" id="c_RT" min="0" max="10000" step="100" value="0">
+ <input type="number" id="n_RT" min="0" max="10000" step="100" value="0"><span class="u">mm</span></div>
+
+ <div class="ctl ctl-chk"><input type="checkbox" id="c_REM"><label for="c_REM">Phần chân dốc kéo dài là <strong>miếng đệm rời</strong> — nhấc đi được khi có báo ngập</label></div>
+ </div>
+
+ <div class="ctlbox">
+ <h4>Chiếc xe <em>đo bằng chính xe của nhà</em></h4>
+
+ <div class="ctl"><span class="ctl-n">Khoảng sáng gầm <em>điểm thấp nhất giữa hai bánh</em></span>
+ <input type="range" id="c_C" min="60" max="140" step="1" value="90">
+ <input type="number" id="n_C" min="60" max="140" step="1" value="90"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Trục cơ sở <em>tâm bánh trước → tâm bánh sau</em></span>
+ <input type="range" id="c_W" min="1100" max="1500" step="5" value="1290">
+ <input type="number" id="n_W" min="1100" max="1500" step="5" value="1290"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Nhô trước <em>tâm bánh trước → mũi xe</em></span>
+ <input type="range" id="c_OF" min="100" max="500" step="5" value="250">
+ <input type="number" id="n_OF" min="100" max="500" step="5" value="250"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Nhô sau <em>tâm bánh sau → đuôi xe</em></span>
+ <input type="range" id="c_OR" min="100" max="600" step="5" value="270">
+ <input type="number" id="n_OR" min="100" max="600" step="5" value="270"><span class="u">mm</span></div>
+
+ <div class="ctl"><span class="ctl-n">Bán kính bánh <em>cả lốp</em></span>
+ <input type="range" id="c_RW" min="90" max="190" step="1" value="125">
+ <input type="number" id="n_RW" min="90" max="190" step="1" value="125"><span class="u">mm</span></div>
+
+ <p class="ctl-note">Mép dưới mũi trước và đuôi sau lấy ngang cao độ tâm bánh. Nếu xe có ống xả, chân chống hoặc giá chở hàng thấp hơn mức đó thì hạ ô <em>bán kính bánh</em> xuống cho khớp rồi đo lại.</p>
+ </div>
+
+ </div>
+
+ <div class="verdict" id="verdict"><span class="v-tag">—</span><span class="v-txt">Đang tính…</span></div>
+
+ <div class="sim-out">
+ <div class="ro ro-big"><span class="ro-l">Khe hở nhỏ nhất — bụng xe ↔ mặt dốc</span><span class="ro-v" id="o_belly">—</span></div>
+ <div class="ro"><span class="ro-l">Khe hở nhỏ nhất — mũi trước</span><span class="ro-v" id="o_front">—</span></div>
+ <div class="ro"><span class="ro-l">Khe hở nhỏ nhất — đuôi sau</span><span class="ro-v" id="o_rear">—</span></div>
+ <div class="ro"><span class="ro-l">Độ dốc trung bình toàn tuyến</span><span class="ro-v" id="o_avg">—</span></div>
+ <div class="ro"><span class="ro-l">Độ dốc đoạn chân dốc kéo dài</span><span class="ro-v" id="o_sp1">—</span></div>
+ <div class="ro"><span class="ro-l">Độ dốc đoạn dốc chính</span><span class="ro-v" id="o_sp2">—</span></div>
+ <div class="ro"><span class="ro-l">Độ dốc lớn nhất trên mặt hoàn thiện</span><span class="ro-v" id="o_spmax">—</span></div>
+ <div class="ro"><span class="ro-l">Góc gãy tại chân dốc</span><span class="ro-v" id="o_ab">—</span></div>
+ <div class="ro"><span class="ro-l">Góc gãy tại đỉnh dốc</span><span class="ro-v" id="o_at">—</span></div>
+ <div class="ro"><span class="ro-l">Ngưỡng: góc gãy tối đa ở mép sắc</span><span class="ro-v" id="o_lim">—</span></div>
+ <div class="ro"><span class="ro-l">Ngưỡng: bán kính bo đỉnh tối thiểu</span><span class="ro-v" id="o_rmin">—</span></div>
+ <div class="ro"><span class="ro-l">Tổng chiều dài chân dốc → cốt hiên</span><span class="ro-v" id="o_len">—</span></div>
+ </div>
+
+ <div class="fixbox" id="fixbox"></div>
+
+</div>
+
+<p class="figcap">Mô phỏng vẽ đúng tỉ lệ theo phương ngang và phương đứng. Đường đỏ đậm dưới bụng xe là đoạn đang chạm mặt dốc. Biểu đồ dưới hình là khe hở bụng xe theo suốt hành trình — phần nằm dưới vạch 0 là phần bị cà.</p>
+</div><!-- /pane-gi -->
+<div class="tabpane" id="pane-lam" role="tabpanel" aria-labelledby="tab-lam" hidden>
+<h2 id="s2"><span class="sec-num">2.</span> Đích cần đạt</h2>
+<ul class="steps"><li class="step stop"><div class="n">1</div><div><div class="t">Chiếc Vespa của nhà lên và xuống được, không cà bụng</div><span class="w">Chạy chậm như đi thật, có người ngồi, không phải rướn ga, không phải chống chân đẩy.</span><span class="g">⏸ Đây là đích duy nhất của cả việc này. Không có con số độ dốc nào thay được phép thử này.</span></div><button type="button" class="step-more" data-src="d1" data-label="Đích này đạt hay không phụ thuộc cái gì" aria-expanded="false">Đích này đạt hay không phụ thuộc cái gì</button><div class="detail-src" id="d1"><p>Thứ quyết định đích này là <strong>hình dạng hai đầu con dốc</strong> — chỗ mặt nền gãy ở chân dốc và ở đỉnh dốc — chứ không phải độ dốc của đoạn giữa. Cơ chế nằm ở thẻ «Vì sao».</p><p>Và nó phụ thuộc kích thước của <strong>chính chiếc xe của nhà</strong>, không phải một chiếc xe mẫu. Ba số đó ở <a href="#do-chinh">mục phải đo bên dưới</a>; nạp vào máy tính thử ở thẻ 1 là biết con dốc đang định làm có đạt hay không, lúc còn sửa được trên giấy.</p></div></li><li class="step stop"><div class="n">2</div><div><div class="t">Chênh cao giữa mặt hẻm và cốt hiên không bị ăn mất</div><span class="w">Chính chênh cao đó đang giữ nước ngập ở ngoài hẻm — nước ngập chưa bao giờ lên tới hiên.</span><span class="g">⏸ Thứ được nâng là mép ngoài của chính con dốc. Cốt hiên và cốt sân giữ nguyên.</span></div><button type="button" class="step-more" data-src="d2" data-label="Bốn ràng buộc quanh chuyện nước" aria-expanded="false">Bốn ràng buộc quanh chuyện nước</button><div class="detail-src" id="d2"><ul><li>Toàn bộ phần đắp thêm nằm <strong>thấp hơn cốt hiên</strong>.</li><li>Lòng hẻm trước nhà vẫn thoát được nước — không có bờ nào chắn ngang làm đọng nước ngay trước nhà.</li><li>Phần chênh cao còn phải bù thì bù bằng thứ <strong>nhấc ra được trong vài phút khi có báo ngập</strong> — đó là đích 4.</li><li><strong>Nắp hố ga và miệng thu nước trước nhà không bị phủ</strong>, vẫn mở ra kiểm được hằng năm — chúng thuộc <a href="Cong-Van-Mot-Chieu-383HaiPhong.html">C3 (cống và WC trệt)</a>.</li></ul></div></li><li class="step"><div class="n">3</div><div><div class="t">Mặt dốc không trơn khi ướt</div><span class="w">Dốc lên hiên ướt gần như quanh năm trong mùa mưa, và xe lên dốc là lúc bánh dễ trượt nhất.</span></div></li><li class="step"><div class="n">4</div><div><div class="t">Miếng đệm rời một người nhấc và cất được trong vài phút</div><span class="w">Nếu phương án cuối cùng cần tới miếng đệm.</span></div><button type="button" class="step-more" data-src="d4" data-label="Miếng đệm cần đạt gì" aria-expanded="false">Miếng đệm cần đạt gì</button><div class="detail-src" id="d4"><ul><li><strong>Một người nhấc được</strong> — chúng tôi mong mỗi mảnh không quá 25kg.</li><li><strong>Nhấc thẳng lên là ra</strong>, không cần dụng cụ.</li><li>Đặt vào là đúng vị trí, không xê dịch khi xe chạy lên, và <strong>không tạo ra một bậc mới ở chỗ gác</strong>.</li><li>Có chỗ cất sát tường hiên khi không dùng.</li></ul></div></li></ul>
+<h3 class="pane-sub" id="s2-lo">Điều chúng tôi lo</h3>
+<p style="margin:0 0 14px;">Chúng tôi không phải dân trong nghề. Đây là những thứ chúng tôi thấy lo, nêu ra để anh xác nhận hoặc nói lại cho đúng.</p>
+<div class="callout warning"><h4>Vát mép mấy phân thay cho bo cong cả cung dài</h4><p style="margin:6px 0 0;">Chúng tôi tính ra bán kính bo đỉnh dốc cần khoảng 2,3 mét với chiếc xe của nhà — tức một cung dài hơn hai mét, không phải một cái vát mép. Chúng tôi lo mép cắt vuông rồi vát một hai phân thì xe vẫn cà, mà lúc đó bê tông đã đổ.</p></div>
+<div class="callout warning"><h4>Làm gộp cả ba mức điều chỉnh cùng lúc</h4><p style="margin:6px 0 0;">Chúng tôi mong làm mức nhẹ nhất trước, mang xe ra chạy thử, rồi mới quyết có làm tiếp hay không. Điều chúng tôi sợ là làm gộp thì gọt vào trong nhà nhiều hơn mức cần, mà phần gọt đi thì không trả lại được.</p></div>
+<div class="callout warning"><h4>Đắp cố định lấn ra hẻm quá tay</h4><p style="margin:6px 0 0;">Chúng tôi lo phần đắp thành bờ chắn ngang lòng hẻm rồi làm đọng nước ngay trước nhà — tức là sửa được một việc nhưng lại sinh ra việc khác. Chúng tôi cũng chưa rõ phần lấn ra hẻm có phải xin phép không, mong anh rà giúp.</p></div>
+<div class="callout warning"><h4>Phần đắp dâng mặt đất ngoài lên quá lớp chặn ẩm chân tường</h4><p style="margin:6px 0 0;">Chân tường hiên sẽ có một lớp chặn ẩm làm ở <a href="Chan-Am-Chan-Tuong-383HaiPhong.html">D1 (chặn ẩm chân tường)</a>, và chúng tôi đọc được rằng lớp đó chỉ ăn thua khi mặt đất bên ngoài còn thấp hơn nó. Chúng tôi lo phần đắp thêm sát tường dâng mặt ngoài lên cao hơn lớp đó rồi ẩm vòng qua mà leo lên tường.</p></div>
+<div class="callout warning"><h4>Phần đắp mới tách khỏi phần bê tông cũ</h4><p style="margin:6px 0 0;">Chúng tôi lo nếu phần mới không dính được vào phần cũ thì nó tách ra và tạo lại đúng cái mép sắc vừa mất công bo đi. Cũng lo nền dưới phần đắp chưa chặt thì lún và nứt ngay mùa đầu.</p></div>
+<h3 class="pane-sub" id="s2-do">Phải đo và phải chốt</h3>
+<div class="callout info measure" id="do-chinh"><h4><span class="tag-do">Phải đo</span> Ba số, đo bằng chính chiếc xe của nhà</h4><ul class="chk tight"><li><strong>Trục cơ sở của xe</strong> — khoảng cách giữa hai trục bánh.<span class="why">Vào máy tính thử ở thẻ 1. Càng dài thì càng dễ cà bụng ở đỉnh dốc.</span></li><li><strong>Khoảng sáng gầm</strong> — chỗ thấp nhất của bụng xe cách mặt đất bao nhiêu.<span class="why">Đo lúc có người ngồi, không đo lúc xe không tải.</span></li><li><strong>Chênh cao từ mặt hẻm lên mặt hiên</strong>.<span class="why">Con số này vừa quyết định chiều dài dốc, vừa là thứ đang chặn nước ngập — không được ăn vào nó.</span></li><li><strong>Vị trí hố ga và nắp thu nước trước nhà</strong>.<span class="why">Phần đắp không được phủ lên chúng.</span></li></ul></div>
+</div><!-- /pane-lam -->
+<div class="tabpane" id="pane-vt" role="tabpanel" aria-labelledby="tab-vt" hidden>
+<h2 id="s3"><span class="sec-num">3.</span> Chúng tôi tìm hiểu được</h2>
+<div class="callout info"><p style="margin:0;">Phần này là thứ chúng tôi <strong>đọc được</strong> khi tìm hiểu, không phải thứ chúng tôi biết. Nó <strong>không ràng buộc</strong> — anh có cách khác đạt được các yêu cầu ở thẻ 2 thì cách của anh thắng. Chúng tôi để đây để anh khỏi mất công đoán chúng tôi đang hình dung cái gì.</p></div>
+
+<h3>Hai ngưỡng hình học tính ra từ kích thước xe</h3>
+<p>Phần này phục vụ <strong>đích 1 — chiếc Vespa lên xuống được</strong>. Hai công thức chúng tôi tra được, cả hai tính theo trục cơ sở và khoảng sáng gầm của chính chiếc xe:</p>
+<ul>
+<li><strong>Góc gãy lớn nhất mà xe vượt được ở một mép sắc</strong> = 2 × arctan(2 × khoảng sáng gầm ÷ trục cơ sở). Với một chiếc Vespa phổ thông — gầm 90mm, trục 1.290mm — ra khoảng <strong>16°</strong>.</li>
+<li><strong>Bán kính bo đỉnh dốc tối thiểu</strong> ≈ trục cơ sở² ÷ (8 × khoảng sáng gầm). Cùng bộ số đó ra khoảng <strong>2.300mm</strong>, tức một cung dài hơn hai mét.</li>
+</ul>
+<p>Khi hai ngưỡng đó được thoả thì độ dốc của đoạn giữa rơi vào khoảng <strong>18–20%</strong>. Chúng tôi nêu để anh hình dung, không phải để anh bám theo: kích thước xe của nhà <strong>chưa đo</strong>, ba số thật nằm ở <a href="#do-chinh">mục phải đo</a>, và thứ ràng buộc vẫn là phép chạy thử ở thẻ 4.</p>
+
+<h3>Hai bộ số hình dạng dốc chúng tôi đã thử trên máy tính ở thẻ 1</h3>
+<p>Cũng phục vụ <strong>đích 1</strong>. Đây là hai bộ số nạp sẵn trong máy tính thử ở thẻ 1; cả hai đều cho khe hở bụng xe dương suốt hành trình.</p>
+<div class="table-wrap">
+<table class="data">
+<thead><tr><th>Bộ số nạp sẵn</th><th>Gọt vào trong nhà</th><th>Nâng mép ngoài dốc</th><th>Kéo dài chân dốc</th><th>Bo chân dốc</th><th>Bo đỉnh dốc</th><th>Khe hở bụng xe còn lại</th></tr></thead>
+<tbody>
+<tr><td><strong>Phương án 1</strong> — gọt trong + nâng mép ngoài</td><td>300mm</td><td>200mm</td><td>1.300mm, phần đắp</td><td>1.000mm</td><td>3.000mm</td><td>+37mm</td></tr>
+<tr><td><strong>Phương án 2</strong> — chỉnh hình dạng + miếng đệm rời</td><td>300mm</td><td>300mm</td><td>1.800mm, miếng đệm rời</td><td>1.500mm</td><td>4.000mm</td><td>+48mm</td></tr>
+</tbody>
+</table>
+</div>
+<p>⚠ Hai bộ số này dựng trên <strong>giả định</strong> chênh cao mặt hẻm lên cốt hiên 750mm và chiều dài dốc 2.100mm — số hiện trạng chúng tôi chưa đo được. Đo xong nạp lại vào máy tính ở thẻ 1 thì kết quả có thể khác hẳn.</p>
+
+<h3>Mặt dốc khi ướt</h3>
+<p>Phục vụ <strong>đích 3 — mặt dốc không trơn khi ướt</strong>. Chỗ chúng tôi đọc được nói sân và lối đi ngoài trời ở Đà Nẵng hay dùng đá tự nhiên hoặc đá chẻ tay vì bề mặt còn nhám khi ướt, và mùa mưa ở đây dài. Ngưỡng chống trượt hay được nhắc cho mặt sàn ướt là nhóm <strong>R10–R11</strong>, nhưng nguồn chúng tôi đọc nói về sàn ướt trong nhà — chúng tôi <strong>chưa xác minh được</strong> nó áp thế nào cho một con dốc ngoài trời có xe máy chạy lên. Thứ ràng buộc vẫn chỉ là phép thử ở thẻ 4: tưới nước lên mặt dốc rồi đi bộ lên, không trượt.</p>
+
+<h3>Nước quanh lối vào</h3>
+<p>Phục vụ <strong>đích 2 — không ăn mất chênh cao giữa mặt hẻm và cốt hiên</strong>. Mấy nguyên tắc chung chúng tôi tra được cho phần sân và lối vào nhà phố Đà Nẵng; nguồn tự ghi mức tin cậy của mình là vừa phải:</p>
+<ul>
+<li>Mặt sân sát nhà đánh dốc thoát <strong>ra xa chân tường</strong>, khoảng <strong>2% trở lên</strong> (≈2cm mỗi mét) trong dải 1,5–2m đầu, rồi dẫn về rãnh hoặc ga thu có lưới chắn rác.</li>
+<li>Cao trình sân hoàn thiện <strong>thấp hơn cốt nền trong nhà</strong>, để nước mặt không tràn ngược vào.</li>
+<li>Chỗ xung yếu nhất của nước mặt là ngay trước lối vào; nguồn chúng tôi đọc đặt một <strong>rãnh thu ngang</strong> tại đó.</li>
+</ul>
+</div><!-- /pane-vt -->
+<div class="tabpane" id="pane-nt" role="tabpanel" aria-labelledby="tab-nt" hidden>
+<h2 id="s4"><span class="sec-num">4.</span> Nghiệm thu</h2>
+<div class="callout ok"><h4>Nghiệm thu bằng chính chiếc Vespa của nhà</h4><p style="margin:6px 0 0;">Chạy thử <strong>lên và xuống, mỗi chiều ba lượt</strong>, có người ngồi, tốc độ chậm như đi thật. Xe leo lên xuống ổn định, không cà bụng, không phải rướn ga, không phải chống chân đẩy — là đạt.</p></div>
+<ul class="chk"><li class="stop"><strong>Chạy thử khi lớp tạo dốc còn sửa được</strong>, trước khi hoàn thiện mặt.<span class="gate">Hoàn thiện xong mới thử là sửa gì cũng phải phá mặt.</span></li><li class="stop"><strong>Chênh cao mặt hẻm lên cốt hiên đo lại sau thi công đúng bằng số trước khi làm.</strong><span class="gate">Cốt hiên không được thay đổi — đó là thứ đang chặn nước ngập.</span></li><li><strong>Áp một thanh thước thẳng dài bằng trục cơ sở xe dọc mặt dốc</strong>, rà từ chân lên đỉnh: khe hở lớn nhất ở đoạn giữa nhỏ hơn khoảng sáng gầm — kiểm ở ít nhất năm vị trí.</li><li><strong>Chân dốc liền mặt với mặt hẻm</strong>, không có bậc hẫng, không đọng nước.</li><li><strong>Tưới nước lên mặt dốc rồi đi bộ lên</strong> — không trượt.</li><li><strong>Miếng đệm rời: một người nhấc ra và đặt lại được</strong>, đặt vào không xê dịch, không tạo bậc ở chỗ gác.</li><li class="stop"><strong>Chạy thử lại sau khi hoàn thiện mặt và sau khi đặt miếng đệm.</strong></li><li><strong>Chụp ảnh mặt cắt dốc có đặt thước</strong>, lưu vào hồ sơ.</li></ul>
+</div><!-- /pane-nt -->
+<div class="tabpane" id="pane-vs" role="tabpanel" aria-labelledby="tab-vs" hidden>
+<h2 id="s5"><span class="sec-num">5.</span> Vì sao làm như vậy</h2>
+<h3 id="m1">Vì sao độ dốc không phải là biến số quyết định</h3>
+<p>Xe đứng trên hai điểm chạm đất. Bụng xe là một đường thẳng nối hai trục bánh rồi hạ xuống đúng bằng khoảng sáng gầm. Khi mặt dốc <strong>lồi lên</strong> ở giữa hai bánh — đó chính là đỉnh dốc — thì mặt nền dâng lên trên đường bụng đó và xe cà. Khi mặt dốc <strong>lõm xuống</strong> ở chân dốc thì mũi trước hoặc đuôi sau chạm trước.</p>
+
+<div class="fig-full">
+<div class="figscroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 320" role="img" aria-label="So sánh đỉnh dốc cạnh sắc làm xe cà bụng và đỉnh dốc bo cong thì xe qua được" style="width:100%;height:auto;--figmin:690px" class="figsvg">
+ <style>
+    .gg{fill:#e2dccb;stroke:#2b2724;stroke-width:2}
+    .tt{font-family:Roboto,sans-serif;font-size:13px;fill:#2b2724}
+    .tss{font-family:Roboto,sans-serif;font-size:11.5px;fill:#6b625c}
+    .bd{font-family:Roboto,sans-serif;font-size:12px;font-weight:600;fill:#b8412c}
+    .gd{font-family:Roboto,sans-serif;font-size:12px;font-weight:600;fill:#4a6c3f}
+    .wh{fill:none;stroke:#2b2724;stroke-width:2.5}
+    .belly{stroke:#2b2724;stroke-width:2.5;fill:none}
+    .hit{stroke:#b8412c;stroke-width:6;fill:none}
+  
+</style>
+
+ <text x="20" y="26" class="tt" style="font-weight:600;fill:#b8412c">✗ Đỉnh dốc để cạnh sắc — bụng tì lên mép</text>
+ <path d="M20,215 L250,215 L440,150 L440,270 L20,270 Z" class="gg"/>
+ <circle cx="150" cy="192" r="23" class="wh"/>
+ <circle cx="392" cy="150" r="23" class="wh"/>
+ <path d="M150,192 L392,150" stroke="#8a8780" stroke-width="1" stroke-dasharray="4 3"/>
+ <path d="M150,207 L392,165" class="belly"/>
+ <path d="M236,192 L300,181" class="hit"/>
+ <text x="20" y="296" class="bd">bánh trước đã lên, bánh sau còn dưới — bụng chạm mép</text>
+
+ <text x="500" y="26" class="tt" style="font-weight:600;fill:#4a6c3f">✓ Đỉnh dốc bo cong — bụng đi qua</text>
+ <path d="M500,215 L640,215 Q760,215 830,168 L920,150 L920,270 L500,270 Z" class="gg"/>
+ <circle cx="620" cy="192" r="23" class="wh"/>
+ <circle cx="862" cy="139" r="23" class="wh"/>
+ <path d="M620,192 L862,139" stroke="#8a8780" stroke-width="1" stroke-dasharray="4 3"/>
+ <path d="M620,207 L862,154" class="belly"/>
+ <text x="500" y="296" class="gd">cùng chênh cao, cùng chiếc xe — chỉ khác hình dạng hai đầu</text>
+ <text x="20" y="316" class="tss">SƠ ĐỒ NGUYÊN LÝ — KHÔNG THEO TỈ LỆ</text>
+</svg></div>
+</div>
+
+<p>Hai hệ quả của cơ chế đó, và đây là chỗ hay bị đánh giá sai bằng mắt. Thứ nhất, góc gãy mà một chiếc xe gầm thấp trục dài chịu được là rất nhỏ — một mép trông gần như phẳng vẫn đủ để bụng xe tì lên. Thứ hai, khoảng cách hai bánh càng dài thì cung bo ở đỉnh càng phải dài theo, nên bo đỉnh dốc là một cung trải suốt mấy mét chứ không phải một nhát vát ở mép.</p>
+<p>Chuyện hình dạng đó lại không được lấn vào phần chống ngập: chênh cao giữa mặt hẻm và cốt hiên là thứ duy nhất đang giữ nước ngập ngoài hẻm, nên con dốc chỉ được dài thêm và mềm thêm về phía hẻm, không được hạ cốt hiên xuống cho gần mặt hẻm.</p>
+
+</div><!-- /pane-vs -->
+
+<div class="navbar foot">
+ <a class="btn-big primary" href="index.html#v-hm07"><span class="k">← Quay lại</span>Kế hoạch tổng thể</a>
+</div>
+<div class="doc-foot">
+ Trang chi tiết · B3 (dốc lên hiên cho xe Vespa) · 383 Hải Phòng
+</div>
+
+</main></div></div>
+
+<script>
+/* Đổi thẻ. Link trỏ tới một mục nằm trong thẻ đang đóng thì mở thẻ đó rồi mới nhảy,
+   nên dải "Trong trang" và link sâu từ Kế hoạch tổng thể vẫn tới đúng chỗ. */
+(function(){
+  var bar=document.querySelector('.tabbar'); if(!bar) return;
+  var btns=Array.prototype.slice.call(bar.querySelectorAll('.tabbtn'));
+  function show(id){
+    btns.forEach(function(b){
+      var on=b.getAttribute('aria-controls')===id;
+      b.classList.toggle('on',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+      var p=document.getElementById(b.getAttribute('aria-controls'));
+      if(p) p.hidden=!on;
+    });
+  }
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      show(b.getAttribute('aria-controls'));
+      bar.scrollIntoView({block:'start'});
+    });
+  });
+  function reveal(hash){
+    if(!hash||hash.length<2) return;
+    var t; try{ t=document.querySelector(hash);}catch(e){return;}
+    if(!t) return;
+    var pane=t.closest('.tabpane');
+    if(pane&&pane.hidden){ show(pane.id); t.scrollIntoView({block:'start'}); }
+  }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a[href^="#"]');
+    if(a) setTimeout(function(){reveal(a.getAttribute('href'));},0);
+  });
+  window.addEventListener('hashchange',function(){reveal(location.hash);});
+  reveal(location.hash);
+})();
+
+/* Bung/thu chi tiết từng bước. Chỉ bật tắt class trên chính thẻ bước —
+   không di chuyển node, không nhân bản innerHTML (nhân bản sinh id trùng và
+   làm hỏng marker/pattern của SVG nằm bên trong). */
+(function(){
+  function label(btn, open){
+    var base = btn.getAttribute('data-label') || 'Chi tiết';
+    btn.firstChild.nodeValue = open ? 'Thu gọn' : base;
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('button.step-more');
+    if(!b) return;
+    e.preventDefault();
+    var li = b.closest('.step'); if(!li) return;
+    var open = !li.classList.contains('open');
+    li.classList.toggle('open', open);
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    label(b, open);
+  });
+  /* Link sâu tới một bước: mở sẵn bước đó ra. */
+  function openFromHash(h){
+    if(!h || h.length < 2) return;
+    var t; try { t = document.querySelector(h); } catch(err) { return; }
+    if(!t) return;
+    var li = t.closest && t.closest('.step');
+    if(li && !li.classList.contains('open')){
+      var b = li.querySelector('button.step-more');
+      if(b){ li.classList.add('open'); b.setAttribute('aria-expanded','true'); label(b, true); }
+    }
+  }
+  window.addEventListener('hashchange', function(){ openFromHash(location.hash); });
+  openFromHash(location.hash);
+  /* Bản in mở hết. */
+  window.addEventListener('beforeprint', function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.step'), function(li){
+      li.classList.add('open');
+    });
+  });
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+ KỊCH BẢN MÔ PHỎNG — KHÔI PHỤC.
+ Khối này từng bị mất khi trang chuyển sang khuôn thẻ: bộ chuyển thay cả
+ <script> của trang bằng <script> chuẩn của khuôn, mà trang công cụ còn
+     chở thêm mã mô phỏng riêng. Các ô nhập, thanh trượt và <canvas> vẫn còn
+     nguyên nên không có gì báo lỗi — trang chỉ lặng lẽ hết chạy.
+     ⚠ Trang CÔNG CỤ có mã riêng: chuyển khuôn thì GIỮ LẠI mọi <script>
+     không phải kịch bản thẻ. Máy kiểm: tools/subpage_check.py.
+     ══════════════════════════════════════════════════════════════════════ -->
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   MÔ PHỎNG DỐC LÊN HIÊN — C3 (dốc lên hiên) · HM07 (lối vào xe Vespa)
+   Không dùng thư viện ngoài. Đơn vị: mm. Trục x hướng vào nhà.
+   ══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var KEYS = ['H', 'L', 'G', 'U', 'A', 'RB', 'RT', 'C', 'W', 'OF', 'OR', 'RW'];
+  var SCEN = {
+    ht:  { H: 750, L: 2100, G: 0,   U: 0,   A: 0,    RB: 0,    RT: 0,    REM: false },
+    pa1: { H: 750, L: 2100, G: 300, U: 200, A: 1300, RB: 1000, RT: 3000, REM: false },
+    pa2: { H: 750, L: 2100, G: 300, U: 300, A: 1800, RB: 1500, RT: 4000, REM: true }
+  };
+
+  var RUN_OUT = 1500;   /* đoạn hẻm vẽ thêm phía ngoài */
+  var RUN_IN  = 1600;   /* đoạn hiên vẽ thêm phía trong */
+  var DX      = 4;      /* bước lấy mẫu biên dạng */
+  var PASS    = 20;     /* khe hở tối thiểu coi là đạt (mm) */
+  var TIGHT   = 5;
+
+  /* ── tiện ích ────────────────────────────────────────────── */
+  function nrm(v) { var l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; }
+  function sub(a, b) { return [a[0] - b[0], a[1] - b[1]]; }
+  function num(x, d) {
+    var s = (Math.round(x * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d);
+    return s.replace('.', ',');
+  }
+  function grp(t) { return t.replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f'); }
+  function mm(x) { return grp(num(x, 0)) + ' mm'; }
+  function pc(x) { return num(x * 100, 1) + ' %'; }
+  function deg(x) { return num(x * 180 / Math.PI, 1) + '°'; }
+
+  /* ── biên dạng: dựng đỉnh gãy rồi bo cung ────────────────── */
+  function verts(p) {
+    var xTop = p.L + p.G;
+    var A = p.A, U = Math.min(p.U, p.H - 50);
+    if (U > 0 && A < 1) A = 1;            /* mép dựng đứng */
+    if (U <= 0) U = 0;
+    var v = [];
+    v.push([-A - RUN_OUT, 0]);
+    if (A > 0) { v.push([-A, 0]); v.push([0, U]); } else { v.push([0, 0]); }
+    v.push([xTop, p.H]);
+    v.push([xTop + RUN_IN, p.H]);
+    var o = [v[0]];
+    for (var i = 1; i < v.length; i++) {
+      if (Math.abs(v[i][0] - o[o.length - 1][0]) > 1e-6 || Math.abs(v[i][1] - o[o.length - 1][1]) > 1e-6) o.push(v[i]);
+    }
+    return o;
+  }
+
+  function fillet(V, Rsag, Rcrest) {
+    var n = V.length, inf = [], i;
+    for (i = 1; i < n - 1; i++) {
+      var d1 = nrm(sub(V[i], V[i - 1])), d2 = nrm(sub(V[i + 1], V[i]));
+      var cr = d1[0] * d2[1] - d1[1] * d2[0];
+      var dt = Math.max(-1, Math.min(1, d1[0] * d2[0] + d1[1] * d2[1]));
+      var th = Math.acos(dt);
+      var R = (cr < 0) ? Rcrest : Rsag;
+      var T = (th > 1e-6 && R > 0) ? R * Math.tan(th / 2) : 0;
+      inf.push({ d1: d1, d2: d2, cr: cr, th: th, T: T });
+    }
+    function gT(vi) { return (vi >= 1 && vi <= n - 2) ? inf[vi - 1].T : 0; }
+    function sT(vi, val) { if (vi >= 1 && vi <= n - 2) inf[vi - 1].T = val; }
+    for (var pass = 0; pass < 4; pass++) {
+      for (var s = 0; s < n - 1; s++) {
+        var Ls = Math.hypot(V[s + 1][0] - V[s][0], V[s + 1][1] - V[s][1]);
+        var t0 = gT(s), t1 = gT(s + 1);
+        if (t0 + t1 > Ls * 0.98 && t0 + t1 > 0) {
+          var k = Ls * 0.98 / (t0 + t1);
+          sT(s, t0 * k); sT(s + 1, t1 * k);
+        }
+      }
+    }
+    var pts = [V[0]];
+    for (i = 1; i < n - 1; i++) {
+      var f = inf[i - 1], b = V[i];
+      if (f.T <= 1e-6 || f.th < 1e-6) { pts.push(b); continue; }
+      var Re = f.T / Math.tan(f.th / 2);
+      var st = [b[0] - f.d1[0] * f.T, b[1] - f.d1[1] * f.T];
+      var en = [b[0] + f.d2[0] * f.T, b[1] + f.d2[1] * f.T];
+      var nv = (f.cr < 0) ? [f.d1[1], -f.d1[0]] : [-f.d1[1], f.d1[0]];
+      var ct = [st[0] + nv[0] * Re, st[1] + nv[1] * Re];
+      var a0 = Math.atan2(st[1] - ct[1], st[0] - ct[0]);
+      var a1 = Math.atan2(en[1] - ct[1], en[0] - ct[0]);
+      var da = a1 - a0;
+      while (da > Math.PI) da -= 2 * Math.PI;
+      while (da < -Math.PI) da += 2 * Math.PI;
+      var stp = Math.max(6, Math.ceil(Math.abs(da) * Re / 6));
+      pts.push(st);
+      for (var k2 = 1; k2 < stp; k2++) {
+        var aa = a0 + da * k2 / stp;
+        pts.push([ct[0] + Re * Math.cos(aa), ct[1] + Re * Math.sin(aa)]);
+      }
+      pts.push(en);
+    }
+    pts.push(V[n - 1]);
+    return pts;
+  }
+
+  function grid(pts) {
+    var x0 = pts[0][0], x1 = pts[pts.length - 1][0];
+    var m = Math.ceil((x1 - x0) / DX) + 1;
+    var y = new Float64Array(m), j = 0;
+    for (var i = 0; i < m; i++) {
+      var x = Math.min(x0 + i * DX, x1);
+      while (j < pts.length - 2 && pts[j + 1][0] < x) j++;
+      var p0 = pts[j], p1 = pts[j + 1];
+      var dxs = p1[0] - p0[0];
+      var t = (Math.abs(dxs) > 1e-9) ? (x - p0[0]) / dxs : 1;
+      if (t < 0) t = 0; if (t > 1) t = 1;
+      y[i] = p0[1] + t * (p1[1] - p0[1]);
+    }
+    return { x0: x0, x1: x1, n: m, y: y };
+  }
+
+  function at(g, arr, x) {
+    var t = (x - g.x0) / DX;
+    if (t <= 0) return arr[0];
+    if (t >= g.n - 1) return arr[g.n - 1];
+    var i = Math.floor(t), f = t - i;
+    return arr[i] + (arr[i + 1] - arr[i]) * f;
+  }
+
+  /* cao độ tâm bánh: bánh tròn bán kính r tựa lên biên dạng */
+  function wheelGrid(g, r) {
+    var out = new Float64Array(g.n), k = Math.ceil(r / DX);
+    for (var i = 0; i < g.n; i++) {
+      var best = -1e18, lo = Math.max(0, i - k), hi = Math.min(g.n - 1, i + k);
+      for (var j = lo; j <= hi; j++) {
+        var d = (j - i) * DX, s = r * r - d * d;
+        if (s < 0) continue;
+        var v = g.y[j] + Math.sqrt(s);
+        if (v > best) best = v;
+      }
+      out[i] = best;
+    }
+    return out;
+  }
+
+  /* ── xe ở một vị trí ─────────────────────────────────────── */
+  function bikeAt(xr, p, g, wg) {
+    var yr = at(g, wg, xr);
+    var lo = xr + p.W * 0.35, hi = xr + p.W;
+    for (var it = 0; it < 44; it++) {
+      var mid = (lo + hi) / 2;
+      var d = Math.hypot(mid - xr, at(g, wg, mid) - yr);
+      if (d < p.W) lo = mid; else hi = mid;
+    }
+    var xf = (lo + hi) / 2, yf = at(g, wg, xf);
+    var ux = (xf - xr) / p.W, uy = (yf - yr) / p.W;
+    var nx = -uy, ny = ux;
+    var off = p.RW - p.C;
+    function loc(u, nn) { return [xr + ux * u + nx * nn, yr + uy * u + ny * nn]; }
+    var Pr = loc(0, 0), Pf = loc(p.W, 0);
+    var Br = loc(0, -off), Bf = loc(p.W, -off);
+    var Tr = loc(-p.OR, 0), Tf = loc(p.W + p.OF, 0);
+    var seg = [[Tr, Br], [Br, Bf], [Bf, Tf]];
+    var minv = [1e9, 1e9, 1e9], minx = [0, 0, 0];
+    for (var s = 0; s < 3; s++) {
+      var a = seg[s][0], b = seg[s][1];
+      var span = b[0] - a[0];
+      var steps = Math.max(2, Math.ceil(Math.abs(span) / 6));
+      for (var q = 0; q <= steps; q++) {
+        var t = q / steps;
+        var x = a[0] + span * t, yv = a[1] + (b[1] - a[1]) * t;
+        var c = yv - at(g, g.y, x);
+        if (c < minv[s]) { minv[s] = c; minx[s] = x; }
+      }
+    }
+    return { xr: xr, xf: xf, Pr: Pr, Pf: Pf, Br: Br, Bf: Bf, Tr: Tr, Tf: Tf,
+             ux: ux, uy: uy, nx: nx, ny: ny, off: off,
+             cRear: minv[0], cBelly: minv[1], cFront: minv[2],
+             xRear: minx[0], xBelly: minx[1], xFront: minx[2] };
+  }
+
+  /* ── trạng thái ──────────────────────────────────────────── */
+  var el = {}, out = {}, P = {}, REM = false;
+  var g = null, wg = null, model = null, scan = null;
+  var posFrac = 0, playing = false, raf = 0;
+
+  var CW = 1000, CH = 430, CW2 = 1000, CH2 = 150;
+  var cv = document.getElementById('cv');
+  var cx = cv.getContext('2d');
+  var cv2 = document.getElementById('cv2');
+  var cx2 = cv2.getContext('2d');
+
+  KEYS.forEach(function (k) {
+    el[k] = document.getElementById('c_' + k);
+    el[k + 'n'] = document.getElementById('n_' + k);
+  });
+  ['belly', 'front', 'rear', 'avg', 'sp1', 'sp2', 'spmax', 'ab', 'at', 'lim', 'rmin', 'len']
+    .forEach(function (k) { out[k] = document.getElementById('o_' + k); });
+
+  function readP() {
+    KEYS.forEach(function (k) {
+      var v = parseFloat(el[k].value);
+      if (!isFinite(v)) v = 0;
+      P[k] = v;
+    });
+    if (P.U > P.H - 50) P.U = Math.max(0, P.H - 50);
+    if (P.C > P.RW - 5) P.C = P.RW - 5;
+    REM = document.getElementById('c_REM').checked;
+  }
+
+  function build() {
+    var V = verts(P);
+    var pts = fillet(V, P.RB, P.RT);
+    g = grid(pts);
+    wg = wheelGrid(g, P.RW);
+    model = { V: V, pts: pts, xTop: P.L + P.G, xToe: 0, xPad: -Math.max(P.A, (P.U > 0 ? 1 : 0)) };
+
+    var A0 = Math.max(P.A, 0), xTop0 = P.L + P.G;
+    var vxa = -(A0 + 1200), vxb = xTop0 + 1650;
+    var x0 = Math.max(g.x0 + P.OR + 30, vxa + P.OR + 20);
+    var x1 = Math.min(g.x1 - 60 - P.W - P.OF, vxb - P.W - P.OF - 20);
+    if (x1 < x0 + 10) x1 = x0 + 10;
+    var N = 90, res = [];
+    var wB = 1e9, wF = 1e9, wR = 1e9, wBpos = x0, wBx = 0;
+    for (var i = 0; i <= N; i++) {
+      var xr = x0 + (x1 - x0) * i / N;
+      var b = bikeAt(xr, P, g, wg);
+      res.push(b.cBelly);
+      if (b.cBelly < wB) { wB = b.cBelly; wBpos = xr; wBx = b.xBelly; }
+      if (b.cFront < wF) wF = b.cFront;
+      if (b.cRear < wR) wR = b.cRear;
+    }
+    scan = { x0: x0, x1: x1, res: res, wB: wB, wF: wF, wR: wR, wBpos: wBpos, wBx: wBx };
+  }
+
+  /* ── số liệu ─────────────────────────────────────────────── */
+  function numbers() {
+    var A = P.A, U = Math.min(P.U, P.H - 50);
+    if (U > 0 && A < 1) A = 1;
+    var run = A + P.L + P.G;
+    var avg = P.H / Math.max(run, 1);
+    var s1 = A > 0 ? U / A : 0;
+    var s2 = (P.H - U) / Math.max(P.L + P.G, 1);
+    var a1 = Math.atan(s1), a2 = Math.atan(s2);
+    var brkBot = Math.max(a1, Math.abs(a2 - a1));
+    var brkTop = a2;
+    var lim = 2 * Math.atan(2 * P.C / P.W);
+    var rmin = P.W * P.W / (8 * P.C);
+    var spmax = 0;
+    for (var i = 1; i < g.n; i++) {
+      var s = Math.abs(g.y[i] - g.y[i - 1]) / DX;
+      if (s > spmax) spmax = s;
+    }
+    return { run: run, avg: avg, s1: s1, s2: s2, brkBot: brkBot, brkTop: brkTop,
+             lim: lim, rmin: rmin, spmax: spmax, A: A, U: U };
+  }
+
+  function report() {
+    var N = numbers();
+    out.belly.textContent = mm(scan.wB);
+    out.belly.className = 'ro-v ' + (scan.wB >= PASS ? 'ok' : (scan.wB >= TIGHT ? 'warn' : 'bad'));
+    out.front.textContent = mm(scan.wF);
+    out.front.className = 'ro-v ' + (scan.wF >= TIGHT ? 'ok' : 'bad');
+    out.rear.textContent = mm(scan.wR);
+    out.rear.className = 'ro-v ' + (scan.wR >= TIGHT ? 'ok' : 'bad');
+    out.avg.textContent = pc(N.avg) + '  (' + deg(Math.atan(N.avg)) + ')';
+    out.sp1.textContent = N.A > 0 ? pc(N.s1) + '  (' + deg(Math.atan(N.s1)) + ')' : 'không có đoạn này';
+    out.sp2.textContent = pc(N.s2) + '  (' + deg(Math.atan(N.s2)) + ')';
+    out.spmax.textContent = pc(N.spmax);
+    out.ab.textContent = deg(N.brkBot);
+    out.ab.className = 'ro-v ' + ((P.RB > 0 || N.brkBot <= N.lim) ? 'ok' : 'bad');
+    out.at.textContent = deg(N.brkTop);
+    out.at.className = 'ro-v ' + ((P.RT >= N.rmin || N.brkTop <= N.lim) ? 'ok' : 'bad');
+    out.lim.textContent = deg(N.lim);
+    out.rmin.textContent = mm(N.rmin);
+    out.len.textContent = mm(N.run);
+
+    var v = document.getElementById('verdict');
+    var tag = v.querySelector('.v-tag'), txt = v.querySelector('.v-txt');
+    var okAll = scan.wB >= PASS && scan.wF >= TIGHT && scan.wR >= TIGHT;
+    if (okAll) {
+      v.className = 'verdict is-ok';
+      tag.textContent = 'ĐẠT';
+      txt.textContent = 'Khe hở bụng xe còn ' + mm(scan.wB) + '. Vẫn phải nghiệm thu bằng chính chiếc xe của nhà.';
+    } else if (scan.wB >= TIGHT && scan.wF >= 0 && scan.wR >= 0) {
+      v.className = 'verdict is-tight';
+      tag.textContent = 'SÁT NGƯỠNG';
+      txt.textContent = 'Khe hở bụng xe chỉ còn ' + mm(scan.wB) + '. Lốp non hơi hoặc chở thêm người là cà. Phải nới thêm.';
+    } else {
+      v.className = 'verdict is-bad';
+      tag.textContent = 'KHÔNG ĐẠT';
+      var lowest = Math.min(scan.wB, scan.wF, scan.wR);
+      txt.textContent = 'Xe chạm mặt dốc, chỗ sâu nhất ' + mm(-lowest) + '. Chi tiết cách chỉnh ở khung dưới.';
+    }
+
+    /* gợi ý chỉnh */
+    var fix = [];
+    var xTop = P.L + P.G;
+    if (scan.wB < PASS) {
+      var nearTop = Math.abs(scan.wBx - xTop) < P.W;
+      var nearBot = Math.abs(scan.wBx) < P.W * 0.9;
+      if (nearTop || (!nearBot && scan.wBx > xTop - P.W)) {
+        fix.push('<strong>Đỉnh dốc là chỗ kẹt.</strong> Bo đỉnh dốc phải đạt bán kính ít nhất <b>' + mm(N.rmin) +
+          '</b> (đang đặt ' + mm(P.RT) + '). Đây là cung dài hơn hai mét, không phải vát mép.');
+      }
+      if (nearBot) {
+        fix.push('<strong>Chân dốc là chỗ kẹt.</strong> Tăng bán kính bo chân dốc và kéo dài phần chân dốc — góc gãy ở chân đang ' +
+          deg(N.brkBot) + ', ngưỡng ở mép sắc là ' + deg(N.lim) + '.');
+      }
+      var needRun = P.H / 0.18;
+      if (N.run < needRun) {
+        fix.push('Để độ dốc trung bình về mức 18 %, tổng chiều dài từ chân dốc tới cốt hiên phải đạt <b>' + mm(needRun) +
+          '</b> (đang có ' + mm(N.run) + ' — thiếu ' + mm(needRun - N.run) + ').');
+      }
+    }
+    if (scan.wF < TIGHT) {
+      var rfront = P.OF * P.OF / (2 * Math.max(P.RW - P.C, 1));
+      fix.push('<strong>Mũi trước chạm.</strong> Chỗ chuyển từ mặt hẻm lên chân dốc phải bo bán kính ít nhất <b>' +
+        mm(rfront) + '</b>, hoặc kéo dài thêm phần chân dốc.');
+    }
+    if (scan.wR < TIGHT) {
+      fix.push('<strong>Đuôi xe chạm.</strong> Giảm độ dốc đoạn ngay sau đỉnh dốc, hoặc tăng bán kính bo đỉnh.');
+    }
+    if (P.U > 0 && P.A < 1) {
+      fix.push('<strong>Đang có bậc dựng đứng cao ' + mm(P.U) + ' ở mép ngoài.</strong> Nâng mép ngoài mà không kéo dài chân dốc thì chỉ dời chỗ kẹt ra ngoài hẻm. Đặt chiều dài phần chân dốc kéo dài lớn hơn 0.');
+    }
+    if (!fix.length) {
+      fix.push('Hình dạng này qua được trên tính toán. Bước tiếp theo: đổ lớp tạo dốc theo cữ, chờ đủ cứng, <strong>mang xe ra chạy thử</strong> rồi mới láng lớp mặt.');
+    }
+    if (P.G > 0) {
+      fix.push('Đang gọt vào trong nhà ' + mm(P.G) + ' — phần này ăn vào sàn hiên. Bước 2 và bước 3 giữ nguyên trị số này, không gọt thêm.');
+    }
+    if (P.A > 0) {
+      fix.push(REM
+        ? 'Phần chân dốc kéo dài đang khai là <strong>miếng đệm rời</strong> — nhấc đi được khi có báo ngập.'
+        : 'Phần chân dốc kéo dài đang khai là <strong>đắp cố định</strong> — đổ rồi thì không nhấc đi được khi ngập. Phần chênh nào còn bù được bằng miếng đệm rời thì bù bằng miếng đệm.');
+    }
+    document.getElementById('fixbox').innerHTML =
+      '<h4>Phải chỉnh gì</h4><ul><li>' + fix.join('</li><li>') + '</li></ul>';
+  }
+
+  /* ── vẽ ──────────────────────────────────────────────────── */
+  function view() {
+    var xTop = P.L + P.G;
+    var A = Math.max(P.A, 0);
+    var xa = -(A + 1200), xb = xTop + 1650;
+    var ya = -250, yb = P.H + 900;
+    var w = CW, h = CH;
+    var s = Math.min(w / (xb - xa), h / (yb - ya));
+    var ox = (w - (xb - xa) * s) / 2 - xa * s;
+    var oy = (h + (yb - ya) * s) / 2 + ya * s;
+    return { s: s, xa: xa, xb: xb,
+             X: function (x) { return ox + x * s; },
+             Y: function (y) { return oy - y * s; } };
+  }
+
+  function draw() {
+    var V = view(), w = CW, h = CH, i;
+    cx.clearRect(0, 0, w, h);
+    cx.fillStyle = '#faf6ec'; cx.fillRect(0, 0, w, h);
+
+    var xr = scan.x0 + (scan.x1 - scan.x0) * posFrac;
+    var b = bikeAt(xr, P, g, wg);
+
+    /* nền đất */
+    cx.beginPath();
+    cx.moveTo(V.X(g.x0), V.Y(g.y[0]));
+    for (i = 1; i < g.n; i++) cx.lineTo(V.X(g.x0 + i * DX), V.Y(g.y[i]));
+    cx.lineTo(V.X(g.x1), h); cx.lineTo(V.X(g.x0), h); cx.closePath();
+    cx.fillStyle = '#e2dccb'; cx.fill();
+    cx.strokeStyle = '#2b2724'; cx.lineWidth = 2.2;
+    cx.beginPath();
+    cx.moveTo(V.X(g.x0), V.Y(g.y[0]));
+    for (i = 1; i < g.n; i++) cx.lineTo(V.X(g.x0 + i * DX), V.Y(g.y[i]));
+    cx.stroke();
+
+    /* phần chân dốc kéo dài */
+    var A = P.A; if (P.U > 0 && A < 1) A = 1;
+    if (A > 1) {
+      cx.save();
+      cx.beginPath();
+      cx.moveTo(V.X(-A), V.Y(-400));
+      for (i = 0; i < g.n; i++) {
+        var xx = g.x0 + i * DX;
+        if (xx >= -A && xx <= 0) cx.lineTo(V.X(xx), V.Y(g.y[i]));
+      }
+      cx.lineTo(V.X(0), V.Y(-400)); cx.closePath();
+      cx.fillStyle = REM ? 'rgba(74,108,63,0.30)' : 'rgba(154,107,19,0.22)';
+      cx.fill();
+      cx.restore();
+    }
+
+    /* cốt hiên + mặt hẻm */
+    cx.setLineDash([7, 5]); cx.lineWidth = 1.2; cx.strokeStyle = '#9a9284';
+    cx.beginPath(); cx.moveTo(V.X(g.x0), V.Y(P.H)); cx.lineTo(V.X(g.x1), V.Y(P.H)); cx.stroke();
+    cx.beginPath(); cx.moveTo(V.X(g.x0), V.Y(0)); cx.lineTo(V.X(g.x1), V.Y(0)); cx.stroke();
+    /* mép nhà */
+    cx.strokeStyle = '#2b2724';
+    cx.beginPath(); cx.moveTo(V.X(P.L), V.Y(P.H + 900)); cx.lineTo(V.X(P.L), V.Y(-200)); cx.stroke();
+    cx.setLineDash([]);
+
+    /* phần gọt vào trong nhà */
+    if (P.G > 0) {
+      cx.fillStyle = 'rgba(184,65,44,0.16)';
+      cx.beginPath();
+      cx.moveTo(V.X(P.L), V.Y(P.H));
+      for (i = 0; i < g.n; i++) {
+        var x2 = g.x0 + i * DX;
+        if (x2 >= P.L && x2 <= P.L + P.G) cx.lineTo(V.X(x2), V.Y(g.y[i]));
+      }
+      cx.lineTo(V.X(P.L + P.G), V.Y(P.H)); cx.closePath(); cx.fill();
+    }
+
+    /* nhãn */
+    cx.font = '13px Roboto, sans-serif'; cx.fillStyle = '#6b625c'; cx.textAlign = 'left';
+    cx.fillText('mặt hẻm', V.X(V.xa) + 10, V.Y(0) - 8);
+    cx.textAlign = 'right';
+    cx.fillText('cốt hiên  +' + mm(P.H), V.X(V.xb) - 10, V.Y(P.H) - 8);
+    cx.textAlign = 'center';
+    cx.fillText('mép nhà', V.X(P.L), V.Y(P.H + 900) - 6);
+    if (A > 1) {
+      cx.fillStyle = REM ? '#4a6c3f' : '#9a6b13';
+      cx.fillText(REM ? 'miếng đệm rời' : 'phần đắp cố định', V.X(-A / 2), V.Y(0) + 30);
+    }
+    if (P.G > 0) {
+      cx.fillStyle = '#b8412c';
+      cx.fillText('gọt vào ' + mm(P.G), V.X(P.L + P.G / 2), V.Y(P.H) - 48);
+    }
+
+    /* xe */
+    function px(pt) { return [V.X(pt[0]), V.Y(pt[1])]; }
+    function loc(u, nn) { return [b.xr + b.ux * u + b.nx * nn, at(g, wg, b.xr) + b.uy * u + b.ny * nn]; }
+    var body = [
+      [-P.OR, 0], [-P.OR + 15, 430], [P.W * 0.12, 575], [P.W * 0.36, 615],
+      [P.W * 0.44, 505], [P.W * 0.48, 300], [P.W * 0.66, 290],
+      [P.W * 0.78, 560], [P.W * 0.86, 880], [P.W + P.OF - 70, 860],
+      [P.W + P.OF - 90, 600], [P.W + P.OF, 300], [P.W + P.OF, 0],
+      [P.W, -b.off], [0, -b.off]
+    ];
+    cx.beginPath();
+    for (i = 0; i < body.length; i++) {
+      var q = px(loc(body[i][0], body[i][1]));
+      if (i === 0) cx.moveTo(q[0], q[1]); else cx.lineTo(q[0], q[1]);
+    }
+    cx.closePath();
+    cx.fillStyle = 'rgba(43,39,36,0.10)'; cx.fill();
+    cx.strokeStyle = '#2b2724'; cx.lineWidth = 1.6; cx.stroke();
+
+    /* bánh */
+    [b.Pr, b.Pf].forEach(function (pt) {
+      var q = px(pt);
+      cx.beginPath(); cx.arc(q[0], q[1], P.RW * V.s, 0, Math.PI * 2);
+      cx.fillStyle = '#faf6ec'; cx.fill();
+      cx.lineWidth = 2.4; cx.strokeStyle = '#2b2724'; cx.stroke();
+      cx.beginPath(); cx.arc(q[0], q[1], 3, 0, Math.PI * 2);
+      cx.fillStyle = '#2b2724'; cx.fill();
+    });
+
+    /* đường bụng + chỗ chạm */
+    var Br = px(b.Br), Bf = px(b.Bf), Tr = px(b.Tr), Tf = px(b.Tf);
+    cx.lineWidth = 3; cx.strokeStyle = '#2b2724';
+    cx.beginPath(); cx.moveTo(Tr[0], Tr[1]); cx.lineTo(Br[0], Br[1]);
+    cx.lineTo(Bf[0], Bf[1]); cx.lineTo(Tf[0], Tf[1]); cx.stroke();
+
+    cx.lineWidth = 6; cx.strokeStyle = '#b8412c';
+    var segs = [[b.Tr, b.Br], [b.Br, b.Bf], [b.Bf, b.Tf]];
+    segs.forEach(function (sg) {
+      var a = sg[0], c = sg[1], span = c[0] - a[0];
+      var steps = Math.max(2, Math.ceil(Math.abs(span) / 6)), on = false;
+      cx.beginPath();
+      for (var q2 = 0; q2 <= steps; q2++) {
+        var t = q2 / steps, x = a[0] + span * t, yv = a[1] + (c[1] - a[1]) * t;
+        var cl = yv - at(g, g.y, x);
+        if (cl < 0) {
+          if (!on) { cx.moveTo(V.X(x), V.Y(yv)); on = true; } else cx.lineTo(V.X(x), V.Y(yv));
+        } else on = false;
+      }
+      cx.stroke();
+    });
+
+    /* thước khe hở nhỏ nhất tại vị trí hiện tại */
+    var xB = b.xBelly;
+    var yG = at(g, g.y, xB), yB = yG + b.cBelly;
+    cx.strokeStyle = b.cBelly < TIGHT ? '#b8412c' : '#4a6c3f';
+    cx.lineWidth = 2; cx.setLineDash([4, 3]);
+    cx.beginPath(); cx.moveTo(V.X(xB), V.Y(yG)); cx.lineTo(V.X(xB), V.Y(yB)); cx.stroke();
+    cx.setLineDash([]);
+    var lbl = mm(b.cBelly), lx = V.X(xB), ly = V.Y(Math.max(yB, yG)) - 20;
+    cx.font = '600 14px Roboto, sans-serif'; cx.textAlign = 'center';
+    var lw = cx.measureText(lbl).width + 12;
+    cx.fillStyle = 'rgba(250,246,236,0.92)';
+    cx.fillRect(lx - lw / 2, ly - 14, lw, 19);
+    cx.fillStyle = b.cBelly < TIGHT ? '#b8412c' : '#4a6c3f';
+    cx.fillText(lbl, lx, ly);
+
+    /* thước tỉ lệ */
+    cx.strokeStyle = '#6b625c'; cx.lineWidth = 1.4;
+    var mx = 40, my = h - 26, mlen = 1000 * V.s;
+    cx.beginPath(); cx.moveTo(mx, my); cx.lineTo(mx + mlen, my);
+    cx.moveTo(mx, my - 5); cx.lineTo(mx, my + 5);
+    cx.moveTo(mx + mlen, my - 5); cx.lineTo(mx + mlen, my + 5); cx.stroke();
+    cx.fillStyle = '#6b625c'; cx.font = '12px Roboto, sans-serif'; cx.textAlign = 'left';
+    cx.fillText('1 000 mm', mx + mlen + 8, my + 4);
+    cx.textAlign = 'right';
+    cx.fillText('MẶT CẮT DỌC — ĐÚNG TỈ LỆ', w - 14, 22);
+
+    drawChart(xr);
+  }
+
+  function drawChart(xrNow) {
+    var w = CW2, h = CH2;
+    cx2.clearRect(0, 0, w, h);
+    cx2.fillStyle = '#faf6ec'; cx2.fillRect(0, 0, w, h);
+    var pad = 34, top = 16, bot = h - 24;
+    var lo = Math.min(-40, scan.wB - 10), hi = Math.max(120, scan.wB + 40);
+    for (var k = 0; k < scan.res.length; k++) hi = Math.max(hi, scan.res[k]);
+    function Y(v) { return bot - (v - lo) / (hi - lo) * (bot - top); }
+    function X(i) { return pad + i / (scan.res.length - 1) * (w - pad - 20); }
+
+    cx2.strokeStyle = '#c9c2af'; cx2.lineWidth = 1;
+    cx2.beginPath(); cx2.moveTo(pad, top); cx2.lineTo(pad, bot); cx2.lineTo(w - 20, bot); cx2.stroke();
+
+    cx2.strokeStyle = '#b8412c'; cx2.setLineDash([5, 4]); cx2.lineWidth = 1.4;
+    cx2.beginPath(); cx2.moveTo(pad, Y(0)); cx2.lineTo(w - 20, Y(0)); cx2.stroke();
+    cx2.strokeStyle = '#4a6c3f';
+    cx2.beginPath(); cx2.moveTo(pad, Y(PASS)); cx2.lineTo(w - 20, Y(PASS)); cx2.stroke();
+    cx2.setLineDash([]);
+
+    cx2.beginPath();
+    for (var i = 0; i < scan.res.length; i++) {
+      var x = X(i), y = Y(scan.res[i]);
+      if (i === 0) cx2.moveTo(x, y); else cx2.lineTo(x, y);
+    }
+    cx2.strokeStyle = '#2b2724'; cx2.lineWidth = 2; cx2.stroke();
+
+    /* tô đỏ phần âm */
+    cx2.save();
+    cx2.beginPath(); cx2.rect(pad, Y(0), w - pad - 20, bot - Y(0)); cx2.clip();
+    cx2.beginPath();
+    for (var j = 0; j < scan.res.length; j++) {
+      var x3 = X(j), y3 = Y(scan.res[j]);
+      if (j === 0) cx2.moveTo(x3, y3); else cx2.lineTo(x3, y3);
+    }
+    cx2.strokeStyle = '#b8412c'; cx2.lineWidth = 3.5; cx2.stroke();
+    cx2.restore();
+
+    var fr = (xrNow - scan.x0) / Math.max(scan.x1 - scan.x0, 1);
+    var xc = pad + fr * (w - pad - 20);
+    cx2.strokeStyle = '#9a6b13'; cx2.lineWidth = 1.6;
+    cx2.beginPath(); cx2.moveTo(xc, top); cx2.lineTo(xc, bot); cx2.stroke();
+
+    cx2.fillStyle = '#6b625c'; cx2.font = '11px Roboto, sans-serif'; cx2.textAlign = 'right';
+    cx2.fillText('0', pad - 5, Y(0) + 4);
+    cx2.fillText(num(PASS, 0), pad - 5, Y(PASS) + 4);
+    cx2.textAlign = 'left';
+    cx2.fillText('KHE HỞ BỤNG XE (mm) THEO VỊ TRÍ XE — ngoài hẻm → lên hiên', pad + 6, top + 2);
+  }
+
+  /* ── vòng chạy ───────────────────────────────────────────── */
+  function recompute() {
+    readP(); build(); report(); draw();
+  }
+
+  function tick() {
+    if (!playing) return;
+    posFrac += 0.0045;
+    if (posFrac > 1) posFrac = 0;
+    document.getElementById('c_POS').value = Math.round(posFrac * 1000);
+    draw();
+    raf = window.requestAnimationFrame(tick);
+  }
+
+  /* ── nối sự kiện ─────────────────────────────────────────── */
+  KEYS.forEach(function (k) {
+    el[k].addEventListener('input', function () { el[k + 'n'].value = el[k].value; recompute(); });
+    el[k + 'n'].addEventListener('input', function () {
+      var v = parseFloat(el[k + 'n'].value);
+      if (isFinite(v)) { el[k].value = v; recompute(); }
+    });
+  });
+  document.getElementById('c_REM').addEventListener('change', recompute);
+  document.getElementById('c_POS').addEventListener('input', function () {
+    posFrac = parseFloat(this.value) / 1000; draw();
+  });
+  document.getElementById('btnPlay').addEventListener('click', function () {
+    playing = !playing;
+    this.textContent = playing ? '❚❚ Dừng' : '▶ Chạy thử';
+    if (playing) raf = window.requestAnimationFrame(tick);
+    else window.cancelAnimationFrame(raf);
+  });
+
+  var btns = document.querySelectorAll('.sc-btn');
+  for (var bi = 0; bi < btns.length; bi++) {
+    btns[bi].addEventListener('click', function () {
+      var s = SCEN[this.getAttribute('data-sc')];
+      for (var bj = 0; bj < btns.length; bj++) btns[bj].className = 'sc-btn';
+      this.className = 'sc-btn is-on';
+      KEYS.forEach(function (k) {
+        if (s.hasOwnProperty(k)) { el[k].value = s[k]; el[k + 'n'].value = s[k]; }
+      });
+      document.getElementById('c_REM').checked = !!s.REM;
+      posFrac = 0;
+      document.getElementById('c_POS').value = 0;
+      recompute();
+    });
+  }
+
+  function fitCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    CW = cv.clientWidth || 1000; CH = 430;
+    CW2 = cv2.clientWidth || 1000; CH2 = 150;
+    cv.width = Math.round(CW * dpr); cv.height = Math.round(CH * dpr);
+    cv.style.height = CH + 'px';
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cv2.width = Math.round(CW2 * dpr); cv2.height = Math.round(CH2 * dpr);
+    cv2.style.height = CH2 + 'px';
+    cx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  window.addEventListener('resize', function () { fitCanvas(); draw(); });
+  fitCanvas();
+  recompute();
+
+  window.RAMP = { bikeAt: bikeAt, verts: verts, fillet: fillet, grid: grid, wheelGrid: wheelGrid };
+})();
+
+</script>
+<link rel="stylesheet" href="binh-luan.css">
+<script>window.BINH_LUAN_CAU_HINH={"url": "https://butoxfkbpcycadwjtbga.supabase.co", "khoa": "sb_publishable_S4Ixp42EgGUUZlhrbY1flA_TZzrbLc0"};</script>
+<script src="binh-luan.js" defer></script>
+</body>
+</html>

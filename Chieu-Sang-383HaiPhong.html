@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C9 — Chiếu sáng · 383 Hải Phòng</title>
+<style>
+  /* ════════════════════════════════════════════════════════════
+     FRAME RETROFIT — 2026-05-18
+     Locked decisions: Merriweather + Roboto + Roboto Mono ·
+     accent terracotta #b8412c · cream paper · Sistema Constructivo
+     archetype reference.
+     ════════════════════════════════════════════════════════════ */
+  * { box-sizing: border-box; }
+  :root {
+    /* Paper & ink */
+    --bg: #f3efe6; --paper: #faf6ec; --paper-deep: #ebe5d6;
+    /* --muted phải đọc được: nó gánh TOÀN BỘ nhãn khung tên, phụ đề mục lục,
+       mô tả ô màu, số hiệu bản vẽ — tất cả ở cỡ 11–12px. Giá trị cũ #8a8780
+       chỉ đạt 3,32:1 trên giấy, dưới ngưỡng AA 4,5:1 cho chữ thường; đọc ngoài sáng là mất chữ. #6f6c64 đạt 4,86:1 trên giấy · 4,57:1 trên nền —
+       qua ngưỡng ở cả hai, sắc độ gần như không đổi. */
+    --ink: #1d1d1b; --ink-soft: #4a4a46; --muted: #6f6c64;
+    --line: #c9c2af; --line-soft: #d8d2c0;
+
+    /* Accent — terracotta (ratified 2026-07-07) */
+    --accent: #b8412c; --accent-soft: #d4856e; --accent-pale: #f0ddd4;
+
+    /* Audience chips (client follows accent = owner primary; kts/contractor as counterpoints) */
+    --client: #b8412c; --kts: #4a6c3f; --contractor: #9a6b13; --all: #2c2c2c;
+
+    /* Priority tiers (P0 = accent terracotta, P1/P2/P3 distinguishable) */
+    --p0: #b8412c; --p1: #9a6b13; --p2: #4a6c3f; --p3: #8a8780;
+
+    /* Thang màu Gantt (§14) — 8 nhóm việc. Đặt thành token vì TRƯỚC ĐÂY thanh
+       và chú giải tô màu ở hai chỗ khác nhau (thanh dùng var(), chú giải dán hex
+       thẳng vào HTML) nên chúng lệch nhau mà không ai kiểm: chú giải ghi "A —
+       Thô & MEP" màu XANH DƯƠNG #3a6fb0 trong khi thanh A thật ra màu XANH LÁ
+       var(--p2), và "Milestone" ghi #b8324a còn mốc thật là terracotta. Nhà thầu
+       đọc lịch theo màu — chú giải sai là lỗi nội dung, không phải lỗi thẩm mỹ.
+
+       Phân biệt bằng SẮC, không bằng độ sáng: cả 8 đều ≥4,5:1 với chữ trắng nằm
+       trên thanh (thấp nhất --g-prep 4,71:1). Trong mỗi nghề, bước sau nhạt hơn
+       bước trước: thô(đậm)→hoàn thiện(nhạt), đi dây(đậm)→lắp thiết bị(nhạt).
+       Terracotta CHỈ dành cho mốc — nó là màu nhấn của cả tài liệu. */
+    --g-prep:      #78736a;   /* chuẩn bị — xám ấm trung tính */
+    --g-a:         #8a5426;   /* A — thô & MEP: nâu đất, việc nặng nhất */
+    --g-b:         #8f6218;   /* B — hoàn thiện: hoàng thổ, cùng họ, nhạt hơn */
+    --g-c:         #46683c;   /* C — điện/nước: sage, cùng họ --kts */
+    --g-cabling:   #33505d;   /* smart đi dây (GĐ1, trong tường) — lam đá đậm */
+    --g-smart:     #54707d;   /* smart lắp đặt (GĐ2, ngoài tường) — cùng họ, nhạt */
+    --g-cooling:   #2a7676;   /* làm mát — lục lam */
+    --g-milestone: #b8412c;   /* mốc — terracotta, dành riêng */
+
+    /* Callout palettes (muted, paper-compatible) */
+    --warn-bg: #f5ecd6; --warn-line: #c9a85a; --warn-ink: #6f4f10;
+    --crit-bg: #f0d9d1; --crit-line: #b86f5a; --crit-ink: #6f2515;
+    --info-bg: #e6e3da; --info-line: #9a9284; --info-ink: #43413a; /* warm neutral note (was cool blue — retuned to fit the warm system) */
+    --ok-bg: #dde3d1; --ok-line: #7a8a5e; --ok-ink: #355020;
+
+    /* Typography stack */
+    --font-serif: "Merriweather", Georgia, "Times New Roman", serif;
+    --font-sans: "Roboto", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", monospace;
+
+    /* Modular type scale (document-design-383 skill; --fs-micro tier for dense
+       technical labels: drawing annotations, sheet-strip, legends) */
+    --fs-micro:   0.6875rem; /* 11px  drawing labels, metadata strips, legends */
+    --fs-cap:     0.75rem;   /* 12px  captions, footnotes */
+    --fs-data:    0.8125rem; /* 13px  dense table cells, HM codes */
+    --fs-small:   0.875rem;  /* 14px  body (this doc's dense base), secondary */
+    --fs-body:    1rem;      /* 16px  comfortable reading */
+    --fs-lead:    1.125rem;  /* 18px  lead paragraph */
+    --fs-h4:      1.25rem;   /* 20px */
+    --fs-h3:      1.5rem;    /* 24px */
+    --fs-h2:      1.875rem;  /* 30px */
+    --fs-h1:      2.375rem;  /* 38px  document / section title */
+    --fs-display: 3.5rem;    /* 56px  cover hero only */
+
+    /* 8pt spacing grid (tokens available for new work; legacy spacing untouched) */
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px; --sp-24: 96px;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--ink);
+    /* Vietnamese: stacked tone marks (ế, ộ, ữ) need generous leading to avoid collision */
+    line-height: 1.62;
+    font-size: var(--fs-small);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    position: relative;
+  }
+  .app, .doc-foot { position: relative; z-index: 1; }
+
+  /* ── SIGNATURE: drawing-sheet frame (crop marks + coordinate grid) ──
+     Frames the entire scroll as one titled architectural sheet. */
+  .sheet-frame { position: fixed; inset: 9px; pointer-events: none; z-index: 60; border: 1px solid var(--ink); }
+  .sheet-frame .cm { position: absolute; width: 15px; height: 15px; border-color: var(--accent); border-style: solid; border-width: 0; }
+  .sheet-frame .cm.tl { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
+  .sheet-frame .cm.tr { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
+  .sheet-frame .cm.bl { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
+  .sheet-frame .cm.br { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+  .sheet-frame .coord { position: absolute; font-family: var(--font-mono); font-size: 9px; color: var(--muted); letter-spacing: 0.05em; background: var(--bg); padding: 0 3px; }
+  .sheet-frame .coord.top { top: -6px; }
+  .sheet-frame .coord.bottom { bottom: -6px; }
+  .sheet-frame .coord.left { left: -6px; writing-mode: vertical-rl; padding: 3px 0; }
+  .sheet-frame .coord.right { right: -6px; writing-mode: vertical-rl; padding: 3px 0; }
+  @media (max-width: 900px) { .sheet-frame { display: none; } }
+
+  /* Sheet window — the document scrolls INSIDE the frame with a 17px gutter
+     to the border line, so content can never pass under it (real drafting
+     sheets keep a margin between border and content). Desktop only; mobile
+     hides the frame and keeps native scroll. */
+  @media (min-width: 901px) {
+    html, body { height: 100%; overflow: hidden; }
+    .page-scroll { position: fixed; inset: 26px; overflow-y: auto; z-index: 1; outline: none; }
+    .toc { height: calc(100vh - 52px); } /* = window height, so the sticky TOC bottom is never clipped */
+  }
+
+  /* === App layout: sticky TOC + main === */
+  .app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+  .toc { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--paper); border-right: 1px solid var(--line); padding: 22px 20px 28px; font-size: var(--fs-data); font-family: var(--font-sans); }
+  .toc h3 { margin: 0 0 4px; font-family: var(--font-serif); font-size: var(--fs-lead); font-weight: 500; letter-spacing: -0.01em; color: var(--ink); font-variation-settings: "opsz" 30; }
+  .toc .sub { color: var(--muted); font-size: var(--fs-micro); margin-bottom: 18px; line-height: 1.4; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .toc ol { list-style: none; padding: 0; margin: 0; counter-reset: tocnum; }
+  .toc li { padding: 0; counter-increment: tocnum; }
+  .toc a { display: block; padding: 6px 10px 6px 30px; color: var(--ink-soft); text-decoration: none; border-left: 1px solid var(--line-soft); position: relative; transition: color 0.12s; }
+  .toc a::before { content: counter(tocnum, decimal-leading-zero); position: absolute; left: 10px; top: 6px; font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); letter-spacing: 0.06em; }
+  .toc a:hover { color: var(--accent); border-left-color: var(--accent-soft); }
+  .toc a.active { color: var(--accent); border-left: 2px solid var(--accent); padding-left: 29px; font-weight: 600; background: var(--accent-pale); }
+  .toc-toggle { display: none; }
+  .toc-sub { list-style: none; margin: 0 0 2px; padding: 0 0 0 24px; }
+  .toc-sub li { counter-increment: none; }
+  .toc-sub a { font-size: 11px; padding: 2px 10px 2px 5px; color: var(--ink-soft); }
+  .toc-sub a::before { content: none; }
+  h3[id] { scroll-margin-top: 14px; }
+
+  .main { padding: 0; width: 100%; max-width: 1280px; margin-inline: auto; }
+  section { padding: 44px 40px; border-bottom: 1px solid var(--line-soft); scroll-margin-top: 10px; }
+  section:last-child { border-bottom: none; }
+
+  /* === Header / Hero === */
+  .doc-header { background: var(--paper); padding: 36px 40px 30px; border-bottom: 2px solid var(--ink); }
+  .meta-top { color: var(--ink-soft); font-size: var(--fs-cap); margin-bottom: 18px; display: flex; flex-wrap: wrap; gap: 14px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .meta-top .version { background: var(--accent); color: var(--paper); padding: 2px 8px; border-radius: 0; font-weight: 600; font-family: var(--font-mono); letter-spacing: 0.06em; }
+  .parti {
+    margin: 0 0 10px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: 0;
+    /* Vietnamese display: extra leading so upper tone marks (Đà, ượ) clear the line above */
+    line-height: 1.22;
+    max-width: 100%;
+  }
+  .parti em { color: var(--accent); font-style: italic; font-weight: 500; }
+  .parti-sub { margin: 0 0 22px; color: var(--ink-soft); font-size: var(--fs-small); max-width: 100%; font-family: var(--font-serif); font-style: italic; font-weight: 400; font-variation-settings: "opsz" 36; }
+
+  .hero-metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .m-card { background: var(--paper); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; padding: 14px 16px; }
+  .m-label { font-family: var(--font-sans); font-size: var(--fs-micro); color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+  .m-value { font-family: var(--font-mono); font-size: var(--fs-h4); font-weight: 500; margin-top: 4px; color: var(--ink); letter-spacing: -0.01em; }
+  .m-sub { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); margin-top: 3px; letter-spacing: 0.04em; }
+
+  /* === Section heading === */
+  h2 {
+    margin: 0 0 12px;
+    font-family: var(--font-sans);
+    font-size: var(--fs-small);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+    color: var(--ink);
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+  }
+  /* terracotta datum segment on the section rule — drafting cue */
+  h2::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 56px; height: 2px; background: var(--accent); }
+  h2 .sec-num { font-family: var(--font-serif); color: var(--accent); font-style: italic; font-weight: 500; font-size: var(--fs-body); text-transform: none; letter-spacing: 0; }
+  h2 .count { color: var(--muted); font-weight: 400; font-size: var(--fs-micro); margin-left: auto; font-family: var(--font-mono); letter-spacing: 0.06em; }
+  h3 { margin: 22px 0 8px; font-family: var(--font-serif); font-size: var(--fs-h4); font-weight: 500; line-height: 1.2; color: var(--ink); font-variation-settings: "opsz" 30; }
+  h4 { margin: 16px 0 6px; font-family: var(--font-sans); font-size: var(--fs-micro); font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.1em; }
+  .lead { color: var(--ink-soft); font-family: var(--font-serif); font-style: italic; font-size: var(--fs-body); margin: 8px 0 18px; max-width: 100%; line-height: 1.5; font-variation-settings: "opsz" 30; font-weight: 400; }
+
+  /* === Audience chips === */
+  .aud-chip { display: inline-block; font-family: var(--font-sans); font-size: var(--fs-micro); font-weight: 600; padding: 2px 9px; border-radius: 0; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid currentColor; }
+  .aud-chip.client { background: var(--accent-pale); color: var(--client); }
+  .aud-chip.kts { background: var(--ok-bg); color: var(--kts); }
+  .aud-chip.contractor { background: var(--warn-bg); color: var(--contractor); }
+  .aud-chip.all { background: var(--paper-deep); color: var(--all); }
+
+  /* === Callouts === */
+  .callout { border-radius:0; padding: 14px 18px; margin: 12px 0 16px; font-size: var(--fs-small); line-height: 1.6; }
+  .callout h4 { margin: 0 0 6px; font-size: var(--fs-small); font-weight: 700; }
+  .callout ul, .callout ol { margin: 4px 0 0; padding-left: 20px; }
+  .callout li { margin-bottom: 3px; }
+  .callout code { background: rgba(255,255,255,0.6); padding: 1px 5px; border-radius:0; font-size: var(--fs-cap); }
+  .callout.critical { background: var(--crit-bg); border: 1px solid var(--crit-line); }
+  .callout.critical h4 { color: var(--crit-ink); }
+  .callout.warning { background: var(--warn-bg); border: 1px solid var(--warn-line); }
+  .callout.warning h4 { color: var(--warn-ink); }
+  .callout.info { background: var(--info-bg); border: 1px solid var(--info-line); }
+  .callout.info h4 { color: var(--info-ink); }
+  .callout.ok { background: var(--ok-bg); border: 1px solid var(--ok-line); }
+  /* Khối «Phải đo» — việc đo tại hiện trường, đặt trong đúng mục của nó.
+     Nhãn .tag-do để lọc lại được cả trang bằng mắt và bằng grep. */
+  .callout.measure { border-left: 4px solid var(--info-ink, #2f6f8f); }
+  /* Mã lớp L1–L7 — cùng bộ mã dùng trong mọi hình của trang, để chữ và hình
+     gọi cùng một lớp bằng cùng một tên. Bảng mã nằm trong HÌNH 2. */
+  .lcode { display: inline-block; font-size: var(--fs-micro); font-weight: 700;
+           letter-spacing: 0.04em; background: #2b2724; color: #ffffff;
+           border-radius: 3px; padding: 0 5px; vertical-align: 1px; }
+  .tag-do { display: inline-block; font-size: var(--fs-cap); font-weight: 700;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            background: #ffffff; color: var(--info-ink, #2f6f8f);
+            border: 1px solid currentColor; padding: 1px 8px; margin-right: 9px;
+            vertical-align: 1px; }
+  .callout.ok h4 { color: var(--ok-ink); }
+
+  /* === Glossary tooltip (CSS only) === */
+  .gloss { border-bottom: 1px dotted var(--muted); cursor: help; position: relative; }
+  .gloss:hover::after, .gloss:focus::after {
+    content: attr(data-gloss);
+    position: absolute; left: 0; top: calc(100% + 6px);
+    background: var(--ink); color: var(--paper); padding: 8px 12px;
+    border: 1px solid var(--accent); font-size: var(--fs-cap); line-height: 1.4;
+    white-space: normal; width: 240px; z-index: 70;
+  }
+
+  /* === Cost range pill === */
+  .cost-range { display: inline-block; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .cost-range .class { color: var(--muted); font-weight: 400; font-size: var(--fs-cap); }
+
+  /* === Tables === */
+  /* Mỗi `table.data` nằm trong một `.table-wrap` — cùng lối với `.gantt-wrap`.
+     Cuộn phải đặt ở KHUNG BAO chứ không đặt trên chính thẻ <table class="cols-3">: cho <table>
+     `display: block; overflow-x: auto` thì bảng co vừa khung thay vì giữ bề rộng
+     tự nhiên, và mỗi ô teo lại còn một chữ mỗi dòng. */
+  .table-wrap { overflow-x: auto; }
+  table.data { width: 100%; border-collapse: collapse; font-size: var(--fs-data); background: var(--paper); border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); margin: 12px 0 16px; font-family: var(--font-sans); }
+  table.data th, table.data td { padding: 9px 14px 9px 0; text-align: left; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  table.data th:first-child, table.data td:first-child { padding-left: 14px; }
+  table.data th { background: transparent; font-family: var(--font-sans); font-weight: 600; font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); border-bottom: 1.5px solid var(--ink); padding-top: 12px; padding-bottom: 8px; }
+  table.data td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  table.data tr.total td { background: var(--paper-deep); font-weight: 600; border-top: 1.5px solid var(--ink); font-family: var(--font-mono); }
+  table.data tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px; border-radius:0; text-transform: uppercase; letter-spacing: 0.3px; }
+  .pill.urgent { background: var(--crit-bg); color: var(--crit-ink); }
+  .pill.soon { background: var(--warn-bg); color: var(--warn-ink); }
+  .pill.later { background: var(--info-bg); color: var(--info-ink); }
+  .pill.done { background: var(--ok-bg); color: var(--ok-ink); }
+  .pill.hoãn { background: #f4f1ea; color: var(--muted); }
+  .hm-tag { display: inline-block; background: #444; color: white; font-size: var(--fs-micro); padding: 2px 7px; border-radius:0; font-family: ui-monospace, monospace; }
+  .hm-tag.smart { background: #8a5cb8; }
+  .hm-tag.cool { background: #2d8a8a; }
+
+  /* === Group / TODO cards (preserved + tweaked) === */
+  .group-card { background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--ink); border-radius:0; padding: 16px 20px; margin-bottom: 12px; }
+  .group-card.p0 { border-left-color: var(--p0); }
+  .group-card.p1 { border-left-color: var(--p1); }
+  .group-card.p2 { border-left-color: var(--p2); }
+  .group-card.p3 { border-left-color: var(--p3); }
+  .group-card .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
+  .group-card h3 { margin: 0; font-size: var(--fs-small); font-weight: 700; }
+  .badge { font-size: var(--fs-micro); font-weight: 700; padding: 3px 8px; border-radius:0; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge.p0 { background: var(--p0); } .badge.p1 { background: var(--p1); }
+  .badge.p2 { background: var(--p2); } .badge.p3 { background: var(--p3); }
+  .group-card .desc { color: var(--muted); font-size: var(--fs-data); margin-bottom: 10px; }
+  .todo-list { list-style: none; padding: 0; margin: 0; }
+  .todo-list li { padding: 8px 0; border-top: 1px solid var(--line-soft); display: grid; grid-template-columns: 24px 80px 1fr 110px; gap: 10px; align-items: center; font-size: var(--fs-data); }
+  .todo-list li:first-child { border-top: none; }
+  .todo-list .cost { display: none; } /* cột tiền không lên bản phát hành */
+  .todo-list .check { color: var(--muted); }
+  .todo-list .task-name { font-weight: 500; }
+  .todo-list .task-note { color: var(--muted); font-size: var(--fs-cap); display: block; margin-top: 2px; line-height: 1.4; }
+  .todo-list .when { color: var(--muted); font-size: var(--fs-cap); text-align: center; }
+  .todo-list .cost { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-cap); }
+
+  /* === Climate strip === */
+  .climate-strip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin: 8px 0 16px; border: 1px solid var(--line); border-radius:0; overflow: hidden; background: var(--paper); }
+  .month-col { padding: 8px 4px; text-align: center; font-size: var(--fs-cap); }
+  .month-col .m { font-weight: 700; font-size: var(--fs-data); }
+  .month-col .t { color: var(--muted); font-size: var(--fs-micro); font-variant-numeric: tabular-nums; }
+  .month-col .bar-t { height: 22px; margin: 4px auto 2px; width: 16px; border-radius:0; }
+  .month-col .bar-r { height: 14px; margin: 1px auto 0; width: 16px; border-radius:0; }
+  .month-col.dry { background: #fef4e6; }
+  .month-col.wet { background: #e6f0fd; }
+  .climate-legend { display: flex; gap: 16px; font-size: var(--fs-cap); color: var(--muted); margin-top: 4px; flex-wrap: wrap; }
+  .climate-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .climate-legend i { display: inline-block; width: 12px; height: 12px; border-radius:0; }
+
+  /* === Palette / Mood board === */
+  .palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 10px 0 14px; }
+  .swatch { background: var(--paper); border: 1px solid var(--line); border-radius:0; overflow: hidden; }
+  .swatch .color { height: 80px; }
+  .swatch .info { padding: 8px 10px; font-size: var(--fs-cap); }
+  .swatch .info b { display: block; font-size: var(--fs-data); margin-bottom: 1px; }
+  .swatch .info span { color: var(--muted); }
+
+  /* === Room walk-through === */
+  .rooms { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+  .room { background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--ink-soft); border-radius: 0; padding: 16px 20px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 18px; }
+  .room:not(:has(.floorplan)) { grid-template-columns: 1fr; }
+  .room.focus { border-left-color: var(--accent); border-left-width: 3px; }
+  .room h3 { margin: 0 0 4px; font-size: var(--fs-body); }
+  .room .head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+  .room .meta { font-size: var(--fs-cap); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .room ul { margin: 6px 0 4px; padding-left: 18px; font-size: var(--fs-data); }
+  .room li { margin-bottom: 2px; }
+  .room .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .tag-hm { font-size: var(--fs-micro); padding: 2px 7px; border-radius:0; background: #f4f1ea; color: #444; font-family: ui-monospace, monospace; }
+  .room .floorplan { background: #faf6ee; border-radius:0; padding: 6px; display: flex; align-items: center; justify-content: center; min-height: 140px; }
+  .room .floorplan svg { width: 100%; height: auto; max-height: 180px; }
+
+  /* === Decisions table emphasis === */
+  .decisions { font-size: var(--fs-data); }
+  .decisions .deadline { font-weight: 700; }
+  .decisions .deadline.soon { color: var(--crit-ink); }
+
+  /* === Risks === */
+  .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; margin-top: 8px; }
+  .risk { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 12px 14px; }
+  .risk h4 { margin: 0 0 4px; font-size: var(--fs-small); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .risk .lvl { font-size: var(--fs-micro); font-weight: 700; padding: 2px 7px; border-radius:0; color: white; }
+  .risk .lvl.high { background: var(--p0); }
+  .risk .lvl.med { background: var(--p1); }
+  .risk .lvl.low { background: var(--p2); }
+  .risk p { margin: 4px 0; font-size: var(--fs-data); }
+  .risk .mit { color: var(--ok-ink); }
+
+  /* === Crew cards (contractor section) === */
+  .crew-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .crew-card { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 14px 18px; }
+  .crew-card h4 { margin: 0 0 3px; font-size: var(--fs-small); font-weight: 700; }
+  .crew-card .role { color: var(--muted); font-size: var(--fs-cap); margin-bottom: 10px; }
+  .crew-card ul { margin: 0; padding-left: 18px; font-size: var(--fs-data); line-height: 1.6; }
+
+  /* === Before/after slider === */
+  .ba-slider { position: relative; max-width: 720px; margin: 10px 0; border: 1px solid var(--line); border-radius:0; overflow: hidden; aspect-ratio: 4/3; background: #faf6ee; user-select: none; }
+  .ba-slider .before, .ba-slider .after { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ba-slider .after { clip-path: inset(0 0 0 50%); }
+  .ba-slider input[type=range] { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 80%; z-index: 4; }
+  .ba-slider .divider { position: absolute; top: 0; bottom: 0; width: 2px; background: white; left: 50%; transform: translateX(-1px); box-shadow: 0 0 6px rgba(0,0,0,0.3); pointer-events: none; z-index: 3; }
+  .ba-slider .lbl { position: absolute; top: 8px; padding: 3px 8px; background: rgba(0,0,0,0.7); color: white; font-size: var(--fs-cap); border-radius:0; z-index: 5; }
+  .ba-slider .lbl.l { left: 10px; } .ba-slider .lbl.r { right: 10px; }
+
+  /* === Zoomable SVG === */
+  .zoom-wrap { position: relative; border: 1px solid var(--line); border-radius:0; background: white; overflow: hidden; }
+  .zoom-wrap svg { display: block; max-width: 100%; height: auto; cursor: grab; }
+  .zoom-wrap.dragging svg { cursor: grabbing; }
+  .zoom-controls { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 4; }
+  .zoom-controls button { background: white; border: 1px solid var(--line); border-radius:0; width: 28px; height: 28px; font-size: var(--fs-small); cursor: pointer; }
+  .zoom-controls button:hover { background: #f4f1ea; }
+
+  /* === Collapsible (for contractor section) === */
+  /* ── Danh sách việc có ô tick ──────────────────────────────────────────
+     Mọi việc phải làm trên trang này đều là một dòng tick được, để nhà thầu
+     và chủ nhà soi chung một danh sách thay vì đọc lại cả đoạn văn. */
+  ul.chk { list-style: none; padding-left: 0; margin: 10px 0; }
+  ul.chk > li { position: relative; padding-left: 30px; margin: 0 0 9px; line-height: 1.55; }
+  ul.chk > li::before { content: ""; position: absolute; left: 0; top: 2px;
+      width: 16px; height: 16px; border: 1.6px solid var(--line); background: #fff; }
+  ul.chk > li.stop::before { border-color: var(--accent); border-width: 2.2px; }
+  ul.chk > li.stop { font-weight: 500; }
+  ul.chk > li .gate { display: block; font-size: var(--fs-cap); color: var(--muted);
+      font-weight: 700; margin-top: 2px; }
+  ul.chk > li .why { display: block; font-size: var(--fs-cap); color: var(--muted); margin-top: 2px; }
+  ul.chk.tight > li { margin-bottom: 5px; }
+  .chk-head { font-size: var(--fs-cap); text-transform: uppercase; letter-spacing: .6px;
+      color: var(--muted); font-weight: 700; margin: 16px 0 4px; }
+  details.collapsible { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 0; margin: 12px 0; }
+  details.collapsible > summary { padding: 12px 16px; cursor: pointer; font-weight: 600; font-size: var(--fs-small); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  details.collapsible > summary::after { content: "▾"; transition: transform 0.2s; }
+  details.collapsible[open] > summary::after { transform: rotate(180deg); }
+  details.collapsible > summary::-webkit-details-marker { display: none; }
+  details.collapsible[open] > summary { border-bottom: 1px solid var(--line-soft); }
+  details.collapsible .body { padding: 14px 18px 18px; }
+
+  /* === Gantt (preserved) === */
+  .gantt-wrap { background: var(--paper); border: 1px solid var(--line); border-radius:0; overflow-x: auto; }
+  table.gantt { border-collapse: collapse; width: 100%; min-width: 1700px; font-size: var(--fs-cap); }
+  table.gantt th, table.gantt td { border-bottom: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft); padding: 0; vertical-align: middle; height: 26px; }
+  table.gantt th { background: #f4f1ea; font-weight: 600; padding: 6px 5px; font-size: var(--fs-micro); text-align: center; }
+  table.gantt th.task-col { text-align: left; padding-left: 12px; min-width: 340px; max-width: 340px; }
+  /* Cột tên việc GHIM lại khi cuộn ngang. Bảng rộng 1700px trong khung ~1060px:
+     cuộn tới T8 mà cột tên trôi mất thì các thanh màu không còn thuộc về việc
+     nào cả. Ghim được vì hai ô này đã có nền đục sẵn (#fdfcf8 / #f4f1ea) —
+     không có nền thì nội dung phía dưới lòi qua. Bản in bỏ qua sticky, không sao:
+     ở đó bảng thu nhỏ zoom .58 và hiện trọn, không có chuyện cuộn. */
+  table.gantt th.task-col, table.gantt td.task-cell {
+    position: sticky; left: 0; z-index: 2;
+    border-right: 1px solid var(--line);
+  }
+  table.gantt tr.section-header td { position: sticky; left: 0; z-index: 2; }
+  /* Nói thẳng ra là bảng cuộn ngang. Mép phải bị cắt giữa chừng ("T6/202…")
+     trông y như lỗi dựng trang, và không có cách nào để người đọc đoán ra. */
+  .gantt-hint {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-sans); font-size: var(--fs-cap);
+    color: var(--muted); margin: 0 0 6px;
+  }
+  @media print { .gantt-hint { display: none; } }
+  table.gantt th.cost-col { width: 70px; }
+  table.gantt th.day-col { width: 14px; padding: 2px 0; font-size: var(--fs-micro); color: var(--muted); }
+  table.gantt td.task-cell { padding-left: 12px; padding-right: 8px; font-weight: 500; background: #fdfcf8; font-size: var(--fs-cap); }
+  table.gantt td.task-cell .hm-tag { font-size: var(--fs-micro); padding: 1px 6px; margin-right: 4px; }
+  table.gantt td.cost-cell { text-align: right; padding-right: 10px; background: #fdfcf8; color: var(--muted); font-variant-numeric: tabular-nums; font-size: var(--fs-micro); }
+  table.gantt td.day-cell { position: relative; padding: 0; }
+  table.gantt tr.section-header td { background: var(--ink); color: white; font-weight: 600; padding: 6px 12px; font-size: var(--fs-cap); letter-spacing: 0.5px; text-transform: uppercase; }
+  table.gantt tr.section-header.smart td { background: #5a3a8a; }
+  .bar { position: absolute; height: 17px; top: 4.5px; border-radius:0; font-size: var(--fs-micro); color: white; padding: 0 6px; line-height: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Màu thanh Gantt — xem chú thích --g-* ở :root. MỘT nguồn cho cả thanh lẫn
+     chú giải: `.legend-swatch` dùng chung đúng biến này, nên không thể lệch. */
+  .bar.prep      { background: var(--g-prep); }
+  .bar.phase-A   { background: var(--g-a); }
+  .bar.phase-B   { background: var(--g-b); }
+  .bar.phase-C   { background: var(--g-c); }
+  .bar.cabling   { background: var(--g-cabling); }
+  .bar.smart     { background: var(--g-smart); }
+  .bar.cooling   { background: var(--g-cooling); }
+  .bar.milestone { background: var(--g-milestone); width: 6px !important; }
+  .month-row th { background: #ebe6dc !important; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0 14px; font-size: var(--fs-data); }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 14px; height: 14px; border-radius:0; }
+  .legend-swatch.prep      { background: var(--g-prep); }
+  .legend-swatch.phase-A   { background: var(--g-a); }
+  .legend-swatch.phase-B   { background: var(--g-b); }
+  .legend-swatch.phase-C   { background: var(--g-c); }
+  .legend-swatch.cabling   { background: var(--g-cabling); }
+  .legend-swatch.smart     { background: var(--g-smart); }
+  .legend-swatch.cooling   { background: var(--g-cooling); }
+  .legend-swatch.milestone { background: var(--g-milestone); }
+
+  /* === Summary grid (existing class kept for Gantt) === */
+  .summary-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 10px 0 18px; }
+  .summary-card { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 14px; }
+  .summary-card .label { font-size: var(--fs-micro); color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .summary-card .value { font-size: var(--fs-h4); font-weight: 700; margin-top: 3px; }
+  .summary-card .sub { font-size: var(--fs-cap); color: var(--muted); margin-top: 2px; }
+
+  /* === Footer === */
+  .doc-foot { padding: 24px 36px; color: var(--muted); font-size: var(--fs-cap); text-align: center; border-top: 1px solid var(--line); }
+  .doc-foot a { color: var(--accent); }
+
+  /* === Mobile === */
+  @media (max-width: 900px) {
+    /* minmax(0, 1fr) chứ KHÔNG phải 1fr: rãnh lưới `1fr` có min-width:auto, nên
+       một thẻ con rộng (bảng Gantt 1700px) BÀNH rãnh ra theo mình. Cả trang khi
+       đó rộng 1246px trên màn 430px — chữ và bảng bị cắt mép phải, và
+       `.gantt-wrap { overflow-x: auto }` cũng vô hiệu vì khung chứa nó đã rộng
+       sẵn 1246px, không còn gì để cuộn. Rãnh desktop ở trên đã dùng minmax(0,1fr)
+       đúng vì lý do này; bản mobile sót lại. */
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .toc { position: fixed; top: 0; left: -260px; width: 240px; z-index: 100; transition: left 0.2s; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+    .toc.open { left: 0; }
+    .toc-toggle { display: block; position: fixed; top: 12px; left: 12px; z-index: 101; background: var(--paper); border: 1px solid var(--line); border-radius:0; width: 38px; height: 38px; font-size: var(--fs-lead); cursor: pointer;
+                  }
+    /* ── Thanh trên cùng cố định cho nút ☰ ────────────────────────────────
+       Trước đây nút ☰ nổi lơ lửng (fixed) trên nền nội dung: nó che vĩnh viễn
+       một mảng 38×38 ở góc trên-trái, nên tiêu đề mục nào trôi qua đó cũng bị
+       nuốt mất mấy chữ đầu. `.doc-header{padding-top:60px}` chỉ chừa chỗ cho
+       MÀN HÌNH ĐẦU, còn 57.000px tài liệu phía dưới thì không.
+       Cách chữa: cho nút một thanh nền ĐỤC chạy hết bề ngang, rồi đẩy cả trang
+       xuống đúng chiều cao thanh đó. Không còn gì trôi bên dưới nút nữa.
+       Làm bằng CSS thuần, không dùng JS ẩn-hiện theo chiều cuộn: tốn 52px chiều
+       cao nhưng không có trạng thái để sai, và kiểm được bằng ảnh chụp. */
+    body { padding-top: 52px; }
+    /* Bấm link mục lục là nhảy tới #anchor và đặt nó ở y=0 — tức là NGAY DƯỚI
+       thanh cố định, tiêu đề mục bị thanh che mất. Chừa sẵn chiều cao thanh. */
+    html { scroll-padding-top: 58px; }
+    /* ⚠ Thanh nền phải là ::before CỦA CHÍNH NÚT, không phải của <body>.
+       `.app` có `position: relative; z-index: 1` ⇒ nó mở một NGỮ CẢNH XẾP LỚP,
+       và nút ☰ nằm trong đó nên `z-index: 101` của nút chỉ có nghĩa BÊN TRONG
+       `.app`. So với `body::before` thì cả cụm `.app` chỉ đứng ở z=1, nên thanh
+       nền vẽ đè lên nút và nút biến mất — đã dựng đúng như vậy một lần rồi. */
+    .toc-toggle { top: 7px; left: 10px; }
+    .toc-toggle::before {
+      content: ''; position: fixed; top: 0; left: 0; right: 0; height: 52px;
+      background: var(--paper); border-bottom: 1px solid var(--line);
+      z-index: -1;              /* sau nền của nút, vẫn trong ngữ cảnh của nút */
+      pointer-events: none;     /* cả dải không thành một vùng bấm khổng lồ */
+    }
+    .doc-header { padding-top: 20px; padding-left: 16px; padding-right: 16px; }
+    .parti { font-size: var(--fs-h3); }
+    section { padding: 22px 16px; }
+    .hero-metrics, .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .room { grid-template-columns: 1fr; }
+    .crew-grid { grid-template-columns: 1fr; }
+    .todo-list li { grid-template-columns: 20px 70px 1fr; }
+    .todo-list .when, .todo-list .cost { display: none; }
+    table.data { font-size: var(--fs-cap); }
+    table.data th, table.data td { padding: 7px 8px; overflow-wrap: break-word; }
+
+    /* Bảng dữ liệu cuộn ngang TRONG khung `.table-wrap` của nó, thay vì kéo cả
+       trang rộng ra. Bảng quyết định có bề rộng tối thiểu 611px, bảng vật liệu
+       558px — không bảng nào bóp vừa màn 390px, và khi chúng đẩy trang thì MỌI
+       đoạn văn khác cũng bị đẩy theo, chữ tràn ra ngoài mép phải.
+       `min-width` là phần quan trọng: không có nó thì bảng co vừa 390px và mỗi
+       ô còn một chữ mỗi dòng — vừa khung nhưng không đọc được. */
+    .table-wrap > table.data { min-width: 560px; }
+
+    /* Dải khí hậu 12 tháng: `overflow: hidden` (bo góc) đang CẮT MẤT mấy tháng
+       cuối chứ không phải thu nhỏ chúng lại — mất dữ liệu mà không có dấu hiệu
+       gì. Cho cuộn, và đặt bề rộng tối thiểu cho mỗi cột để số còn đọc được. */
+    .climate-strip { grid-template-columns: repeat(12, minmax(44px, 1fr));
+                     overflow-x: auto; overflow-y: hidden; }
+    .meta-top { font-size: var(--fs-cap); }
+
+    /* §6 có 5 khối đặt `style="flex:1; min-width:320px|360px"` THẲNG trên thẻ.
+       Trên màn 320–375px, một thẻ con 360px kéo rộng cả trang. Style nội tuyến
+       thắng mọi selector nên phải !important — đây là chỗ dùng nó đúng nghĩa,
+       không phải để chữa cháy độ đặc hiệu. Các khối đó là sơ đồ SVG có viewBox,
+       co lại vẫn đọc được, chỉ là nhỏ hơn. */
+    [style*="min-width"] { min-width: 0 !important; }
+
+    /* Mã vật liệu trong <code> (M-WP-SIKA-LASTIC…) là một khối chữ không có chỗ
+       ngắt — ở 320px nó chọc ra ngoài 18px và kéo cả trang theo. */
+    code { overflow-wrap: anywhere; }
+
+    /* Bản thu nhỏ cho `.sheet-strip` KHÔNG đặt ở đây được — luật gốc của nó nằm
+       PHÍA DƯỚI khối @media này trong cùng một <style>, cùng độ đặc hiệu, nên
+       luật gốc thắng. Xem khối @media riêng ngay sau luật gốc `.sheet-strip`. */
+  }
+
+  /* === THIẾU — CẦN CUNG CẤP ===
+     Chip đánh dấu những thứ còn THIẾU và chủ nhà là người cung cấp.
+     Dùng màu accent để quét mắt ra ngay. */
+  .missing {
+    display: inline-block; font-family: var(--font-sans); font-size: var(--fs-micro);
+    font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--paper); background: var(--accent);
+    padding: 1px 6px; border-radius: 2px; white-space: nowrap;
+  }
+  .missing-box {
+    border: 1px solid var(--accent); border-left: 3px solid var(--accent);
+    background: var(--accent-pale); padding: 10px 12px; margin: 10px 0;
+    font-size: var(--fs-data);
+  }
+  .missing-box > strong:first-child { color: var(--accent); }
+  @media print { .missing { border: 1px solid #000; } }
+
+  /* === Print === (document-design-383 print layer · v2 2026-07-11)
+     .app grid min-content floor made every page overflow A4 width → block layout;
+     long tables flow across pages with repeated headers; Gantt gets a dedicated
+     landscape sheet; collapsibles are opened via beforeprint JS. */
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm 16mm;
+    @bottom-right { content: "Trang " counter(page) " / " counter(pages);
+                    font-family: "Roboto Mono", monospace; font-size: 9pt; color: #8a8780; }
+  }
+  @page gantt-sheet {
+    size: A4 landscape;
+    margin: 12mm 14mm;
+  }
+  @media print {
+    .table-wrap { overflow: visible !important; }
+    .toc, .toc-toggle, .zoom-controls, .ba-slider input, .sheet-frame, .img-lightbox { display: none !important; }
+    html, body { height: auto; overflow: visible; }
+    .page-scroll { position: static; overflow: visible; }
+    .app { display: block; }
+    .main { max-width: none; }
+    body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body::before { display: none; }
+    section { padding: 18px 22px; }
+    h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
+    .group-card, .room, .crew-card, .risk,
+    figure, .callout, .keep-together { page-break-inside: avoid; break-inside: avoid; }
+    table { page-break-inside: auto; }       /* long tables flow across pages… */
+    tr { page-break-inside: avoid; }         /* …but never split mid-row */
+    thead { display: table-header-group; }   /* repeat table headers across pages */
+    table.data { font-size: 8.5pt; }
+    table.data th, table.data td { overflow-wrap: break-word; }
+    p, li { orphans: 3; widows: 3; }
+    a { color: inherit; text-decoration: none; }
+    details.collapsible { border: none; }
+    details.collapsible > summary { padding: 0 0 6px; }
+    details.collapsible > summary::after { display: none; }
+    details.collapsible .body { padding: 0; }
+    .hero-metrics, .summary-grid { grid-template-columns: repeat(5, 1fr); }
+    .sheet-strip { grid-template-columns: repeat(3, minmax(0, auto)); row-gap: 10px; }
+    .risk-grid { grid-template-columns: repeat(2, 1fr); }
+    #gantt { page: gantt-sheet; }
+    .gantt-wrap { overflow: visible; zoom: 0.58; }
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     NEW COMPONENTS — title block, scale bar, north arrow,
+     annotation grammar, placeholder for illustrations to redo.
+     ════════════════════════════════════════════════════════════ */
+
+  /* Sheet metadata strip — sits at top before doc-header */
+  .sheet-strip {
+    background: var(--paper);
+    border-top: 2.5px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 36px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto auto;
+    gap: 28px;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  /* Phải nằm SAU luật gốc ngay trên: cùng độ đặc hiệu thì luật sau thắng, mà
+     khối @media (max-width: 900px) chính của tài liệu lại đứng TRƯỚC luật gốc
+     này. Đặt nhầm chỗ thì rule im lặng không có tác dụng gì.
+     6 cột + gap 28px + padding 36px cần tối thiểu 482px — một mình dải này kéo
+     rộng cả trang trên điện thoại. Xuống 2 cột. (Không phải chừa chỗ cho nút ☰
+     nữa: nút nay nằm trong thanh trên cùng cố định, cả trang đã đẩy xuống 52px.) */
+  @media (max-width: 900px) {
+    .sheet-strip { grid-template-columns: repeat(2, minmax(0, 1fr));
+                   gap: 10px 16px; padding: 14px 16px; }
+    /* Xuống 2 cột thôi vẫn chưa đủ: 6 trường + hoa gió xếp thành ~600px, tức là
+       màn hình ĐẦU TIÊN trên điện thoại toàn thông tin hành chính, phải cuộn
+       một màn rưỡi mới tới tiêu đề tài liệu. Bỏ hai trường đã nói lại ngay bên
+       dưới hoặc không dùng được trên điện thoại:
+         · Project  — dòng đầu phần hero lặp lại y nguyên địa chỉ;
+         · Scale    — "1:50–1:100" vô nghĩa trên màn 390px.
+       GIỮ Issued (kiểm bản), Phát hành để (người nhận là ai) và Trạng thái
+       (CHƯA phải IFC — câu quan trọng nhất của cả dải). */
+    .sheet-strip .field.sec { display: none; }
+    .sheet-strip .north-arrow { width: 46px; height: 46px; }
+  }
+  .sheet-strip .sheet-id {
+    font-family: var(--font-serif);
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+    font-variation-settings: "opsz" 60;
+  }
+  .sheet-strip .sheet-id small {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .sheet-strip .field { display: flex; flex-direction: column; gap: 2px; }
+  /* Ô Project nhận `1fr` trong lưới `auto 1fr auto auto auto auto`, nhưng các ô
+     `auto` sau nó chứa câu dài (Phát hành để / Trạng thái) nên chúng ăn hết bề
+     ngang và bóp `1fr` xuống bằng min-content — tên dự án rơi thành MỘT TỪ MỖI
+     DÒNG. Đặt sàn bề rộng cho ô này; câu dài ở các ô sau xuống dòng thì không sao. */
+  .sheet-strip .field.sec { min-width: 20ch; }
+  .sheet-strip .k {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+  }
+  .sheet-strip .v { color: var(--ink); font-weight: 500; }
+  .sheet-strip .v.accent { color: var(--accent); }
+
+  /* North arrow + scale bar — used inline next to drawings */
+  .north-arrow {
+    display: inline-flex;
+    width: 44px; height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    align-items: center; justify-content: center;
+    background: var(--paper);
+  }
+  .north-arrow svg { width: 32px; height: 32px; }
+
+  .scale-bar {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  .scale-bar .label { display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.12em; font-family: var(--font-sans); color: var(--muted); font-size: var(--fs-micro); }
+  .scale-bar .bar { display: flex; height: 8px; width: 160px; border: 1px solid var(--ink); }
+  .scale-bar .bar div { flex: 1; }
+  .scale-bar .bar div:nth-child(odd) { background: var(--ink); }
+  .scale-bar .ticks { display: flex; justify-content: space-between; width: 160px; margin-top: 2px; }
+
+  /* Drawing frame — wraps drawings with title block & metadata */
+  .dwg-frame {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    margin: 18px 0;
+    position: relative;
+  }
+  .dwg-frame .dwg-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 16px 8px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper-deep);
+  }
+  .dwg-frame .dwg-title {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+  }
+  .dwg-frame .dwg-num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    /* margin-left:auto để khi JS gắn thêm nhãn phóng to (thành 3 con trong một
+       flex space-between) thì số hiệu vẫn dính bên phải cạnh nhãn, chứ không
+       bị đẩy ra giữa. */
+    margin-left: auto;
+  }
+  .dwg-frame .dwg-head { gap: 10px; flex-wrap: wrap; }
+  .dwg-zoom {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  @media print { .dwg-zoom { display: none; } }
+  .dwg-frame .dwg-body { padding: 18px; }
+  .dwg-frame .dwg-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px;
+    border-top: 1px solid var(--line);
+    background: var(--paper-deep);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+
+  /* Placeholder for illustrations awaiting pipeline output */
+  .todo-illustration {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--paper-deep),
+      var(--paper-deep) 8px,
+      var(--paper) 8px,
+      var(--paper) 16px
+    );
+    border: 1.5px dashed var(--accent-soft);
+    padding: 30px 24px;
+    text-align: center;
+    color: var(--ink-soft);
+    margin: 12px 0;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .todo-illustration .label {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .todo-illustration .title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--fs-body);
+    color: var(--ink);
+    font-variation-settings: "opsz" 24;
+  }
+  .todo-illustration .pipeline {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--muted);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 3px 10px;
+    margin-top: 4px;
+  }
+  .todo-illustration .spec {
+    font-family: var(--font-sans);
+    font-size: var(--fs-cap);
+    color: var(--ink-soft);
+    max-width: 50ch;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* Annotation primitives — leader callout & dimension chain */
+  .ann-callout {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+  }
+  .ann-dim {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Pull quote — editorial element */
+  .pullquote {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--fs-h3);
+    line-height: 1.3;
+    color: var(--ink);
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 22px 0;
+    margin: 30px 0;
+    max-width: 38ch;
+    font-variation-settings: "opsz" 60;
+    font-weight: 400;
+  }
+
+  /* Body refinements — reading typography */
+  p { font-family: var(--font-sans); font-size: var(--fs-small); line-height: 1.6; max-width: 100%; }
+  code, .mono { font-family: var(--font-mono); font-size: var(--fs-cap); }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  .doc-foot { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); padding-top: 30px; border-top: 2.5px solid var(--ink); margin-top: 40px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* CAD image lightbox — click a drawing to inspect at full resolution */
+  .dwg-frame > img { cursor: zoom-in; }
+  .img-lightbox { position: fixed; inset: 0; z-index: 300; background: rgba(29,29,27,0.93); overflow: auto; display: none; cursor: zoom-out; }
+  .img-lightbox.open { display: block; }
+  .img-lightbox img { display: block; margin: 24px auto; background: #fff; }
+  .img-lightbox .hint { position: fixed; top: 14px; right: 18px; color: var(--paper); font-family: var(--font-mono); font-size: var(--fs-cap); background: rgba(0,0,0,0.55); padding: 4px 10px; letter-spacing: 0.04em; }
+
+
+  /* ── Hai thẻ: cách làm ↔ nghiệm thu ─────────────────────────────────────
+     Trang chi tiết dài, mà hai câu hỏi người đọc mang tới lại khác hẳn nhau:
+     "làm thế nào" khi đang thi công, và "kiểm cái gì" khi đã xong. Tách làm
+     hai thẻ để phần nghiệm thu không nằm lẫn ở cuối một trang cuộn dài. */
+  .tabbar{display:flex;flex-wrap:wrap;margin:0 0 24px;border-bottom:2px solid var(--accent)}
+  .tabbtn{flex:1 1 160px;min-width:140px;padding:12px 14px;border:1px solid var(--line);border-bottom:none;
+    background:var(--paper);font-family:var(--font-sans);font-size:var(--fs-cap);
+    font-weight:600;letter-spacing:0.04em;color:var(--muted);cursor:pointer;
+    text-align:left;transition:background 0.12s,color 0.12s}
+  .tabbtn+.tabbtn{border-left:none}
+  .tabbtn .sub{display:block;font-weight:400;letter-spacing:0;margin-top:3px;
+    font-size:var(--fs-micro);color:var(--muted)}
+  .tabbtn:hover{color:var(--accent)}
+  .tabbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tabbtn.on .sub{color:#f4dcd5}
+  .tabpane[hidden]{display:none}
+  /* Bản in không có chỗ bấm — in ra cả hai thẻ, nối tiếp nhau. */
+  @media print{.tabbar{display:none}.tabpane[hidden]{display:block!important}}
+
+  /* Mục "phải đo · phải chốt" đứng cuối thẻ VIỆC PHẢI LÀM. Nét ngang để mắt
+     thấy ngay đây là phần khác, không phải bước tiếp theo của danh sách. */
+  .pane-sub{margin-top:34px;padding-top:14px;border-top:2px solid var(--line);
+    font-size:var(--fs-h3)}
+
+  /* ── Danh sách BƯỚC + chi tiết BUNG TẠI CHỖ ─────────────────────────────
+     Chi tiết của từng bước bung ra ngay dưới bước đó, mặc định đóng. Không
+     ngăn kéo, không lớp phủ, không nhảy đi đâu — thợ mở đúng bước đang làm và
+     mọi thứ vẫn nằm trong mạch đọc. Bản in mở hết. */
+  .steps { list-style: none; padding: 0; margin: 14px 0 0; }
+  .step { border: 1px solid var(--line); border-left: 5px solid var(--line-soft);
+          background: var(--paper); padding: 12px 14px; margin: 0 0 10px;
+          display: grid; grid-template-columns: 40px 1fr auto; gap: 12px 12px; align-items: start; }
+  .step.stop { border-left-color: var(--accent); }
+  .step .n { font-family: var(--font-sans); font-weight: 700; font-size: 19px; color: var(--muted); line-height: 1.2; }
+  .step.stop .n { color: var(--accent); }
+  .step .t { font-weight: 600; font-size: var(--fs-small); }
+  .step .w { display: block; font-size: var(--fs-cap); color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .step .g { display: block; font-size: var(--fs-cap); color: var(--accent); margin-top: 6px; line-height: 1.5; }
+
+  /* Nút bung/thu — viền mảnh + mũi tên xoay. Khác hẳn nút điều hướng (không viền)
+     và khác hẳn thẻ (tô đặc). Ba loại điều khiển, ba hình dạng. */
+  .step-more { align-self: start; white-space: nowrap; cursor: pointer;
+               font-family: var(--font-sans); font-size: var(--fs-cap); font-weight: 600;
+               color: var(--accent); background: var(--paper); border: 1px solid var(--accent);
+               padding: 9px 12px; min-height: 44px;
+               display: inline-flex; align-items: center; gap: 7px; }
+  .step-more::after { content: "▾"; font-size: 11px; line-height: 1; transition: transform 0.18s; }
+  .step-more:hover { background: var(--accent); color: #fff; }
+  .step-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .step.open > .step-more::after { transform: rotate(180deg); }
+
+  /* Phần bung ra: chiếm hết bề ngang của thẻ bước, thụt vào cho thẳng cột chữ */
+  .detail-src { display: none; grid-column: 1 / -1; margin: 4px 0 2px 52px;
+                border-left: 3px solid var(--line); padding: 2px 0 2px 16px; }
+  .step.open > .detail-src { display: block; }
+  .detail-src > :first-child { margin-top: 0; }
+  .detail-src > :last-child { margin-bottom: 0; }
+  @media (max-width: 900px) {
+    .step { grid-template-columns: 34px 1fr; }
+    .step-more { grid-column: 1 / -1; justify-content: center; width: 100%; }
+    .detail-src { margin-left: 0; padding-left: 12px; }
+  }
+  @media print {
+    .step-more { display: none !important; }
+    .detail-src { display: block !important; }
+  }
+</style>
+<style>
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 0}
+  /* Ảnh không bao giờ được đẩy trang tràn ngang — hồ sơ này đọc trên điện thoại,
+     một tay cầm máy. Ảnh rộng hơn khung thì co lại, không đẩy cả trang. */
+  img { max-width: 100%; height: auto; }
+  figure { margin: 12px 0 8px; max-width: 100%; }
+  .doc-head h1{margin:0 0 6px}
+  main h2{margin:38px 0 10px}
+  main h3{margin:24px 0 8px}
+  .fig-full{margin:18px 0;padding:14px;border:1px solid var(--line);background:var(--paper)}
+  .table-wrap{overflow-x:auto}
+
+  /* ── DẢI ĐIỀU HƯỚNG — đi sang trang khác ────────────────────────────────
+     Cố ý KHÔNG có hộp và KHÔNG có nền: tô đặc là ngôn ngữ của THẺ đang mở, và
+     hai thứ làm việc khác nhau thì không được trông giống nhau. Ở đây chỉ có
+     một nét mảnh ôm cả dải, nhãn chữ đơn cách ở trên, tên trang ở dưới. */
+  .navbar{display:flex;flex-wrap:wrap;gap:2px 28px;margin:0 0 26px;
+          padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+          background:transparent}
+  .navbar.foot{margin:38px 0 0}
+  .btn-big{display:inline-flex;flex-direction:column;gap:3px;
+    padding:8px 0;min-height:44px;justify-content:center;
+    background:none;border:none;color:var(--ink);text-decoration:none;
+    font-family:var(--font-sans);font-size:var(--fs-small);font-weight:600;line-height:1.3;
+    border-left:3px solid transparent;padding-left:0}
+  .btn-big .k{font-family:var(--font-mono);font-size:var(--fs-micro);
+    text-transform:uppercase;letter-spacing:.14em;font-weight:500;color:var(--muted)}
+  .btn-big::after{content:" →";color:var(--muted);font-weight:400}
+  .btn-big:hover{color:var(--accent)}
+  .btn-big:hover .k{color:var(--accent)}
+  .btn-big:hover::after{color:var(--accent)}
+  .btn-big:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+  /* Nút quay lại: nhận ra bằng một VẠCH NHẤN DỌC, không phải bằng ô tô đặc */
+  .btn-big.primary{border-left:3px solid var(--accent);padding-left:12px}
+  .btn-big.primary .k{color:var(--accent)}
+  .btn-big.primary::after{content:""}
+  @media (max-width: 900px) {
+    .navbar{flex-direction:column;gap:0}
+    .navbar .btn-big + .btn-big{border-top:1px solid var(--line-soft)}
+  }
+  @media print { .navbar{border:none;padding:0} .btn-big::after{content:""} }
+
+  /* Nhãn mã việc gắn vào tiêu đề mục */
+  .jobtag{display:inline-block;font-family:var(--font-mono);font-size:var(--fs-micro);
+    font-weight:600;letter-spacing:.12em;background:var(--ink);color:var(--paper);
+    padding:3px 9px;text-transform:uppercase}
+  .job-lead{border-left:3px solid var(--accent);background:var(--paper);
+    padding:12px 16px;margin:10px 0 18px;font-size:var(--fs-small)}
+  .qbox{border:1px solid var(--line);border-top:3px solid var(--accent);
+    background:var(--paper);padding:16px 20px 6px;margin:16px 0}
+  .qbox h3{margin:0 0 4px;font-size:var(--fs-h4)}
+  .qbox .ans{font-family:var(--font-sans);font-weight:700;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.08em;font-size:var(--fs-micro);margin-bottom:6px}
+
+  /* ── HÌNH VẼ TRÊN ĐIỆN THOẠI ─────────────────────────────────────────────
+     Sơ đồ có viewBox rộng 900–1160 đơn vị. Cho nó co vừa màn 390px thì chữ
+     nhỏ nhất trong hình rơi xuống 3,0–3,8px — đo bằng trình duyệt, không phải
+     ước. Cỡ đó không đọc được, tức là hình có mặt nhưng vô dụng.
+     Cách chữa giống hệt cách đã dùng cho bảng: KHÔNG bóp hình cho vừa khung,
+     mà cho hình giữ bề rộng đủ để chữ còn đọc được rồi CUỘN NGANG bên trong
+     khung của nó. `--figmin` tính riêng cho từng hình = bề rộng viewBox ×
+     8,5px ÷ cỡ chữ nhỏ nhất trong hình, kẹp trong khoảng 520–900px.
+     ⚠ Đặt bằng biến `--figmin` chứ không viết thẳng `min-width` vào thuộc tính
+     style: luật `[style*="min-width"]{min-width:0!important}` ở khối trên sẽ
+     xoá sạch nếu viết thẳng. Và khối này phải nằm SAU luật đó để thắng. */
+  @media (max-width: 900px) {
+    .figscroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+                 overscroll-behavior-x: contain; min-width: 0; }
+    /* Khung chứa hình phải được phép HẸP HƠN nội dung của nó. `.dwg-frame` là ô
+       của một lưới, mà ô lưới mặc định có min-width:auto — nghĩa là nó BÀNH ra
+       theo đứa con rộng nhất, kéo cả trang rộng 855px trên màn 390px. Lúc đó
+       `overflow-x:auto` của khung bên trong thành vô nghĩa vì không còn gì để
+       cuộn. Đây đúng là lỗi đã ghi ở chú thích minmax(0,1fr) phía trên, chỉ
+       khác chỗ xảy ra. */
+    .dwg-frame, .fig-full, .simbar { min-width: 0; }
+    /* !important vì luật `[style*="min-width"]{min-width:0!important}` ở khối
+       trên khớp với những hình có sẵn min-width nội tuyến và sẽ xoá mất
+       --figmin. Phạm vi hẹp (chỉ svg trong .figscroll) nên không lan ra đâu. */
+    .figscroll > svg.figsvg { min-width: var(--figmin, 560px) !important; max-width: none; }
+    .figscroll::-webkit-scrollbar { height: 6px; }
+    .figscroll::-webkit-scrollbar-thumb { background: var(--line, #c9c2af); border-radius: 3px; }
+    /* Dấu hiệu cho biết hình còn kéo được — không có thì người đọc tưởng đã hết. */
+    .figscroll::after { content: "› vuốt ngang để xem hết hình";
+      display: block; font-family: var(--font-mono, monospace); font-size: 10px;
+      color: var(--muted, #6b625c); letter-spacing: 0.04em; padding: 4px 0 0; }
+  }
+  @media print {
+    .figscroll { overflow: visible !important; }
+    .figscroll > svg.figsvg { min-width: 0 !important; }
+    .figscroll::after { display: none !important; }
+  }
+
+  /* ── BỀ RỘNG BẢNG THEO SỐ CỘT ────────────────────────────────────────────
+     Đo ở màn 390px: bảng bóc khối lượng 7 cột bị nén còn 276px, cột «Đơn vị»
+     37px và một ô phải xuống 73 dòng; bảng 2 cột thì cột thứ hai còn 72–106px.
+     Bề rộng tối thiểu đặt theo SỐ CỘT để mỗi cột còn đủ chỗ cho một cụm từ,
+     rồi cuộn ngang trong khung. Số cột gắn sẵn vào class `cols-N` khi dựng. */
+  @media (max-width: 900px) {
+    .table-wrap > table[class*="cols-"] { min-width: 480px; }
+    .table-wrap > table.cols-2 { min-width: 480px; }
+    .table-wrap > table.cols-3 { min-width: 640px; }
+    .table-wrap > table.cols-4 { min-width: 740px; }
+    .table-wrap > table.cols-5 { min-width: 860px; }
+    .table-wrap > table.cols-6 { min-width: 940px; }
+    .table-wrap > table.cols-7 { min-width: 1040px; }
+    .table-wrap > table.cols-8,
+    .table-wrap > table.cols-9 { min-width: 1140px; }
+    .table-wrap > table[class*="cols-"] th,
+    .table-wrap > table[class*="cols-"] td { overflow-wrap: break-word; }
+    .table-wrap { overscroll-behavior-x: contain; }
+    .table-wrap::-webkit-scrollbar { height: 6px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: var(--line, #c9c2af); border-radius: 3px; }
+  }
+  @media print {
+    .table-wrap { overflow: visible !important; }
+    .table-wrap > table[class*="cols-"] { min-width: 0 !important; }
+  }
+
+  /* ── ĐỌC ĐƯỢC VÀ BẤM ĐƯỢC TRÊN ĐIỆN THOẠI ────────────────────────────────
+     (a) Cỡ chữ bảng: bảng giữ bề rộng đủ và cuộn ngang, nên chữ không phải
+         thu nhỏ cho vừa màn — 13px cho ô và 12px cho tiêu đề cột.
+     (b) Vùng bấm: các liên kết trong dải «Trong trang» chỉ cao 14px. Ngón tay
+         cần khoảng 36–44px. Cho chúng nở ra thành ô bấm thật. */
+  @media (max-width: 900px) {
+    .table-wrap > table[class*="cols-"] { font-size: 13px; }
+    /* Phải nhắm THẲNG vào ô, không dựa vào kế thừa từ ‹table›: chỉ cần có một
+       luật nào đó khớp trực tiếp với ‹td› (kể cả luật hạng thấp như .deriv) là
+       nó thắng giá trị kế thừa. Đo được: 159 ô vẫn đứng ở 11px vì lý do này. */
+    .table-wrap > table[class*="cols-"] td,
+    .table-wrap > table[class*="cols-"] th { font-size: 12.5px; }
+    .table-wrap > table[class*="cols-"] th { font-weight: 600; }
+    .table-wrap > table[class*="cols-"] td,
+    .table-wrap > table[class*="cols-"] th { padding: 8px 9px; }
+    .jump { display: flex; flex-wrap: wrap; gap: 6px; }
+    .jump a { display: inline-flex; align-items: center; min-height: 38px;
+              padding: 6px 12px; border: 1px solid var(--line-soft, #ddd); }
+    .sc-btn, .tabbtn { min-height: 38px; }
+    .room-filter button, .rf button { min-height: 38px; }
+  }
+</style>
+<style>
+    .pt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .ph{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:700;fill:#2b2724}
+    .pl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .ps{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .pr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+    .po{font-family:Roboto,Arial,sans-serif;font-size:10.5px;font-weight:700;fill:#6b625c;letter-spacing:0.04em}
+  </style>
+<style>
+    .qt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .qh{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:700;fill:#2b2724}
+    .ql{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .qs{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .qr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+    .qb{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#2f6f8f}
+    .qo{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#9a6b13}
+  </style>
+<style>
+    .gt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .gh{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:700;fill:#2b2724}
+    .gl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .gs{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .gr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+    .gb{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#2f6f8f}
+    .gg{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#4a6c3f}
+    .go{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#9a6b13}
+    .gx{font-family:Roboto,Arial,sans-serif;font-size:10px;font-weight:700;fill:#6b625c;letter-spacing:0.04em}
+  </style>
+<style>
+    .jt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .jh{font-family:Roboto,Arial,sans-serif;font-size:12px;font-weight:700;fill:#2b2724}
+    .jl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .js{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .jr{font-family:Roboto,Arial,sans-serif;font-size:10.5px;font-weight:700;fill:#b8412c}
+    .jnum{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#fff}
+    .jlead{fill:none;stroke:#9a908a;stroke-width:1;stroke-dasharray:4 3}
+  </style>
+<style>
+    .ct{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .ch{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:700;fill:#2b2724}
+    .cn{font-family:Roboto,Arial,sans-serif;font-size:11.5px;font-weight:600;fill:#2b2724}
+    .cs{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .cr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+    .num{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#fff}
+    .lead{fill:none;stroke:#9a908a;stroke-width:1;stroke-dasharray:3 3}
+  </style>
+<style>
+    .dt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .dh{font-family:Roboto,Arial,sans-serif;font-size:12px;font-weight:700;fill:#2b2724}
+    .dl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .ds{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .dr{font-family:Roboto,Arial,sans-serif;font-size:10.5px;font-weight:700;fill:#b8412c}
+    .db{font-family:Roboto,Arial,sans-serif;font-size:10.5px;font-weight:700;fill:#2f6f8f}
+  </style>
+<style>
+    .nt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .nh{font-family:Roboto,Arial,sans-serif;font-size:12px;font-weight:700;fill:#2b2724}
+    .nl{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#2b2724}
+    .ns{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .nr{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#b8412c}
+  </style>
+<style>
+    .st{font-family:Roboto,Arial,sans-serif;font-size:13px;font-weight:700;fill:#2b2724}
+    .sl{font-family:Roboto,Arial,sans-serif;font-size:11.5px;fill:#2b2724}
+    .ss{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    .sr{font-family:Roboto,Arial,sans-serif;font-size:11.5px;font-weight:700;fill:#b8412c}
+    .sb{font-family:Roboto,Arial,sans-serif;font-size:11px;font-weight:700;fill:#2f6f8f}
+    .sd{stroke:#6b625c;stroke-width:1;stroke-dasharray:4 3}
+  </style>
+<style>
+    .tt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .lb{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#2b2724}
+    .lr{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#b8412c}
+    .lc{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#2f6f8f}
+    .lg{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#4a6c3f}
+    .sb{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#6b625c}
+    .hot{stroke:#b8412c;fill:none;stroke-linecap:butt}
+    .cool{stroke:#2f6f8f;fill:none;stroke-linecap:round}
+
+</style>
+<style>
+    .lnf{fill:none;stroke:#2b2724;stroke-width:3}
+    .tt{font-family:Roboto,Arial,sans-serif;font-size:13.5px;font-weight:600;fill:#2b2724}
+    .lb{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#2b2724}
+    .lr{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#b8412c}
+    .lc{font-family:Roboto,Arial,sans-serif;font-size:12.5px;font-weight:600;fill:#2f6f8f}
+    .sb{font-family:Roboto,Arial,sans-serif;font-size:11px;fill:#6b625c}
+    .dm{font-family:Roboto,Arial,sans-serif;font-size:10px;fill:#6b625c}
+    .led{fill:none;stroke:#9a908a;stroke-width:1;stroke-dasharray:4 3}
+    .hot{stroke:#b8412c;fill:none;stroke-linecap:butt}
+    .cool{stroke:#2f6f8f;fill:none;stroke-linecap:round}
+  </style>
+<style>
+      .qt{font-family:Roboto,Arial,sans-serif;font-size:12.5px;fill:#2b2724}
+      .qv{font-family:"Roboto Mono",monospace;font-size:12.5px;font-weight:600;fill:#2b2724}
+      .qs{font-family:Roboto,Arial,sans-serif;font-size:10.5px;fill:#6b625c}
+    </style>
+
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   CSS RIÊNG CỦA TRANG — KHÔI PHỤC.
+   Bộ chuyển sang khuôn thẻ thay CẢ <style> lẫn <script> của trang bằng bản
+   chuẩn của khuôn, nên trang nào có kiểu dáng riêng đều mất phần đó. Markup
+   vẫn còn nguyên class nên không có gì báo lỗi — chỉ nhìn mới thấy hỏng.
+   ⚠ Chuyển khuôn thì giữ lại kiểu dáng RIÊNG của trang, không chỉ giữ markup.
+   ══════════════════════════════════════════════════════════════════════ */
+.ts-note{color:var(--muted);font-family:var(--font-mono);font-size:var(--fs-micro)}
+.rf-h { font-family:var(--font-sans); font-size:var(--fs-micro); font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-soft); margin-bottom:8px; }
+.rf-h .cnt { text-transform:none; letter-spacing:0; font-weight:400; color:var(--muted); margin-left:8px; }
+.rf-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { font-family:var(--font-sans); font-size:var(--fs-cap); padding:5px 11px; border:1px solid var(--line); background:transparent; color:var(--ink-soft); cursor:pointer; }
+.chip:hover { border-color:var(--accent); color:var(--accent); }
+.chip.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+.chip.all.on { background:var(--ink); border-color:var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="page-scroll"><div class="wrap"><main>
+
+<div class="navbar">
+ <a class="btn-big primary" href="index.html#v-chieu-sang"><span class="k">← Quay lại</span>Kế hoạch tổng thể</a>
+ <a class="btn-big" href="Dien-Va-Mang-383HaiPhong.html"><span class="k">Trang liên quan</span>C5 và C6 — Điện và mạng</a>
+ <a class="btn-big" href="Cau-Thang-383HaiPhong.html"><span class="k">Trang liên quan</span>D3 — Cầu thang</a>
+</div>
+
+<header class="doc-head">
+ <h1>Chiếu sáng toàn nhà — điểm chờ, hốc hắt sáng, dây chờ</h1>
+ <p class="lead">Chi tiết việc <strong>C9 (chiếu sáng toàn nhà)</strong>, thuộc <strong>HM13 (hệ thống ánh sáng)</strong>. Đợt này chỉ làm phần nằm trong tường và trong trần; đèn và dải LED lắp ở Giai đoạn 2.</p>
+</header>
+
+<div class="tabbar" role="tablist">
+ <button type="button" class="tabbtn on" role="tab" id="tab-gi"
+ aria-controls="pane-gi" aria-selected="true">1 · Việc này là gì<span class="sub">Phạm vi đợt này · ranh giới với C5 (điện) và C6 (mạng)</span></button>
+ <button type="button" class="tabbtn" role="tab" id="tab-lam"
+ aria-controls="pane-lam" aria-selected="false">2 · Đích cần đạt<span class="sub">Tám đích · từng phòng · điều chúng tôi lo · số phải chốt</span></button>
+ <button type="button" class="tabbtn" role="tab" id="tab-vt"
+ aria-controls="pane-vt" aria-selected="false">3 · Chúng tôi tìm hiểu được<span class="sub">Cấu tạo hốc · chỗ đặt nguồn · cấp chống nước</span></button>
+ <button type="button" class="tabbtn" role="tab" id="tab-nt"
+ aria-controls="pane-nt" aria-selected="false">4 · Nghiệm thu<span class="sub">Kiểm trước khi bả sơn</span></button>
+</div>
+
+<div class="tabpane" id="pane-gi" role="tabpanel" aria-labelledby="tab-gi">
+<h2 id="s1"><span class="sec-num">1.</span> Việc này là gì</h2>
+<div class="callout critical">
+ <h4>Chúng tôi chưa có bản vẽ trần ghi toạ độ từng điểm đèn</h4>
+ <p style="margin:6px 0 0;">Danh sách thiết bị thì đã đủ — <strong>55 bộ đèn trên 28 dòng thiết bị, 11 phòng</strong> — nhưng chỗ đứng của từng điểm trên mặt trần thì chưa ai ghi lại. Chúng tôi mong có toạ độ trước khi trần thạch cao đóng lại, vì sau đó mỗi lần chấm thêm một điểm là một lần cắt tấm đã bả.</p>
+</div>
+
+<h3 id="m1">Phạm vi đợt này — và ranh giới với C5 (điện) và C6 (mạng)</h3>
+<p>Chiếu sáng của cả nhà là <strong>một việc duy nhất</strong>, nhưng bị cắt làm hai theo thời gian, và lằn ranh nằm đúng ở <strong>mặt trần và mặt tường hoàn thiện</strong>.</p>
+<div class="table-wrap"><table class="data cols-3">
+ <thead><tr><th style="width:26%;">Phần</th><th style="width:16%;">Làm khi nào</th><th>Gồm những gì</th></tr></thead>
+ <tbody>
+ <tr><td><strong>Trong tường và trong trần</strong></td><td><strong>Đợt này</strong><br><span class="ts-note">C9 (chiếu sáng)</span></td><td>Hộp nối âm trần và âm tường tại từng vị trí đèn · dây chờ và ống gen tới từng điểm · <strong>hốc hắt sáng bằng thạch cao</strong> (khe hở, gờ che, lòng hốc) · vị trí và hộp cho nguồn đèn LED · cửa thăm để với tới nguồn · đế công tắc có dây trung tính.</td></tr>
+ <tr><td><strong>Ngoài mặt trần trở ra</strong></td><td><strong>Giai đoạn 2</strong></td><td>Đèn âm trần, đèn thả, đèn tường, đèn gương · dải LED cắm vào hốc và vào mũi bậc · nguồn đèn LED đặt vào hộp đã chừa · mặt công tắc.</td></tr>
+ </tbody>
+</table></div>
+<p><strong>Ranh giới với <a href="Dien-Va-Mang-383HaiPhong.html">C5 (điện)</a> và <a href="Dien-Va-Mang-383HaiPhong.html">C6 (mạng và cảm biến)</a>:</strong> C5 (điện) làm <em>đường</em> — tủ điện, át-tô-mát, mạch, ống gen chạy trong tường, đế âm. C6 (mạng và cảm biến) làm điểm mạng và điểm cảm biến. C9 (chiếu sáng) làm <em>đích</em> — hộp nối đúng chỗ cái đèn sẽ treo, và hình hốc thạch cao ôm lấy dải LED. Cùng thợ, cùng đợt, cùng một bản vẽ trần.</p>
+</div><!-- /pane-gi -->
+
+<div class="tabpane" id="pane-lam" role="tabpanel" aria-labelledby="tab-lam" hidden>
+<h2 id="s2"><span class="sec-num">2.</span> Đích cần đạt</h2>
+<ul class="steps">
+<li class="step stop"><div class="n">1</div><div><div class="t">Đèn nằm ở chỗ mình thật sự cần ánh sáng, không nằm đều giữa trần</div><span class="w">Điểm chờ đèn đặt theo chỗ người đứng và chỗ đồ đặt.</span><span class="g">⏸ Đây là đầu vào chung của <strong>C5 (điện)</strong>, <strong>C6 (mạng và cảm biến)</strong> và <strong>C9 (chiếu sáng)</strong> — đi một vòng nhà chốt chỗ đặt đồ, làm một buổi cho cả ba.</span></div><button type="button" class="step-more" data-src="l1" data-label="Ba nhóm số phải ra được" aria-expanded="false">Ba nhóm số phải ra được</button><div class="detail-src" id="l1"><p>Ba nhóm số này ra được thì cả ba việc cùng chạy: <strong>vị trí từng điểm chờ đèn theo phòng</strong> · <strong>kích thước hốc hắt sáng</strong> · <strong>vị trí công tắc và nhóm bật tắt của từng phòng</strong>.</p><p>Chúng tôi đã ghi từng phòng cần có gì ở <a href="#m3">bảng từng phòng bên dưới</a>; thứ còn thiếu là toạ độ trên mặt trần. Danh sách đầy đủ những số chúng tôi mong nhận lại nằm ở <a href="#do-chieu-sang">phải đo và phải chốt</a>.</p></div></li>
+<li class="step stop" id="d-de"><div class="n">2</div><div><div class="t">Mọi đế công tắc trong nhà có dây trung tính, và lòng đế sâu ≥50mm</div><span class="w">Kể cả đế nay chỉ định lắp công tắc cơ.</span><span class="g">⏸ Không sót đế nào. Phát hiện thiếu sau <strong>D4 (bả và sơn)</strong> thì chỉ còn cách đục bức tường đã sơn.</span></div><button type="button" class="step-more" data-src="l2" data-label="Vì sao đế nào cũng cần" aria-expanded="false">Vì sao đế nào cũng cần</button><div class="detail-src" id="l2"><p>Chúng tôi muốn về sau đổi được sang công tắc chỉnh độ sáng và công tắc thông minh ở nhiều phòng mà không phải mở tường. Loại công tắc đó cần <strong>nguồn nuôi thường trực</strong>, tức cần dây trung tính ngay tại đế, và thân nó dày hơn công tắc cơ nên đế nông thì mặt công tắc vênh ra khỏi tường và không vặn được vít.</p><p>Phòng nào chúng tôi cần chỉnh được độ sáng thì ghi ở <a href="#m5">mạch nào phải kéo thêm dây điều khiển</a>.</p></div></li>
+<li class="step stop" id="d-thang"><div class="n">3</div><div><div class="t">Cầu thang có ánh sáng ở mũi bậc</div><span class="w">Dải LED mũi bậc nằm <strong>dưới lớp bậc hoàn thiện</strong>.</span><span class="g">⏸ Đây là điểm không quay lại được của cả việc <strong>C9 (chiếu sáng)</strong>. Lát xong bậc thì muốn có ánh sáng mũi bậc phải bóc lại từng bậc.</span></div><button type="button" class="step-more" data-src="l3" data-label="Ba thứ cần có trước lượt lát bậc" aria-expanded="false">Ba thứ cần có trước lượt lát bậc</button><div class="detail-src" id="l3"><p>Khi <a href="Cau-Thang-383HaiPhong.html">D3 (cầu thang)</a> lát xong mặt bậc thì không còn đường nào đưa dây vào nữa. Ba thứ chúng tôi cần có mặt trước lượt lát đó:</p><ul><li>Đường ống chờ chạy trong vế thang tới <strong>từng mũi bậc</strong>, và vẫn còn thông — kéo được dây qua sau khi bậc đã lát.</li><li><strong>Một điểm cấp ở chân thang và một điểm ở đỉnh thang</strong>, mỗi điểm nuôi một đoạn dải, kèm điểm nguồn cho cảm biến hiện diện của <a href="Dien-Va-Mang-383HaiPhong.html">C6 (mạng và cảm biến)</a> ở hai đầu ấy.</li><li>Chỗ giấu dải LED trong viên bậc <strong>chốt cùng D3 (cầu thang)</strong>, trước khi đá hoặc gỗ được đặt gia công — chốt sau là phải đặt lại.</li></ul></div></li>
+<li class="step" id="d-hoc"><div class="n">4</div><div><div class="t">Hốc hắt sáng cho ra một vệt sáng đều, không nhìn thấy nẹp đèn</div><span class="w">Hốc là <strong>hình dạng của tấm thạch cao</strong>, thành hình ngay lúc đóng trần, không phải phụ kiện gắn thêm sau.</span></div><button type="button" class="step-more" data-src="l4" data-label="Chỗ chúng tôi sợ hỏng" aria-expanded="false">Chỗ chúng tôi sợ hỏng</button><div class="detail-src" id="l4"><p>Đứng ở giữa phòng và ở góc xa nhất của phòng đều không nhìn thấy được vào lòng hốc, chỗ dải đèn sẽ nằm. Chúng tôi có ghi lại bộ số mình đọc được ở <a href="#m4">cấu tạo hốc hắt sáng</a>, nhưng đó chỉ là hình dung của chúng tôi — đích thì vẫn là vệt sáng đều.</p><p>Một chuyện nữa cùng gốc: ánh sáng liếc dọc bề mặt phóng đại mọi gợn sóng, nên mảng trần bị hắt và mép hốc phải phẳng hơn phần trần còn lại.</p></div></li>
+<li class="step stop" id="d-nguon"><div class="n">5</div><div><div class="t">Về sau thay được đèn và nguồn đèn LED mà không phải phá trần</div><span class="w">Mỗi hốc chỉ ra được chỗ đặt nguồn, đường với tới nó bằng thang thường, và một cái nhãn nói nó phục vụ hốc nào.</span><span class="g">⏸ Nguồn đèn LED hỏng trước bóng đèn. Chôn nguồn kín trong trần là hẹn trước một lần phá trần.</span></div></li>
+<li class="step stop" id="d-uot"><div class="n">6</div><div><div class="t">Trong hai WC và trong giếng trời, không có mối nối dây nào ở chỗ nước tới được</div><span class="w">Chỉ có ống chạy vào những vùng đó; hộp nối và mối nối nằm ngoài.</span><span class="g">⏸ Đèn kín nước cỡ nào cũng vô nghĩa nếu chỗ nối dây nằm ngay chỗ nước tạt.</span></div><button type="button" class="step-more" data-src="l6" data-label="Bốn chỗ chúng tôi muốn nói rõ" aria-expanded="false">Bốn chỗ chúng tôi muốn nói rõ</button><div class="detail-src" id="l6"><ul><li><strong>Vùng buồng tắm đứng của cả hai WC</strong> — không hộp nối, không mối nối. Chỉ ống chạy vào, đầu ống hướng xuống; mọi mối nối nằm ngoài vùng đó, trong khoang trần khô.</li><li><strong>Đầu chờ đèn gương</strong> — cao <strong>1,85–1,95m</strong>, nằm trong phạm vi tấm gương sẽ lắp, cách vòi lavabo <strong>≥300mm</strong> theo phương ngang.</li><li><strong>Giếng trời</strong> — toàn bộ dây đi trong ống kín nước, ống dốc xuống để nước ngưng không đọng trong lòng ống. Nguồn đèn LED và mọi mối nối đặt <strong>trong nhà, chỗ khô ráo</strong>. Đèn hắt bồn cây chạy điện áp thấp.</li><li><strong>Mạch đèn của hai WC</strong> đi qua át-tô-mát chống dòng rò — chỗ đấu nằm ở <a href="Dien-Va-Mang-383HaiPhong.html">C5 (điện)</a>, không đấu riêng ở đây.</li></ul><p>Cấp bảo vệ của bản thân bộ đèn là chuyện mua ở Giai đoạn 2; thứ chúng tôi tra được ghi ở <a href="#m7">cấp bảo vệ chống nước</a>.</p></div></li>
+<li class="step"><div class="n">7</div><div><div class="t">Trần đã có sẵn hộp nối cho quạt trần và cho bốn đầu báo khói</div><span class="w">Cả hai lắp ở Giai đoạn 2, nhưng hộp nối và dây chờ chỉ làm được lúc trần còn hở.</span></div><button type="button" class="step-more" data-src="l7" data-label="Chỗ nào cần" aria-expanded="false">Chỗ nào cần</button><div class="detail-src" id="l7"><ul><li><strong>Quạt trần</strong> — phòng khách · bếp và phòng ăn · phòng ngủ tầng 2. Hộp nối ở ba chỗ này phải chịu được tải treo và tải rung, neo vào kết cấu trần chứ không bắt vào tấm thạch cao.</li><li><strong>Đầu báo khói</strong> — bốn vị trí: hành lang tầng 1 · bếp · cạnh giếng trời tầng 2 · chiếu nghỉ. Bốn đầu liên động với nhau, một đầu kêu thì cả bốn kêu, nên giữa bốn vị trí phải có sẵn dây tín hiệu ngay đợt này. Riêng chỗ bếp chúng tôi định dùng loại báo nhiệt.</li></ul></div></li>
+<li class="step stop"><div class="n">8</div><div><div class="t">Mười năm sau vẫn biết dây đèn nằm đâu trong trần và trong tường</div><span class="w">Ảnh hoàn công đủ mọi mặt trần và mọi bức tường có điểm chờ, có thước trong khung hình.</span><span class="g">⏸ Chụp <strong>trước khi đóng tấm và trước khi trám</strong>. Sau <strong>D4 (bả và sơn)</strong> thì mọi thứ ở trên đều phải đục mới sửa được.</span></div></li>
+</ul>
+
+<h3 class="pane-sub" id="m3">Từng phòng cần có gì ở cuối đợt này</h3>
+<p>Mỗi dòng là một phòng: cột 2 là thứ phải nằm sẵn trong trần và trong tường, cột 3 là hốc hắt sáng và đầu dây chờ, cột 4 là công tắc. Bảng này chốt <strong>phòng nào có loại điểm nào</strong>; toạ độ chính xác của từng điểm thì nằm trên bản vẽ trần ở <a href="#m1">phạm vi đợt này</a>.</p>
+<p>Áp cho mọi tuyến của việc này: <strong>ống gen Ø25mm có dây mồi</strong> tới từng điểm đèn, và <strong>đầu dây chờ dư 300mm</strong> cuộn gọn trong hộp nối, có nhãn ghi mạch nào.</p>
+<div class="rf" id="rfl">
+ <div class="rf-h">Lọc theo phòng <span class="cnt" id="cntl">đang hiện tất cả 11 phòng</span></div>
+ <div class="rf-chips">
+ <button type="button" class="chip all on" data-r="__all__">Tất cả</button>
+ <button type="button" class="chip" data-r="Hiên và sân">Hiên và sân</button>
+ <button type="button" class="chip" data-r="Phòng khách">Phòng khách</button>
+ <button type="button" class="chip" data-r="Bếp và phòng ăn">Bếp và phòng ăn</button>
+ <button type="button" class="chip" data-r="WC tầng trệt">WC tầng trệt</button>
+ <button type="button" class="chip" data-r="Phòng ngủ tầng 1">Phòng ngủ tầng 1</button>
+ <button type="button" class="chip" data-r="Cầu thang">Cầu thang</button>
+ <button type="button" class="chip" data-r="Phòng ngủ tầng 2">Phòng ngủ tầng 2</button>
+ <button type="button" class="chip" data-r="Phòng làm việc tầng 2">Phòng làm việc tầng 2</button>
+ <button type="button" class="chip" data-r="WC tầng 2">WC tầng 2</button>
+ <button type="button" class="chip" data-r="Giếng trời">Giếng trời</button>
+ </div>
+</div>
+
+<div class="table-wrap"><table class="data cols-4" id="mapl">
+ <thead><tr>
+ <th style="width:15%;">Phòng</th>
+ <th style="width:32%;">Điểm chờ trần và tường</th>
+ <th style="width:30%;">Hốc hắt sáng và dây chờ</th>
+ <th>Công tắc</th>
+ </tr></thead>
+ <tbody>
+ <tr data-r="Hiên và sân">
+ <td><strong>Lối vào và hiên</strong><br><span class="ts-note">tầng trệt</span></td>
+ <td>1 hộp nối âm trần giữa lối vào cho đèn thả · 1 hộp nối âm tường cho đèn hắt lên mảng tường ốp đá, đặt cao 2,0–2,2m và cách mặt đá 200–300mm.<br>🔴 <strong>Hộp nối tường phải xong TRƯỚC khi ốp đá.</strong> Khoan vào đá chẻ đã ốp là nứt vỡ cả viên, vá không lành.</td>
+ <td>Không có hốc. Ống gen Ø25 có dây mồi từ cụm công tắc lên cả hai hộp nối.</td>
+ <td>Cụm 2 mạch riêng đặt <strong>trong nhà</strong> ngay sau cửa chính: đèn trần · đèn hắt đá.</td>
+ </tr>
+ <tr data-r="Phòng khách">
+ <td><strong>Phòng khách</strong></td>
+ <td>6 vị trí đèn âm trần phân bố đều · 1 hộp nối trần trên vị trí bàn nước cho đèn thả · 2 hộp nối tường cho đèn hắt mảng đá.<br>⚠ Trần phòng khách có <strong>dầm gỗ trang trí</strong> — chốt lưới dầm trước, rồi mới chấm điểm đèn. Mọi hộp nối nằm <strong>giữa hai dầm</strong>, không có điểm nào rơi vào bụng dầm.</td>
+ <td><strong>Hốc hắt sáng chạy viền trần</strong> — kích thước và cấu tạo ở <a href="#m4">cấu tạo hốc hắt sáng chúng tôi đọc được</a>. Một điểm cấp điện cho mỗi <strong>≤5m</strong> chiều dài hốc. Nguồn đèn LED đặt trong khoang trần <strong>ngay trên một cửa thăm</strong>.</td>
+ <td>Cụm 3 mạch tại cửa vào: đèn âm trần · đèn thả · hốc hắt sáng và đèn hắt đá. Mạch đèn âm trần và mạch hốc hắt sáng <strong>phải điều chỉnh được độ sáng</strong>.</td>
+ </tr>
+ <tr data-r="Bếp và phòng ăn">
+ <td><strong>Bếp và phòng ăn</strong></td>
+ <td>3 hộp nối trần <strong>thẳng hàng theo tim bàn ăn</strong> cho cụm đèn thả — chốt vị trí bàn ăn trước, sai tim là ba đèn lệch khỏi mặt bàn · 4 vị trí đèn âm trần.</td>
+ <td><strong>Dây chờ đèn LED dưới tủ bếp</strong>: đưa lên trong tường, đầu chờ nằm trong vùng sẽ có tủ trên, dư 300mm. Dải LED chạy trong nẹp gắn đáy tủ ở Giai đoạn 2 — không mở hốc thạch cao.</td>
+ <td>Đèn dưới tủ có <strong>công tắc riêng</strong>, đặt cùng cụm công tắc bếp và <strong>không đặt sau bếp nấu</strong>. Xem <a href="Bep-383HaiPhong.html">C8 (bếp)</a>.</td>
+ </tr>
+ <tr data-r="WC tầng trệt">
+ <td><strong>WC tầng trệt</strong><br><span class="ts-note">dưới gầm thang</span></td>
+ <td>1 vị trí đèn âm trần loại chống ẩm · 1 đầu chờ đèn gương, cao <strong>1,85–1,95m</strong> và nằm trong phạm vi tấm gương sẽ lắp.<br>⚠ Trần dốc theo vế thang, chỗ cao nhất chỉ khoảng <strong>2,2m</strong>. Chốt cao độ trần trước; hộp nối phải né bản thang bê tông, không khoan vào bản thang.</td>
+ <td>Không có hốc. Ống gen tới điểm gương đi trong tường, không vắt qua vùng buồng tắm.</td>
+ <td>Đặt <strong>ngoài phòng</strong>, cạnh cửa. Đèn và quạt hút chung một mạch có hẹn giờ tắt trễ — xem <a href="Dien-Va-Mang-383HaiPhong.html">C5 (điện)</a>.</td>
+ </tr>
+ <tr data-r="Phòng ngủ tầng 1">
+ <td><strong>Phòng ngủ tầng 1</strong></td>
+ <td>4 vị trí đèn âm trần · 2 hộp nối tường hai bên đầu giường, cao <strong>1,3–1,4m</strong>, mỗi bên cách tim giường khoảng <strong>800mm</strong> — chốt vị trí và bề rộng giường trước.</td>
+ <td><strong>Dây chờ cho hốc hắt sáng đầu giường</strong>: một điểm cấp giấu sau mảng đầu giường, đầu chờ dư 300mm. Nếu hốc làm bằng thạch cao trên tường thì làm cùng lượt đóng trần.</td>
+ <td>Công tắc <strong>hai chiều</strong>: một cụm ở cửa, một cụm ở đầu giường. Mạch đèn trần điều chỉnh được độ sáng.</td>
+ </tr>
+ <tr data-r="Cầu thang">
+ <td><strong>Cầu thang tầng 1</strong><br><span class="ts-note">vế dưới và chiếu nghỉ</span></td>
+ <td>2 hộp nối tường cao <strong>1,6–1,8m</strong>: một ở chiếu nghỉ, một trên mảng tường ốp trang trí. Đặt lệch khỏi tay vịn để đèn không đụng tay.</td>
+ <td>🔴 <strong>Ống gen Ø25 có dây mồi chạy trong vế thang tới mũi bậc — kéo TRƯỚC khi lát bậc ở <a href="index.html#v-hm10">D3 (cầu thang)</a>.</strong> Một điểm cấp ở chân thang. Ba thứ cần có trước lượt lát bậc nằm ở <a href="#d-thang">đích 3</a>.</td>
+ <td>Hai chiều: chân thang và đỉnh thang, cùng điều khiển một mạch.</td>
+ </tr>
+ <tr data-r="Phòng ngủ tầng 2">
+ <td><strong>Phòng ngủ tầng 2</strong><br><span class="ts-note">phòng ngủ master</span></td>
+ <td>4 vị trí đèn âm trần · 2 hộp nối tường hai bên đầu giường · 1 điểm hắt sáng mảng tường đầu giường.<br>🔴 <strong>Ràng buộc tường Tây Nam:</strong> nếu <a href="index.html#v-hm28">D2 (cách nhiệt tường trong)</a> được làm thì bức tường đó dày thêm 70–75mm — <strong>không đặt hộp nối hay bất kỳ lỗ xuyên nào trên bức tường Tây Nam</strong>; đưa toàn bộ điểm đèn tường sang tường Đông Bắc. Điểm nào buộc phải nằm trong vùng đó thì chừa dây dài thêm 50mm.</td>
+ <td><strong>Hốc hắt sáng đầu giường</strong> theo <a href="#m4">cấu tạo hốc hắt sáng chúng tôi đọc được</a> · nguồn đèn LED đặt trong hộp có nắp, với tới được, <strong>không đặt trong lòng mảng đầu giường bịt kín</strong>.</td>
+ <td>Hai chiều: cửa và đầu giường. Mạch đèn âm trần và mạch hốc hắt sáng điều chỉnh được độ sáng.</td>
+ </tr>
+ <tr data-r="Phòng làm việc tầng 2">
+ <td><strong>Phòng làm việc tầng 2</strong></td>
+ <td>4 vị trí đèn âm trần · 1 hộp nối trần cho đèn thả trên bàn làm việc, <strong>trùng tim bàn</strong> — chốt vị trí bàn trước khi đóng trần.</td>
+ <td>Không có hốc. Ống gen dự phòng có dây mồi từ trần xuống mảng tường sau bàn, để sau này thêm được đèn tường mà không đục.</td>
+ <td>Cụm 2 mạch tại cửa: đèn âm trần · đèn thả bàn. <strong>Cả hai mạch điều chỉnh được độ sáng.</strong></td>
+ </tr>
+ <tr data-r="WC tầng 2">
+ <td><strong>WC tầng 2</strong></td>
+ <td>3 vị trí đèn âm trần chống ẩm · 1 đầu chờ đèn gương · <strong>1 vị trí đèn trong buồng tắm, loại kín nước</strong>.<br>⚠ Trần hạ xuống khoảng <strong>2,7m</strong> để giấu ống — chốt cao độ trần trước. Bố trí điểm đèn chốt <strong>sau khi</strong> chốt vị trí bồn cầu mới ở <a href="index.html#v-wc-t2">C10 (WC tầng 2)</a>.</td>
+ <td>Không có hốc. <strong>Không đặt hộp nối trong vùng buồng tắm</strong> — mọi hộp nối và mối nối nằm ngoài vùng đó, chỉ có dây trong ống chạy vào.</td>
+ <td>Đặt <strong>ngoài phòng</strong>, cạnh cửa. Đèn gương một mạch riêng để bật lẻ khi cần.</td>
+ </tr>
+ <tr data-r="Giếng trời">
+ <td><strong>Giếng trời</strong></td>
+ <td>1 điểm treo đèn thả rơi xuyên tầng — <strong>móc treo bắt vào cấu kiện chịu lực, không bắt vào tấm thạch cao</strong>, và phải với tới được để hạ đèn xuống lau · 2 đến 4 điểm đèn hắt lên bồn cây, chạy <strong>điện áp thấp</strong>.</td>
+ <td>Không có hốc. <strong>Mọi dây trong giếng trời đi trong ống kín nước</strong> — đây là khoang có nước mưa tạt và hơi ẩm bốc lên. Nguồn đèn LED đặt <strong>trong nhà, chỗ khô ráo</strong>, không đặt trong giếng trời.</td>
+ <td>Công tắc đặt trong nhà, cạnh cửa vào giếng trời. Hai mạch: đèn thả · đèn hắt bồn cây.</td>
+ </tr>
+ <tr data-r="Cầu thang">
+ <td><strong>Cầu thang tầng 2</strong><br><span class="ts-note">vế trên</span></td>
+ <td>2 hộp nối tường cao 1,6–1,8m dọc vế trên.</td>
+ <td>🔴 <strong>Ống gen tới mũi bậc kéo TRƯỚC khi lát bậc</strong> · một điểm cấp ở đỉnh thang, tách khỏi điểm cấp chân thang (mỗi đoạn dải ≤5m).</td>
+ <td>Hai chiều, nối chung với cụm ở tầng 1 để bật tắt được cả tuyến thang từ hai đầu.</td>
+ </tr>
+ </tbody>
+</table></div>
+
+<h3 class="pane-sub" id="m5">Mạch nào phải kéo thêm dây điều khiển</h3>
+<p>Nhiệt độ màu dưới đây là <strong>lựa chọn của chúng tôi</strong> cho đèn sẽ mua ở Giai đoạn 2. Nó có mặt ở thẻ này vì nó quyết định một thứ chỉ làm được lúc tường còn hở: <strong>mạch nào phải kéo thêm dây điều khiển</strong>, và mạch nào tách khỏi mạch nào. Bóng đèn mua lúc nào cũng được; đường dây thì chỉ có lúc này.</p>
+<div class="table-wrap"><table class="data cols-3">
+ <thead><tr><th style="width:24%;">Phòng</th><th style="width:30%;">Ánh sáng chúng tôi định dùng</th><th>Phải có sẵn trong tường ở đợt này</th></tr></thead>
+ <tbody>
+ <tr><td><strong>Phòng khách</strong></td><td><strong>2700K</strong> · đèn âm trần <strong>đổi được 2700–4000K</strong></td><td>Hai mạch tách nhau — đèn âm trần và hốc hắt sáng — để buổi tối bật riêng hốc hắt sáng. <strong>Cả hai mạch chỉnh được độ sáng.</strong></td></tr>
+ <tr><td><strong>Phòng ngủ tầng 1 và tầng 2</strong></td><td><strong>2700K</strong> · đèn âm trần đổi được 2700–4000K</td><td>Mạch trần và mạch hốc hắt sáng đầu giường tách nhau, <strong>cả hai chỉnh được độ sáng</strong>. Đèn đầu giường bật tắt độc lập với đèn trần.</td></tr>
+ <tr><td><strong>Lối vào và hiên</strong></td><td><strong>2700K</strong> · đèn hắt mảng đá <strong>3000K</strong></td><td>Đèn hắt đá một mạch riêng. Không cần chỉnh độ sáng.</td></tr>
+ <tr><td><strong>Bếp và phòng ăn</strong></td><td><strong>3000K</strong> — cả đèn âm trần, đèn thả bàn ăn và đèn dưới tủ</td><td>Mạch đèn thả bàn ăn <strong>chỉnh được độ sáng</strong>. Đèn dưới tủ một mạch riêng.</td></tr>
+ <tr><td><strong>WC tầng trệt và WC tầng 2</strong></td><td><strong>3000K</strong> — cả đèn trần, đèn gương và đèn buồng tắm</td><td>Không cần chỉnh độ sáng. Đèn gương một mạch riêng để bật lẻ.</td></tr>
+ <tr><td><strong>Phòng làm việc tầng 2</strong></td><td><strong>4000K</strong> cho đèn âm trần · đèn thả bàn <strong>đổi được 3000–5000K</strong></td><td><strong>Cả hai mạch chỉnh được độ sáng</strong> — phòng này dùng cả ban ngày lẫn buổi tối.</td></tr>
+ <tr><td><strong>Cầu thang</strong></td><td><strong>3000K</strong> — cả dải mũi bậc lẫn đèn tường</td><td>Dải mũi bậc chạy ở mức sáng thấp về đêm ⇒ <strong>mạch phải chỉnh được độ sáng</strong>.</td></tr>
+ <tr><td><strong>Giếng trời</strong></td><td><strong>3000K</strong> · đèn hắt bồn cây điện áp thấp</td><td>Đèn hắt bồn cây một mạch riêng, <strong>chỉnh được độ sáng</strong>.</td></tr>
+ </tbody>
+</table></div>
+<p>Mạch nào mang chữ <em>chỉnh được độ sáng</em> ở cột 3 thì đế công tắc của nó bắt buộc có dây trung tính. <a href="#d-de">Đích 2</a> đã xin dây trung tính ở mọi đế, nên không có mạch nào rơi ra ngoài.</p>
+
+<h3 class="pane-sub" id="s2-lo">Điều chúng tôi lo</h3>
+<p style="margin:0 0 14px;">Chúng tôi không phải dân trong nghề. Đây là những thứ chúng tôi thấy lo, nêu ra để anh xác nhận hoặc nói lại cho đúng.</p>
+<div class="callout warning"><h4>Lát xong bậc thang rồi mới nhớ ra dây đèn mũi bậc</h4><p style="margin:6px 0 0;">Đây là chỗ chúng tôi lo nhất ở việc này, vì nó không sửa được bằng cách nào khác ngoài bóc lại từng viên bậc đã lát. Mong đường ống vào vế thang trước lượt lát.</p></div>
+<div class="callout warning"><h4>Đế công tắc không có dây trung tính</h4><p style="margin:6px 0 0;">Chúng tôi muốn chỉnh được độ sáng ở nhiều phòng. Chúng tôi nghe nói không có dây trung tính ở đế thì không lắp được bộ điều chỉnh độ sáng loại tốt — và lúc phát hiện ra thì tường đã sơn.</p></div>
+<div class="callout warning"><h4>Trộn hai loại nguồn đèn LED trên cùng một mạch</h4><p style="margin:6px 0 0;">Chúng tôi đọc được rằng một mạch chỉ nên dùng một loại nguồn đèn LED, trộn hai loại thì đèn nhấp nháy hoặc không tắt hẳn, và tới lúc đó gần như chỉ còn cách làm lại toàn bộ mạch. Nếu chuyện này không đúng như chúng tôi hiểu thì nhờ anh nói lại.</p></div>
+<div class="callout warning"><h4>Hộp nối hoặc mối nối dây nằm trong vùng nước phun của buồng tắm</h4><p style="margin:6px 0 0;">Chúng tôi lo mua đèn kín nước cỡ nào cũng vô nghĩa nếu chỗ nối dây lại nằm ngay chỗ nước tạt. Mong vùng đó chỉ có ống chạy vào, không có mối nối nào.</p></div>
+<div class="callout warning"><h4>Dán dải LED thẳng lên tấm thạch cao</h4><p style="margin:6px 0 0;">Chúng tôi ngại dải dán trực tiếp lên thạch cao thì nóng, tuổi thọ ngắn, và bong ra theo thời gian mà không tháo lại được.</p></div>
+<div class="callout warning"><h4>Nguồn đèn chôn kín trong vế thang hoặc trong trần</h4><p style="margin:6px 0 0;">Nguồn hỏng trước bóng đèn. Điều chúng tôi sợ là tới lúc đó phải phá trần hoặc phá bậc thang chỉ để thay một thứ nhỏ bằng bàn tay.</p></div>
+
+<h3 class="pane-sub" id="s2-do">Phải đo và phải chốt</h3>
+<div class="callout info measure" id="do-chieu-sang"><h4><span class="tag-do">Phải đo</span> Số phải có trước khi mở tường cho C5 (điện)</h4><ul class="chk tight"><li><strong>Vị trí từng điểm chờ đèn theo phòng</strong>, ghi toạ độ từ hai bức tường.<span class="why">Đặt theo chỗ người đứng và chỗ đồ đặt, không đặt đều giữa trần.</span></li><li><strong>Kích thước hốc hắt sáng</strong> — bề rộng khe, chiều sâu lòng hốc, độ lùi của dải LED sau gờ che.<span class="why">Ba số này quyết định vệt sáng đều hay lộ chấm.</span></li><li><strong>Vị trí công tắc và nhóm bật tắt</strong> từng phòng.<span class="why">Quyết định mạch nào phải kéo thêm dây điều khiển và mạch nào chỉ cần dây thường.</span></li><li><strong>Số bậc và chiều cao từng bậc</strong>, đo tại chỗ, chốt cùng <a href="Cau-Thang-383HaiPhong.html">D3 (cầu thang)</a>.<span class="why">Nhánh ống ra mũi bậc đi theo số bậc thực đo, không theo số bậc trên bản vẽ nháp.</span></li><li><strong>Chỗ đặt nguồn đèn LED của từng hốc</strong> và đường với tới nó.<span class="why">Mở thử bằng thang thường — với tới được thì đạt.</span></li><li><strong>Cao độ trần của hai WC</strong>, và vị trí bồn cầu mới ở <a href="WC-Tang-2-383HaiPhong.html">C10 (WC tầng 2)</a>.<span class="why">Trần WC trệt dốc theo vế thang, trần WC tầng 2 hạ xuống để giấu ống — chốt cao độ rồi mới chấm được điểm đèn.</span></li></ul></div>
+<div class="callout info"><h4>Việc cần chốt với nhà thầu</h4><p style="margin:6px 0 0;">Chúng tôi mong nhận lại bản vẽ trần của cả hai tầng có toạ độ từng điểm, để đối chiếu tại chỗ trước khi trần đóng lại. Chỗ nào trong bảng từng phòng ở trên không làm được như chúng tôi hình dung thì nhờ anh nói sớm.</p></div>
+</div><!-- /pane-lam -->
+
+<div class="tabpane" id="pane-vt" role="tabpanel" aria-labelledby="tab-vt" hidden>
+<h2 id="s3"><span class="sec-num">3.</span> Chúng tôi tìm hiểu được</h2>
+<div class="callout info"><p style="margin:0;">Phần này là thứ chúng tôi <strong>đọc được</strong> khi tìm hiểu, không phải thứ chúng tôi biết. Nó <strong>không ràng buộc</strong> — anh có cách khác đạt được các yêu cầu ở thẻ 2 thì cách của anh thắng. Chúng tôi để đây để anh khỏi mất công đoán chúng tôi đang hình dung cái gì.</p></div>
+
+<h3 id="m4">Hốc hắt sáng — cấu tạo chúng tôi đọc được</h3>
+<p>Phục vụ <a href="#d-hoc">đích 4 ở thẻ 2</a>: hốc cho ra một vệt sáng đều, không nhìn thấy nẹp đèn. Đây là bộ số chúng tôi tra được; chúng tôi không biết nó có hợp với chiều cao trần thật và với loại dải đèn sẽ mua hay không.</p>
+<div class="table-wrap"><table class="data cols-2">
+ <thead><tr><th style="width:30%;">Chỗ</th><th>Con số chúng tôi đọc được, và lý do đi kèm</th></tr></thead>
+ <tbody>
+ <tr><td><strong>Bề rộng khe hở</strong><br><span class="ts-note">miệng khe nhìn thấy</span></td><td><strong>60–80mm.</strong> Chỗ chúng tôi đọc được nói hẹp hơn 60mm thì gờ che chặn mất phần lớn ánh sáng và dải LED chỉ sáng cho lòng hốc; rộng hơn 80mm thì đứng dưới nhìn thấy thẳng vào dải LED.</td></tr>
+ <tr><td><strong>Chiều sâu lòng hốc</strong><br><span class="ts-note">từ miệng khe vào trong</span></td><td><strong>≥100mm</strong> — đủ chỗ cho dải LED, lớp tản nhiệt và đoạn dây dư. Dưới mức đó thì nghe nói không đút vừa nẹp và không uốn nổi dây ở góc.</td></tr>
+ <tr><td><strong>Dải LED lùi vào so với mép gờ che</strong></td><td><strong>≥50mm.</strong> Đây là con số chúng tôi thấy nhắc nhiều nhất, vì nó quyết định tia nhìn từ trong phòng có chạm tới dải đèn hay không.</td></tr>
+ <tr><td><strong>Khoảng cách từ dải LED tới bề mặt được hắt</strong></td><td><strong>40–60mm.</strong> Gần hơn thì trên trần hiện ra một dãy vệt sáng rời nhau đúng bằng khoảng cách các hạt LED; xa hơn thì vệt hắt nhạt và tãi rộng, mất nét.</td></tr>
+ <tr><td><strong>Chiều cao gờ che</strong></td><td>Ít nhất <strong>gấp đôi</strong> khoảng cách từ dải LED tới bề mặt được hắt.</td></tr>
+ <tr><td><strong>Lòng hốc</strong></td><td>Bả phẳng và <strong>sơn trắng nhám</strong> toàn bộ mặt trong, kể cả mặt sau gờ che. Lòng hốc để thô thì ánh sáng bị hút mất và lộ vết bay bả.</td></tr>
+ <tr><td><strong>Mối nối tấm</strong></td><td>Chúng tôi đọc được là không nên để mối nối hai tấm thạch cao rơi vào giữa mảng trần bị hắt sáng — vài tháng sau nó hiện ra thành một đường ngang chạy suốt phòng.</td></tr>
+ <tr><td><strong>Lớp tản nhiệt dưới dải LED</strong></td><td>Dải dán lên một <strong>nẹp nhôm</strong> chạy suốt lòng hốc thay cho việc dán thẳng lên tấm thạch cao. Đây là thứ chúng tôi lo nhất trong nhóm này — thấy nói dán lên thạch cao thì dải nóng, tối màu dần rồi chết từng đoạn.</td></tr>
+ </tbody>
+</table></div>
+
+<h3>Chỗ đặt nguồn đèn LED — ba cách chúng tôi đọc được</h3>
+<p>Phục vụ <a href="#d-nguon">đích 5 ở thẻ 2</a>: về sau thay được nguồn mà không phải phá trần. Chúng tôi không biết cách nào hợp với trần nhà mình nhất nên kể ra cả ba, và mong mỗi hốc chọn được một cách rồi ghi lên bản vẽ trần.</p>
+<ol>
+ <li><strong>Nguồn nằm trong khoang trần, ngay trên một cửa thăm.</strong> Chỗ chúng tôi đọc được nói cửa thăm cỡ <strong>300×300mm</strong> là vừa đủ thò tay vào, và nên nằm ở chỗ bắc thang thường tới được — không nằm trên đầu tủ hay trên bàn cố định.</li>
+ <li><strong>Nguồn nằm ngoài hốc</strong>, trong một hộp có nắp tháo được: hốc tủ, mảng tường đầu giường có nắp, hoặc hộp âm tường có mặt nạ.</li>
+ <li><strong>Gom nhiều nguồn về một hộp chung</strong> có nắp, đặt cạnh tủ điện tầng hoặc trong hốc tủ thiết bị mạng ở chiếu nghỉ tầng 2.</li>
+</ol>
+<div class="table-wrap"><table class="data cols-2">
+ <thead><tr><th style="width:30%;">Chuyện đi kèm</th><th>Thứ chúng tôi đọc được</th></tr></thead>
+ <tbody>
+ <tr><td><strong>Nguồn sinh nhiệt</strong></td><td>Chỗ đặt nguồn cần thoáng. Nghe nói nhét nguồn vào hộp kín bọc bông cách âm, hoặc áp nguồn lên mặt trên tấm thạch cao rồi phủ vật liệu lên, đều làm nguồn chết sớm.</td></tr>
+ <tr><td><strong>Chiều dài một đoạn dải</strong></td><td>Một điểm cấp cho mỗi <strong>≤5m</strong> dải. Đây là lý do chúng tôi xin điểm cấp ở cả chân thang lẫn đỉnh thang, và một điểm cho mỗi 5m hốc ở phòng khách — dải cấp từ một đầu mà quá dài thì tối dần về cuối.</td></tr>
+ <tr><td><strong>Dây từ nguồn tới dải</strong></td><td>Chúng tôi đọc được là nên cho nó ống riêng, không đi chung ống với dây 220V.</td></tr>
+ <tr><td><strong>Nhãn</strong></td><td>Mỗi nguồn và mỗi cửa thăm có nhãn bền, đọc được, ghi rõ nó phục vụ hốc nào của phòng nào.</td></tr>
+ </tbody>
+</table></div>
+
+<h3 id="m7">Cấp bảo vệ chống nước — cho đèn mua ở Giai đoạn 2</h3>
+<p>Phần thuộc đợt này là <strong>chỗ đặt hộp nối</strong>, và nó nằm ở <a href="#d-uot">đích 6 ở thẻ 2</a>. Bảng dưới đây là quy cách chúng tôi tra được cho lần mua sau, để khỏi mua nhầm bộ đèn không chịu nổi chỗ nó sẽ đứng.</p>
+<div class="table-wrap"><table class="data cols-2">
+ <thead><tr><th style="width:38%;">Vị trí</th><th>Cấp bảo vệ chúng tôi tra được</th></tr></thead>
+ <tbody>
+ <tr><td><strong>Trong buồng tắm đứng</strong><br><span class="ts-note">vùng nước phun trực tiếp</span></td><td><strong>IP65</strong> — chịu được tia nước phun.</td></tr>
+ <tr><td><strong>Trần WC ngoài vùng buồng tắm</strong></td><td><strong>IP44</strong> — chịu được nước bắn. Tấm trần của hai WC dùng loại chống ẩm.</td></tr>
+ <tr><td><strong>Đèn gương</strong></td><td><strong>IP44</strong>. Riêng WC tầng 2 chúng tôi muốn thêm khả năng chống mờ hơi nước.</td></tr>
+ <tr><td><strong>Mọi đèn trong giếng trời</strong></td><td><strong>IP65</strong> — đây là khoang có nước mưa tạt và hơi ẩm bốc lên suốt mùa mưa.</td></tr>
+ </tbody>
+</table></div>
+</div><!-- /pane-vt -->
+
+<div class="tabpane" id="pane-nt" role="tabpanel" aria-labelledby="tab-nt" hidden>
+<h2 id="s4"><span class="sec-num">4.</span> Nghiệm thu</h2>
+<div class="callout info">
+ <h4>Kiểm trước khi bả sơn — sau khi sơn thì mọi mục dưới đây đều phải đục tường mới sửa được</h4>
+ <ol style="margin:6px 0 0;">
+ <li><strong>Bản vẽ trần có toạ độ</strong> của cả hai tầng, mỗi điểm đo từ hai bức tường. Đối chiếu tại chỗ: từng điểm trên trần khớp bản vẽ, sai lệch <strong>≤20mm</strong>.</li>
+ <li><strong>Đế công tắc:</strong> đo sâu từng đế, <strong>≥50mm, không sót đế nào</strong>. Đếm số đế khớp <a href="#m3">bảng từng phòng cần có gì</a>.</li>
+ <li><strong>Dây trung tính:</strong> mở từng đế công tắc, xác nhận <strong>có đủ dây trung tính ở 100% số đế</strong>. Đây là mục dễ bỏ sót nhất — kiểm từng cái, không kiểm mẫu.</li>
+ <li><strong>Ống gen:</strong> mọi ống có dây mồi, kể cả ống chưa dùng. Kéo thử dây mồi một lượt — ống nào kẹt thì chưa đạt.</li>
+ <li><strong>Đầu dây chờ:</strong> mỗi hộp nối có đầu dây dư <strong>≥300mm</strong>, cuộn gọn, <strong>có nhãn ghi mạch</strong>.</li>
+ <li><strong>Hốc hắt sáng — thử ngắm:</strong> đứng ở giữa phòng và ở góc xa nhất của phòng, qua khe hốc <strong>không nhìn thấy được vào lòng hốc</strong>, chỗ dải đèn sẽ nằm.</li>
+ <li><strong>Mép hốc và mảng trần bị hắt:</strong> áp thước 2m, khe hở <strong>≤3mm</strong>. Lòng hốc bả phẳng, rọi đèn dọc lòng hốc không còn vết bay bả.</li>
+ <li><strong>Nguồn đèn LED:</strong> mỗi hốc chỉ ra được <strong>chỗ đặt nguồn và đường với tới nó</strong>. Mở thử từng cửa thăm bằng thang thường — với tới được thì đạt, và cửa thăm có nhãn mặt trong ghi phục vụ hốc nào.</li>
+ <li><strong>Cầu thang:</strong> đường ống tới mũi bậc <strong>đã vào vế thang và còn thông suốt</strong>, kiểm <strong>trước khi lát bậc</strong>. Kéo thử dây mồi từ chân lên đỉnh.</li>
+ <li><strong>Khu ướt:</strong> soi lại vùng buồng tắm của cả hai WC — <strong>không có hộp nối, không có mối nối nào</strong> nằm trong vùng đó.</li>
+ <li><strong>Giếng trời:</strong> mọi ống kín nước, dốc xuống, không có mối nối nào nằm ngoài trời.</li>
+ <li><strong>Quạt trần và đầu báo khói:</strong> đủ hộp nối ở ba chỗ quạt trần và bốn chỗ đầu báo khói, và có dây tín hiệu nối giữa bốn đầu báo.</li>
+ <li><strong>Ảnh hoàn công:</strong> chụp đủ mọi mặt trần và mọi bức tường có điểm chờ, <strong>có thước trong khung hình</strong>, chụp <strong>trước khi đóng tấm và trước khi trám</strong>.</li>
+ </ol>
+</div>
+
+<script>
+(function () {
+  var chips = Array.prototype.slice.call(document.querySelectorAll('#rfl .chip'));
+  var all = document.querySelector('#rfl .chip.all');
+  var rows = Array.prototype.slice.call(document.querySelectorAll('#mapl tbody tr[data-r]'));
+  var cnt = document.getElementById('cntl');
+  var total = rows.length;
+  function apply() {
+    var picked = chips.filter(function (c) { return c !== all && c.classList.contains('on'); })
+                      .map(function (c) { return c.dataset.r; });
+    var showAll = picked.length === 0;
+    all.classList.toggle('on', showAll);
+    var shown = 0;
+    rows.forEach(function (r) {
+      var ok = showAll || picked.indexOf(r.dataset.r) !== -1;
+      r.classList.toggle('hide', !ok);
+      if (ok) shown++;
+    });
+    cnt.textContent = showAll ? ('đang hiện tất cả ' + total + ' phòng')
+                              : ('đang hiện ' + shown + '/' + total + ' phòng · ' + picked.join(', '));
+  }
+  chips.forEach(function (c) {
+    c.addEventListener('click', function () {
+      if (c === all) { chips.forEach(function (x) { x.classList.remove('on'); }); }
+      else { c.classList.toggle('on'); }
+      apply();
+    });
+  });
+  apply();
+})();
+</script>
+</div><!-- /pane-nt -->
+<div class="navbar foot">
+ <a class="btn-big primary" href="index.html#v-chieu-sang"><span class="k">← Quay lại</span>Kế hoạch tổng thể</a>
+ <a class="btn-big" href="Dien-Va-Mang-383HaiPhong.html"><span class="k">Trang liên quan</span>C5 và C6 — Điện và mạng</a>
+ <a class="btn-big" href="Cau-Thang-383HaiPhong.html"><span class="k">Trang liên quan</span>D3 — Cầu thang</a>
+</div>
+<div class="doc-foot">
+ Trang chi tiết · C9 (chiếu sáng toàn nhà) · 383 Hải Phòng
+</div>
+
+</main></div></div>
+
+<script>
+/* Đổi thẻ. Link trỏ tới một mục nằm trong thẻ đang đóng thì mở thẻ đó rồi mới nhảy,
+   nên dải "Trong trang" và link sâu từ Kế hoạch tổng thể vẫn tới đúng chỗ. */
+(function(){
+  var bar=document.querySelector('.tabbar'); if(!bar) return;
+  var btns=Array.prototype.slice.call(bar.querySelectorAll('.tabbtn'));
+  function show(id){
+    btns.forEach(function(b){
+      var on=b.getAttribute('aria-controls')===id;
+      b.classList.toggle('on',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+      var p=document.getElementById(b.getAttribute('aria-controls'));
+      if(p) p.hidden=!on;
+    });
+  }
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      show(b.getAttribute('aria-controls'));
+      bar.scrollIntoView({block:'start'});
+    });
+  });
+  function reveal(hash){
+    if(!hash||hash.length<2) return;
+    var t; try{ t=document.querySelector(hash);}catch(e){return;}
+    if(!t) return;
+    var pane=t.closest('.tabpane');
+    if(pane&&pane.hidden){ show(pane.id); t.scrollIntoView({block:'start'}); }
+  }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a[href^="#"]');
+    if(a) setTimeout(function(){reveal(a.getAttribute('href'));},0);
+  });
+  window.addEventListener('hashchange',function(){reveal(location.hash);});
+  reveal(location.hash);
+})();
+
+/* Bung/thu chi tiết từng bước. Chỉ bật tắt class trên chính thẻ bước —
+   không di chuyển node, không nhân bản innerHTML (nhân bản sinh id trùng và
+   làm hỏng marker/pattern của SVG nằm bên trong). */
+(function(){
+  function label(btn, open){
+    var base = btn.getAttribute('data-label') || 'Chi tiết';
+    btn.firstChild.nodeValue = open ? 'Thu gọn' : base;
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('button.step-more');
+    if(!b) return;
+    e.preventDefault();
+    var li = b.closest('.step'); if(!li) return;
+    var open = !li.classList.contains('open');
+    li.classList.toggle('open', open);
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    label(b, open);
+  });
+  /* Link sâu tới một bước: mở sẵn bước đó ra. */
+  function openFromHash(h){
+    if(!h || h.length < 2) return;
+    var t; try { t = document.querySelector(h); } catch(err) { return; }
+    if(!t) return;
+    var li = t.closest && t.closest('.step');
+    if(li && !li.classList.contains('open')){
+      var b = li.querySelector('button.step-more');
+      if(b){ li.classList.add('open'); b.setAttribute('aria-expanded','true'); label(b, true); }
+    }
+  }
+  window.addEventListener('hashchange', function(){ openFromHash(location.hash); });
+  openFromHash(location.hash);
+  /* Bản in mở hết. */
+  window.addEventListener('beforeprint', function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.step'), function(li){
+      li.classList.add('open');
+    });
+  });
+})();
+</script>
+<link rel="stylesheet" href="binh-luan.css">
+<script>window.BINH_LUAN_CAU_HINH={"url": "https://butoxfkbpcycadwjtbga.supabase.co", "khoa": "sb_publishable_S4Ixp42EgGUUZlhrbY1flA_TZzrbLc0"};</script>
+<script src="binh-luan.js" defer></script>
+</body>
+</html>
