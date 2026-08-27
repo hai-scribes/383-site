@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C7 — Ống cấp và ống thoát · 383 Hải Phòng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400..700;1,400..600&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ════════════════════════════════════════════════════════════
+     FRAME RETROFIT — 2026-05-18
+     Locked decisions: Merriweather + Roboto + Roboto Mono ·
+     accent terracotta #b8412c · cream paper · Sistema Constructivo
+     archetype reference.
+     ════════════════════════════════════════════════════════════ */
+  * { box-sizing: border-box; }
+  :root {
+    /* Paper & ink */
+    --bg: #f3efe6; --paper: #faf6ec; --paper-deep: #ebe5d6;
+    /* --muted phải đọc được: nó gánh TOÀN BỘ nhãn khung tên, phụ đề mục lục,
+       mô tả ô màu, số hiệu bản vẽ — tất cả ở cỡ 11–12px. Giá trị cũ #8a8780
+       chỉ đạt 3,32:1 trên giấy, dưới ngưỡng AA 4,5:1 cho chữ thường; đọc ngoài sáng là mất chữ. #6f6c64 đạt 4,86:1 trên giấy · 4,57:1 trên nền —
+       qua ngưỡng ở cả hai, sắc độ gần như không đổi. */
+    --ink: #1d1d1b; --ink-soft: #4a4a46; --muted: #6f6c64;
+    --line: #c9c2af; --line-soft: #d8d2c0;
+
+    /* Accent — terracotta (ratified 2026-07-07) */
+    --accent: #b8412c; --accent-soft: #d4856e; --accent-pale: #f0ddd4;
+
+    /* Audience chips (client follows accent = owner primary; kts/contractor as counterpoints) */
+    --client: #b8412c; --kts: #4a6c3f; --contractor: #9a6b13; --all: #2c2c2c;
+
+    /* Priority tiers (P0 = accent terracotta, P1/P2/P3 distinguishable) */
+    --p0: #b8412c; --p1: #9a6b13; --p2: #4a6c3f; --p3: #8a8780;
+
+    /* Thang màu Gantt (§14) — 8 nhóm việc. Đặt thành token vì TRƯỚC ĐÂY thanh
+       và chú giải tô màu ở hai chỗ khác nhau (thanh dùng var(), chú giải dán hex
+       thẳng vào HTML) nên chúng lệch nhau mà không ai kiểm: chú giải ghi "A —
+       Thô & MEP" màu XANH DƯƠNG #3a6fb0 trong khi thanh A thật ra màu XANH LÁ
+       var(--p2), và "Milestone" ghi #b8324a còn mốc thật là terracotta. Nhà thầu
+       đọc lịch theo màu — chú giải sai là lỗi nội dung, không phải lỗi thẩm mỹ.
+
+       Phân biệt bằng SẮC, không bằng độ sáng: cả 8 đều ≥4,5:1 với chữ trắng nằm
+       trên thanh (thấp nhất --g-prep 4,71:1). Trong mỗi nghề, bước sau nhạt hơn
+       bước trước: thô(đậm)→hoàn thiện(nhạt), đi dây(đậm)→lắp thiết bị(nhạt).
+       Terracotta CHỈ dành cho mốc — nó là màu nhấn của cả tài liệu. */
+    --g-prep:      #78736a;   /* chuẩn bị — xám ấm trung tính */
+    --g-a:         #8a5426;   /* A — thô & MEP: nâu đất, việc nặng nhất */
+    --g-b:         #8f6218;   /* B — hoàn thiện: hoàng thổ, cùng họ, nhạt hơn */
+    --g-c:         #46683c;   /* C — điện/nước: sage, cùng họ --kts */
+    --g-cabling:   #33505d;   /* smart đi dây (GĐ1, trong tường) — lam đá đậm */
+    --g-smart:     #54707d;   /* smart lắp đặt (GĐ2, ngoài tường) — cùng họ, nhạt */
+    --g-cooling:   #2a7676;   /* làm mát — lục lam */
+    --g-milestone: #b8412c;   /* mốc — terracotta, dành riêng */
+
+    /* Callout palettes (muted, paper-compatible) */
+    --warn-bg: #f5ecd6; --warn-line: #c9a85a; --warn-ink: #6f4f10;
+    --crit-bg: #f0d9d1; --crit-line: #b86f5a; --crit-ink: #6f2515;
+    --info-bg: #e6e3da; --info-line: #9a9284; --info-ink: #43413a; /* warm neutral note (was cool blue — retuned to fit the warm system) */
+    --ok-bg: #dde3d1; --ok-line: #7a8a5e; --ok-ink: #355020;
+
+    /* Typography stack */
+    --font-serif: "Merriweather", Georgia, "Times New Roman", serif;
+    --font-sans: "Roboto", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", monospace;
+
+    /* Modular type scale (document-design-383 skill; --fs-micro tier for dense
+       technical labels: drawing annotations, sheet-strip, legends) */
+    --fs-micro:   0.6875rem; /* 11px  drawing labels, metadata strips, legends */
+    --fs-cap:     0.75rem;   /* 12px  captions, footnotes */
+    --fs-data:    0.8125rem; /* 13px  dense table cells, HM codes */
+    --fs-small:   0.875rem;  /* 14px  body (this doc's dense base), secondary */
+    --fs-body:    1rem;      /* 16px  comfortable reading */
+    --fs-lead:    1.125rem;  /* 18px  lead paragraph */
+    --fs-h4:      1.25rem;   /* 20px */
+    --fs-h3:      1.5rem;    /* 24px */
+    --fs-h2:      1.875rem;  /* 30px */
+    --fs-h1:      2.375rem;  /* 38px  document / section title */
+    --fs-display: 3.5rem;    /* 56px  cover hero only */
+
+    /* 8pt spacing grid (tokens available for new work; legacy spacing untouched) */
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px; --sp-24: 96px;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--ink);
+    /* Vietnamese: stacked tone marks (ế, ộ, ữ) need generous leading to avoid collision */
+    line-height: 1.62;
+    font-size: var(--fs-small);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    position: relative;
+  }
+  .app, .doc-foot { position: relative; z-index: 1; }
+
+  /* ── SIGNATURE: drawing-sheet frame (crop marks + coordinate grid) ──
+     Frames the entire scroll as one titled architectural sheet. */
+  .sheet-frame { position: fixed; inset: 9px; pointer-events: none; z-index: 60; border: 1px solid var(--ink); }
+  .sheet-frame .cm { position: absolute; width: 15px; height: 15px; border-color: var(--accent); border-style: solid; border-width: 0; }
+  .sheet-frame .cm.tl { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
+  .sheet-frame .cm.tr { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
+  .sheet-frame .cm.bl { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
+  .sheet-frame .cm.br { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+  .sheet-frame .coord { position: absolute; font-family: var(--font-mono); font-size: 9px; color: var(--muted); letter-spacing: 0.05em; background: var(--bg); padding: 0 3px; }
+  .sheet-frame .coord.top { top: -6px; }
+  .sheet-frame .coord.bottom { bottom: -6px; }
+  .sheet-frame .coord.left { left: -6px; writing-mode: vertical-rl; padding: 3px 0; }
+  .sheet-frame .coord.right { right: -6px; writing-mode: vertical-rl; padding: 3px 0; }
+  @media (max-width: 900px) { .sheet-frame { display: none; } }
+
+  /* Sheet window — the document scrolls INSIDE the frame with a 17px gutter
+     to the border line, so content can never pass under it (real drafting
+     sheets keep a margin between border and content). Desktop only; mobile
+     hides the frame and keeps native scroll. */
+  @media (min-width: 901px) {
+    html, body { height: 100%; overflow: hidden; }
+    .page-scroll { position: fixed; inset: 26px; overflow-y: auto; z-index: 1; outline: none; }
+    .toc { height: calc(100vh - 52px); } /* = window height, so the sticky TOC bottom is never clipped */
+  }
+
+  /* === App layout: sticky TOC + main === */
+  .app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+  .toc { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--paper); border-right: 1px solid var(--line); padding: 22px 20px 28px; font-size: var(--fs-data); font-family: var(--font-sans); }
+  .toc h3 { margin: 0 0 4px; font-family: var(--font-serif); font-size: var(--fs-lead); font-weight: 500; letter-spacing: -0.01em; color: var(--ink); font-variation-settings: "opsz" 30; }
+  .toc .sub { color: var(--muted); font-size: var(--fs-micro); margin-bottom: 18px; line-height: 1.4; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .toc ol { list-style: none; padding: 0; margin: 0; counter-reset: tocnum; }
+  .toc li { padding: 0; counter-increment: tocnum; }
+  .toc a { display: block; padding: 6px 10px 6px 30px; color: var(--ink-soft); text-decoration: none; border-left: 1px solid var(--line-soft); position: relative; transition: color 0.12s; }
+  .toc a::before { content: counter(tocnum, decimal-leading-zero); position: absolute; left: 10px; top: 6px; font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); letter-spacing: 0.06em; }
+  .toc a:hover { color: var(--accent); border-left-color: var(--accent-soft); }
+  .toc a.active { color: var(--accent); border-left: 2px solid var(--accent); padding-left: 29px; font-weight: 600; background: var(--accent-pale); }
+  .toc-toggle { display: none; }
+  .toc-sub { list-style: none; margin: 0 0 2px; padding: 0 0 0 24px; }
+  .toc-sub li { counter-increment: none; }
+  .toc-sub a { font-size: 11px; padding: 2px 10px 2px 5px; color: var(--ink-soft); }
+  .toc-sub a::before { content: none; }
+  h3[id] { scroll-margin-top: 14px; }
+
+  .main { padding: 0; width: 100%; max-width: 1280px; margin-inline: auto; }
+  section { padding: 44px 40px; border-bottom: 1px solid var(--line-soft); scroll-margin-top: 10px; }
+  section:last-child { border-bottom: none; }
+
+  /* === Header / Hero === */
+  .doc-header { background: var(--paper); padding: 36px 40px 30px; border-bottom: 2px solid var(--ink); }
+  .meta-top { color: var(--ink-soft); font-size: var(--fs-cap); margin-bottom: 18px; display: flex; flex-wrap: wrap; gap: 14px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .meta-top .version { background: var(--accent); color: var(--paper); padding: 2px 8px; border-radius: 0; font-weight: 600; font-family: var(--font-mono); letter-spacing: 0.06em; }
+  .parti {
+    margin: 0 0 10px;
+    font-family: var(--font-serif);
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: 0;
+    /* Vietnamese display: extra leading so upper tone marks (Đà, ượ) clear the line above */
+    line-height: 1.22;
+    max-width: 100%;
+  }
+  .parti em { color: var(--accent); font-style: italic; font-weight: 500; }
+  .parti-sub { margin: 0 0 22px; color: var(--ink-soft); font-size: var(--fs-small); max-width: 100%; font-family: var(--font-serif); font-style: italic; font-weight: 400; font-variation-settings: "opsz" 36; }
+
+  .hero-metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .m-card { background: var(--paper); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; padding: 14px 16px; }
+  .m-label { font-family: var(--font-sans); font-size: var(--fs-micro); color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+  .m-value { font-family: var(--font-mono); font-size: var(--fs-h4); font-weight: 500; margin-top: 4px; color: var(--ink); letter-spacing: -0.01em; }
+  .m-sub { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); margin-top: 3px; letter-spacing: 0.04em; }
+
+  /* === Section heading === */
+  h2 {
+    margin: 0 0 12px;
+    font-family: var(--font-sans);
+    font-size: var(--fs-small);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+    color: var(--ink);
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+  }
+  /* terracotta datum segment on the section rule — drafting cue */
+  h2::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 56px; height: 2px; background: var(--accent); }
+  h2 .sec-num { font-family: var(--font-serif); color: var(--accent); font-style: italic; font-weight: 500; font-size: var(--fs-body); text-transform: none; letter-spacing: 0; }
+  h2 .count { color: var(--muted); font-weight: 400; font-size: var(--fs-micro); margin-left: auto; font-family: var(--font-mono); letter-spacing: 0.06em; }
+  h3 { margin: 22px 0 8px; font-family: var(--font-serif); font-size: var(--fs-h4); font-weight: 500; line-height: 1.2; color: var(--ink); font-variation-settings: "opsz" 30; }
+  h4 { margin: 16px 0 6px; font-family: var(--font-sans); font-size: var(--fs-micro); font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.1em; }
+  .lead { color: var(--ink-soft); font-family: var(--font-serif); font-style: italic; font-size: var(--fs-body); margin: 8px 0 18px; max-width: 100%; line-height: 1.5; font-variation-settings: "opsz" 30; font-weight: 400; }
+
+  /* === Audience chips === */
+  .aud-chip { display: inline-block; font-family: var(--font-sans); font-size: var(--fs-micro); font-weight: 600; padding: 2px 9px; border-radius: 0; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid currentColor; }
+  .aud-chip.client { background: var(--accent-pale); color: var(--client); }
+  .aud-chip.kts { background: var(--ok-bg); color: var(--kts); }
+  .aud-chip.contractor { background: var(--warn-bg); color: var(--contractor); }
+  .aud-chip.all { background: var(--paper-deep); color: var(--all); }
+
+  /* === Callouts === */
+  .callout { border-radius:0; padding: 14px 18px; margin: 12px 0 16px; font-size: var(--fs-small); line-height: 1.6; }
+  .callout h4 { margin: 0 0 6px; font-size: var(--fs-small); font-weight: 700; }
+  .callout ul, .callout ol { margin: 4px 0 0; padding-left: 20px; }
+  .callout li { margin-bottom: 3px; }
+  .callout code { background: rgba(255,255,255,0.6); padding: 1px 5px; border-radius:0; font-size: var(--fs-cap); }
+  .callout.critical { background: var(--crit-bg); border: 1px solid var(--crit-line); }
+  .callout.critical h4 { color: var(--crit-ink); }
+  .callout.warning { background: var(--warn-bg); border: 1px solid var(--warn-line); }
+  .callout.warning h4 { color: var(--warn-ink); }
+  .callout.info { background: var(--info-bg); border: 1px solid var(--info-line); }
+  .callout.info h4 { color: var(--info-ink); }
+  .callout.ok { background: var(--ok-bg); border: 1px solid var(--ok-line); }
+  /* Mã lớp L1–L8 — cùng bộ mã dùng trong mọi hình của trang, để chữ và hình
+     gọi cùng một lớp bằng cùng một tên. Bảng mã nằm trong HÌNH 2. */
+  .lcode { display: inline-block; font-size: var(--fs-micro); font-weight: 700;
+           letter-spacing: 0.04em; background: #2b2724; color: #ffffff;
+           border-radius: 3px; padding: 0 5px; vertical-align: 1px; }
+  .callout.ok h4 { color: var(--ok-ink); }
+
+  /* === Glossary tooltip (CSS only) === */
+  .gloss { border-bottom: 1px dotted var(--muted); cursor: help; position: relative; }
+  .gloss:hover::after, .gloss:focus::after {
+    content: attr(data-gloss);
+    position: absolute; left: 0; top: calc(100% + 6px);
+    background: var(--ink); color: var(--paper); padding: 8px 12px;
+    border: 1px solid var(--accent); font-size: var(--fs-cap); line-height: 1.4;
+    white-space: normal; width: 240px; z-index: 70;
+  }
+
+  /* === Cost range pill === */
+  .cost-range { display: inline-block; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .cost-range .class { color: var(--muted); font-weight: 400; font-size: var(--fs-cap); }
+
+  /* === Tables === */
+  /* Mỗi `table.data` nằm trong một `.table-wrap` — cùng lối với `.gantt-wrap`.
+     Cuộn phải đặt ở KHUNG BAO chứ không đặt trên chính thẻ <table class="cols-3">: cho <table>
+     `display: block; overflow-x: auto` thì bảng co vừa khung thay vì giữ bề rộng
+     tự nhiên, và mỗi ô teo lại còn một chữ mỗi dòng. */
+  .table-wrap { overflow-x: auto; }
+  table.data { width: 100%; border-collapse: collapse; font-size: var(--fs-data); background: var(--paper); border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); margin: 12px 0 16px; font-family: var(--font-sans); }
+  table.data th, table.data td { padding: 9px 14px 9px 0; text-align: left; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  table.data th:first-child, table.data td:first-child { padding-left: 14px; }
+  table.data th { background: transparent; font-family: var(--font-sans); font-weight: 600; font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); border-bottom: 1.5px solid var(--ink); padding-top: 12px; padding-bottom: 8px; }
+  table.data td.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  table.data tr.total td { background: var(--paper-deep); font-weight: 600; border-top: 1.5px solid var(--ink); font-family: var(--font-mono); }
+  table.data tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px; border-radius:0; text-transform: uppercase; letter-spacing: 0.3px; }
+  .pill.urgent { background: var(--crit-bg); color: var(--crit-ink); }
+  .pill.soon { background: var(--warn-bg); color: var(--warn-ink); }
+  .pill.later { background: var(--info-bg); color: var(--info-ink); }
+  .pill.done { background: var(--ok-bg); color: var(--ok-ink); }
+  .pill.hoãn { background: #f4f1ea; color: var(--muted); }
+  .hm-tag { display: inline-block; background: #444; color: white; font-size: var(--fs-micro); padding: 2px 7px; border-radius:0; font-family: ui-monospace, monospace; }
+  .hm-tag.smart { background: #8a5cb8; }
+  .hm-tag.cool { background: #2d8a8a; }
+
+  /* === Group / TODO cards (preserved + tweaked) === */
+  .group-card { background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--ink); border-radius:0; padding: 16px 20px; margin-bottom: 12px; }
+  .group-card.p0 { border-left-color: var(--p0); }
+  .group-card.p1 { border-left-color: var(--p1); }
+  .group-card.p2 { border-left-color: var(--p2); }
+  .group-card.p3 { border-left-color: var(--p3); }
+  .group-card .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
+  .group-card h3 { margin: 0; font-size: var(--fs-small); font-weight: 700; }
+  .badge { font-size: var(--fs-micro); font-weight: 700; padding: 3px 8px; border-radius:0; color: white; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge.p0 { background: var(--p0); } .badge.p1 { background: var(--p1); }
+  .badge.p2 { background: var(--p2); } .badge.p3 { background: var(--p3); }
+  .group-card .desc { color: var(--muted); font-size: var(--fs-data); margin-bottom: 10px; }
+  .todo-list { list-style: none; padding: 0; margin: 0; }
+  .todo-list li { padding: 8px 0; border-top: 1px solid var(--line-soft); display: grid; grid-template-columns: 24px 80px 1fr 110px; gap: 10px; align-items: center; font-size: var(--fs-data); }
+  .todo-list li:first-child { border-top: none; }
+  .todo-list .cost { display: none; } /* cột tiền không lên bản phát hành */
+  .todo-list .check { color: var(--muted); }
+  .todo-list .task-name { font-weight: 500; }
+  .todo-list .task-note { color: var(--muted); font-size: var(--fs-cap); display: block; margin-top: 2px; line-height: 1.4; }
+  .todo-list .when { color: var(--muted); font-size: var(--fs-cap); text-align: center; }
+  .todo-list .cost { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-cap); }
+
+  /* === Climate strip === */
+  .climate-strip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin: 8px 0 16px; border: 1px solid var(--line); border-radius:0; overflow: hidden; background: var(--paper); }
+  .month-col { padding: 8px 4px; text-align: center; font-size: var(--fs-cap); }
+  .month-col .m { font-weight: 700; font-size: var(--fs-data); }
+  .month-col .t { color: var(--muted); font-size: var(--fs-micro); font-variant-numeric: tabular-nums; }
+  .month-col .bar-t { height: 22px; margin: 4px auto 2px; width: 16px; border-radius:0; }
+  .month-col .bar-r { height: 14px; margin: 1px auto 0; width: 16px; border-radius:0; }
+  .month-col.dry { background: #fef4e6; }
+  .month-col.wet { background: #e6f0fd; }
+  .climate-legend { display: flex; gap: 16px; font-size: var(--fs-cap); color: var(--muted); margin-top: 4px; flex-wrap: wrap; }
+  .climate-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .climate-legend i { display: inline-block; width: 12px; height: 12px; border-radius:0; }
+
+  /* === Palette / Mood board === */
+  .palette { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 10px 0 14px; }
+  .swatch { background: var(--paper); border: 1px solid var(--line); border-radius:0; overflow: hidden; }
+  .swatch .color { height: 80px; }
+  .swatch .info { padding: 8px 10px; font-size: var(--fs-cap); }
+  .swatch .info b { display: block; font-size: var(--fs-data); margin-bottom: 1px; }
+  .swatch .info span { color: var(--muted); }
+
+  /* === Room walk-through === */
+  .rooms { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+  .room { background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--ink-soft); border-radius: 0; padding: 16px 20px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 18px; }
+  .room:not(:has(.floorplan)) { grid-template-columns: 1fr; }
+  .room.focus { border-left-color: var(--accent); border-left-width: 3px; }
+  .room h3 { margin: 0 0 4px; font-size: var(--fs-body); }
+  .room .head-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+  .room .meta { font-size: var(--fs-cap); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .room ul { margin: 6px 0 4px; padding-left: 18px; font-size: var(--fs-data); }
+  .room li { margin-bottom: 2px; }
+  .room .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .tag-hm { font-size: var(--fs-micro); padding: 2px 7px; border-radius:0; background: #f4f1ea; color: #444; font-family: ui-monospace, monospace; }
+  .room .floorplan { background: #faf6ee; border-radius:0; padding: 6px; display: flex; align-items: center; justify-content: center; min-height: 140px; }
+  .room .floorplan svg { width: 100%; height: auto; max-height: 180px; }
+
+  /* === Decisions table emphasis === */
+  .decisions { font-size: var(--fs-data); }
+  .decisions .deadline { font-weight: 700; }
+  .decisions .deadline.soon { color: var(--crit-ink); }
+
+  /* === Risks === */
+  .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; margin-top: 8px; }
+  .risk { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 12px 14px; }
+  .risk h4 { margin: 0 0 4px; font-size: var(--fs-small); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .risk .lvl { font-size: var(--fs-micro); font-weight: 700; padding: 2px 7px; border-radius:0; color: white; }
+  .risk .lvl.high { background: var(--p0); }
+  .risk .lvl.med { background: var(--p1); }
+  .risk .lvl.low { background: var(--p2); }
+  .risk p { margin: 4px 0; font-size: var(--fs-data); }
+  .risk .mit { color: var(--ok-ink); }
+
+  /* === Crew cards (contractor section) === */
+  .crew-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .crew-card { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 14px 18px; }
+  .crew-card h4 { margin: 0 0 3px; font-size: var(--fs-small); font-weight: 700; }
+  .crew-card .role { color: var(--muted); font-size: var(--fs-cap); margin-bottom: 10px; }
+  .crew-card ul { margin: 0; padding-left: 18px; font-size: var(--fs-data); line-height: 1.6; }
+
+  /* === Before/after slider === */
+  .ba-slider { position: relative; max-width: 720px; margin: 10px 0; border: 1px solid var(--line); border-radius:0; overflow: hidden; aspect-ratio: 4/3; background: #faf6ee; user-select: none; }
+  .ba-slider .before, .ba-slider .after { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ba-slider .after { clip-path: inset(0 0 0 50%); }
+  .ba-slider input[type=range] { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 80%; z-index: 4; }
+  .ba-slider .divider { position: absolute; top: 0; bottom: 0; width: 2px; background: white; left: 50%; transform: translateX(-1px); box-shadow: 0 0 6px rgba(0,0,0,0.3); pointer-events: none; z-index: 3; }
+  .ba-slider .lbl { position: absolute; top: 8px; padding: 3px 8px; background: rgba(0,0,0,0.7); color: white; font-size: var(--fs-cap); border-radius:0; z-index: 5; }
+  .ba-slider .lbl.l { left: 10px; } .ba-slider .lbl.r { right: 10px; }
+
+  /* === Zoomable SVG === */
+  .zoom-wrap { position: relative; border: 1px solid var(--line); border-radius:0; background: white; overflow: hidden; }
+  .zoom-wrap svg { display: block; max-width: 100%; height: auto; cursor: grab; }
+  .zoom-wrap.dragging svg { cursor: grabbing; }
+  .zoom-controls { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 4; }
+  .zoom-controls button { background: white; border: 1px solid var(--line); border-radius:0; width: 28px; height: 28px; font-size: var(--fs-small); cursor: pointer; }
+  .zoom-controls button:hover { background: #f4f1ea; }
+
+  /* === Collapsible (for contractor section) === */
+  /* ── Danh sách việc có ô tick ──────────────────────────────────────────
+     Mọi việc phải làm trên trang này đều là một dòng tick được, để nhà thầu
+     và chủ nhà soi chung một danh sách thay vì đọc lại cả đoạn văn. */
+  ul.chk { list-style: none; padding-left: 0; margin: 10px 0; }
+  ul.chk > li { position: relative; padding-left: 30px; margin: 0 0 9px; line-height: 1.55; }
+  ul.chk > li::before { content: ""; position: absolute; left: 0; top: 2px;
+      width: 16px; height: 16px; border: 1.6px solid var(--line); background: #fff; }
+  ul.chk > li.stop::before { border-color: var(--accent); border-width: 2.2px; }
+  ul.chk > li.stop { font-weight: 500; }
+  /* Dòng GỢI Ý — mình chưa chắc, nhà thầu được đề xuất cách khác đạt cùng đích.
+     Ô tick viền đứt để phân biệt được mà không cần đọc nhãn (SKILL §1quater-ter). */
+  ul.chk > li.goi-y::before { border-style: dashed; border-color: var(--muted); }
+  .goi { display: inline-block; font-size: var(--fs-micro); font-weight: 700;
+         letter-spacing: .5px; text-transform: uppercase; color: var(--muted);
+         border: 1px dashed var(--line); border-radius: 3px; padding: 0 5px;
+         margin-right: 7px; vertical-align: 1.5px; }
+  ul.chk > li .gate { display: block; font-size: var(--fs-cap); color: var(--muted);
+      font-weight: 700; margin-top: 2px; }
+  ul.chk > li .why { display: block; font-size: var(--fs-cap); color: var(--muted); margin-top: 2px; }
+  ul.chk.tight > li { margin-bottom: 5px; }
+  .chk-head { font-size: var(--fs-cap); text-transform: uppercase; letter-spacing: .6px;
+      color: var(--muted); font-weight: 700; margin: 16px 0 4px; }
+
+  /* ── Dòng ĐÃ XONG (chủ nhà chốt 2026-08-26) ─────────────────────────────
+     Bấm ô tick trong bàn soạn là dòng chuyển sang trạng thái này. Ô tô đặc,
+     câu «thứ phải đạt» gạch ngang, cả dòng lùi về màu phụ — nhưng KHÔNG ẩn:
+     nhà thầu vẫn phải đọc được thứ đã nghiệm thu là gì. Cách biết đã đạt
+     (.why) không gạch ngang, vì nó vẫn là chỉ dẫn đọc được. */
+  ul.chk > li.xong { color: var(--muted); }
+  ul.chk > li.xong > strong { text-decoration: line-through; font-weight: 400; }
+  ul.chk > li.xong::before { background: var(--muted); border-color: var(--muted); border-style: solid; }
+  ul.chk > li.xong::after { content: "✓"; position: absolute; left: 2.5px; top: 0;
+      width: 16px; text-align: center; color: #fff; font-size: 13px; line-height: 20px; }
+  /* Gạch ngang không tới được trình đọc màn hình — trạng thái phải nói thành lời. */
+  .da-xong { position: absolute; width: 1px; height: 1px; overflow: hidden;
+      clip-path: inset(50%); white-space: nowrap; }
+
+  /* ── Yêu cầu (thẻ 1) ────────────────────────────────────────────────────
+     Thẻ 1 nói NGÔI NHÀ PHẢI LÀ GÌ; thẻ «Nghiệm thu» nói cách biết nó đã đạt.
+
+     HÌNH THỨC MƯỢN NGUYÊN CỦA `table.data` — nền giấy, hai nét đậm trên dưới,
+     nét mảnh ngăn dòng, cùng nhịp đệm 9px/14px. Trang này bày mọi cụm quy cách
+     bằng khối có khung (hình có khung, ô cửa chặn có khung, bảng có nét trên
+     dưới); một danh sách trần nổi trên nền trang là thứ duy nhất không giống ai.
+
+     KHÔNG có ô tick: ô tick là hình dạng riêng của thứ nghiệm thu được
+     (SKILL §2ter.1). Dấu đầu dòng là một NÉT NGANG — cùng chỗ đứng, khác hẳn
+     hình dạng, nên không ai bấm nhầm vào nó.
+
+     Dấu KHÔNG dùng màu nhấn: đỏ dành riêng cho điểm dừng và cảnh báo hỏng
+     (§2bis.10). Hai mươi dòng đỏ thì không dòng nào còn là cảnh báo. */
+  ul.yc { list-style: none; padding: 0; margin: 12px 0 16px; background: var(--paper);
+      border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); }
+  ul.yc > li { position: relative; margin: 0; padding: 9px 14px 9px 0;
+      line-height: 1.55; border-bottom: 1px solid var(--line-soft); }
+  ul.yc > li:last-child { border-bottom: 0; }
+  ul.yc > li.xong { color: var(--muted); }
+  /* Gạch ngang ăn vào CHỮ, không ăn vào cả ô — nếu không thì nét gạch chạy
+     xuyên qua khoảng đệm và cắt ngang cả nét ngăn dòng. */
+  ul.yc > li.xong > span.yc-t { text-decoration: line-through; }
+
+  /* ── Hình minh hoạ của một dòng nghiệm thu ──────────────────────────────
+     "Đạt" đôi khi là thứ nhìn ra chứ không đọc ra: mí chồng đúng, chân vít
+     đúng, vệt ẩm hay không. Hình đứng TRONG dòng, thụt bằng ô tick. */
+  figure.nt-fig { margin: 8px 0 2px; border: 1px solid var(--line); background: #fff; }
+  figure.nt-fig img, figure.nt-fig svg { display: block; width: 100%; height: auto; }
+  figure.nt-fig > figcaption { font-size: var(--fs-cap); color: var(--muted);
+      padding: 6px 10px; border-top: 1px solid var(--line-soft); }
+  figure.nt-fig .figscroll { overflow-x: auto; }
+  details.collapsible { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 0; margin: 12px 0; }
+  details.collapsible > summary { padding: 12px 16px; cursor: pointer; font-weight: 600; font-size: var(--fs-small); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  details.collapsible > summary::after { content: "▾"; transition: transform 0.2s; }
+  details.collapsible[open] > summary::after { transform: rotate(180deg); }
+  details.collapsible > summary::-webkit-details-marker { display: none; }
+  details.collapsible[open] > summary { border-bottom: 1px solid var(--line-soft); }
+  details.collapsible .body { padding: 14px 18px 18px; }
+
+  /* === Gantt (preserved) === */
+  .gantt-wrap { background: var(--paper); border: 1px solid var(--line); border-radius:0; overflow-x: auto; }
+  table.gantt { border-collapse: collapse; width: 100%; min-width: 1700px; font-size: var(--fs-cap); }
+  table.gantt th, table.gantt td { border-bottom: 1px solid var(--line-soft); border-right: 1px solid var(--line-soft); padding: 0; vertical-align: middle; height: 26px; }
+  table.gantt th { background: #f4f1ea; font-weight: 600; padding: 6px 5px; font-size: var(--fs-micro); text-align: center; }
+  table.gantt th.task-col { text-align: left; padding-left: 12px; min-width: 340px; max-width: 340px; }
+  /* Cột tên việc GHIM lại khi cuộn ngang. Bảng rộng 1700px trong khung ~1060px:
+     cuộn tới T8 mà cột tên trôi mất thì các thanh màu không còn thuộc về việc
+     nào cả. Ghim được vì hai ô này đã có nền đục sẵn (#fdfcf8 / #f4f1ea) —
+     không có nền thì nội dung phía dưới lòi qua. Bản in bỏ qua sticky, không sao:
+     ở đó bảng thu nhỏ zoom .58 và hiện trọn, không có chuyện cuộn. */
+  table.gantt th.task-col, table.gantt td.task-cell {
+    position: sticky; left: 0; z-index: 2;
+    border-right: 1px solid var(--line);
+  }
+  table.gantt tr.section-header td { position: sticky; left: 0; z-index: 2; }
+  /* Nói thẳng ra là bảng cuộn ngang. Mép phải bị cắt giữa chừng ("T6/202…")
+     trông y như lỗi dựng trang, và không có cách nào để người đọc đoán ra. */
+  .gantt-hint {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-sans); font-size: var(--fs-cap);
+    color: var(--muted); margin: 0 0 6px;
+  }
+  @media print { .gantt-hint { display: none; } }
+  table.gantt th.cost-col { width: 70px; }
+  table.gantt th.day-col { width: 14px; padding: 2px 0; font-size: var(--fs-micro); color: var(--muted); }
+  table.gantt td.task-cell { padding-left: 12px; padding-right: 8px; font-weight: 500; background: #fdfcf8; font-size: var(--fs-cap); }
+  table.gantt td.task-cell .hm-tag { font-size: var(--fs-micro); padding: 1px 6px; margin-right: 4px; }
+  table.gantt td.cost-cell { text-align: right; padding-right: 10px; background: #fdfcf8; color: var(--muted); font-variant-numeric: tabular-nums; font-size: var(--fs-micro); }
+  table.gantt td.day-cell { position: relative; padding: 0; }
+  table.gantt tr.section-header td { background: var(--ink); color: white; font-weight: 600; padding: 6px 12px; font-size: var(--fs-cap); letter-spacing: 0.5px; text-transform: uppercase; }
+  table.gantt tr.section-header.smart td { background: #5a3a8a; }
+  .bar { position: absolute; height: 17px; top: 4.5px; border-radius:0; font-size: var(--fs-micro); color: white; padding: 0 6px; line-height: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Màu thanh Gantt — xem chú thích --g-* ở :root. MỘT nguồn cho cả thanh lẫn
+     chú giải: `.legend-swatch` dùng chung đúng biến này, nên không thể lệch. */
+  .bar.prep      { background: var(--g-prep); }
+  .bar.phase-A   { background: var(--g-a); }
+  .bar.phase-B   { background: var(--g-b); }
+  .bar.phase-C   { background: var(--g-c); }
+  .bar.cabling   { background: var(--g-cabling); }
+  .bar.smart     { background: var(--g-smart); }
+  .bar.cooling   { background: var(--g-cooling); }
+  .bar.milestone { background: var(--g-milestone); width: 6px !important; }
+  .month-row th { background: #ebe6dc !important; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0 14px; font-size: var(--fs-data); }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 14px; height: 14px; border-radius:0; }
+  .legend-swatch.prep      { background: var(--g-prep); }
+  .legend-swatch.phase-A   { background: var(--g-a); }
+  .legend-swatch.phase-B   { background: var(--g-b); }
+  .legend-swatch.phase-C   { background: var(--g-c); }
+  .legend-swatch.cabling   { background: var(--g-cabling); }
+  .legend-swatch.smart     { background: var(--g-smart); }
+  .legend-swatch.cooling   { background: var(--g-cooling); }
+  .legend-swatch.milestone { background: var(--g-milestone); }
+
+  /* === Summary grid (existing class kept for Gantt) === */
+  .summary-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 10px 0 18px; }
+  .summary-card { background: var(--paper); border: 1px solid var(--line); border-radius:0; padding: 14px; }
+  .summary-card .label { font-size: var(--fs-micro); color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .summary-card .value { font-size: var(--fs-h4); font-weight: 700; margin-top: 3px; }
+  .summary-card .sub { font-size: var(--fs-cap); color: var(--muted); margin-top: 2px; }
+
+  /* === Footer === */
+  .doc-foot { padding: 24px 36px; color: var(--muted); font-size: var(--fs-cap); text-align: center; border-top: 1px solid var(--line); }
+  .doc-foot a { color: var(--accent); }
+
+  /* === Mobile === */
+  @media (max-width: 900px) {
+    /* minmax(0, 1fr) chứ KHÔNG phải 1fr: rãnh lưới `1fr` có min-width:auto, nên
+       một thẻ con rộng (bảng Gantt 1700px) BÀNH rãnh ra theo mình. Cả trang khi
+       đó rộng 1246px trên màn 430px — chữ và bảng bị cắt mép phải, và
+       `.gantt-wrap { overflow-x: auto }` cũng vô hiệu vì khung chứa nó đã rộng
+       sẵn 1246px, không còn gì để cuộn. Rãnh desktop ở trên đã dùng minmax(0,1fr)
+       đúng vì lý do này; bản mobile sót lại. */
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .toc { position: fixed; top: 0; left: -260px; width: 240px; z-index: 100; transition: left 0.2s; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+    .toc.open { left: 0; }
+    .toc-toggle { display: block; position: fixed; top: 12px; left: 12px; z-index: 101; background: var(--paper); border: 1px solid var(--line); border-radius:0; width: 38px; height: 38px; font-size: var(--fs-lead); cursor: pointer;
+                  }
+    /* ── Thanh trên cùng cố định cho nút ☰ ────────────────────────────────
+       Trước đây nút ☰ nổi lơ lửng (fixed) trên nền nội dung: nó che vĩnh viễn
+       một mảng 38×38 ở góc trên-trái, nên tiêu đề mục nào trôi qua đó cũng bị
+       nuốt mất mấy chữ đầu. `.doc-header{padding-top:60px}` chỉ chừa chỗ cho
+       MÀN HÌNH ĐẦU, còn 57.000px tài liệu phía dưới thì không.
+       Cách chữa: cho nút một thanh nền ĐỤC chạy hết bề ngang, rồi đẩy cả trang
+       xuống đúng chiều cao thanh đó. Không còn gì trôi bên dưới nút nữa.
+       Làm bằng CSS thuần, không dùng JS ẩn-hiện theo chiều cuộn: tốn 52px chiều
+       cao nhưng không có trạng thái để sai, và kiểm được bằng ảnh chụp. */
+    body { padding-top: 52px; }
+    /* Bấm link mục lục là nhảy tới #anchor và đặt nó ở y=0 — tức là NGAY DƯỚI
+       thanh cố định, tiêu đề mục bị thanh che mất. Chừa sẵn chiều cao thanh. */
+    html { scroll-padding-top: 58px; }
+    /* ⚠ Thanh nền phải là ::before CỦA CHÍNH NÚT, không phải của <body>.
+       `.app` có `position: relative; z-index: 1` ⇒ nó mở một NGỮ CẢNH XẾP LỚP,
+       và nút ☰ nằm trong đó nên `z-index: 101` của nút chỉ có nghĩa BÊN TRONG
+       `.app`. So với `body::before` thì cả cụm `.app` chỉ đứng ở z=1, nên thanh
+       nền vẽ đè lên nút và nút biến mất — đã dựng đúng như vậy một lần rồi. */
+    .toc-toggle { top: 7px; left: 10px; }
+    .toc-toggle::before {
+      content: ''; position: fixed; top: 0; left: 0; right: 0; height: 52px;
+      background: var(--paper); border-bottom: 1px solid var(--line);
+      z-index: -1;              /* sau nền của nút, vẫn trong ngữ cảnh của nút */
+      pointer-events: none;     /* cả dải không thành một vùng bấm khổng lồ */
+    }
+    .doc-header { padding-top: 20px; padding-left: 16px; padding-right: 16px; }
+    .parti { font-size: var(--fs-h3); }
+    section { padding: 22px 16px; }
+    .hero-metrics, .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .room { grid-template-columns: 1fr; }
+    .crew-grid { grid-template-columns: 1fr; }
+    .todo-list li { grid-template-columns: 20px 70px 1fr; }
+    .todo-list .when, .todo-list .cost { display: none; }
+    table.data { font-size: var(--fs-cap); }
+    table.data th, table.data td { padding: 7px 8px; overflow-wrap: break-word; }
+
+    /* Bảng dữ liệu cuộn ngang TRONG khung `.table-wrap` của nó, thay vì kéo cả
+       trang rộng ra. Bảng quyết định có bề rộng tối thiểu 611px, bảng vật liệu
+       558px — không bảng nào bóp vừa màn 390px, và khi chúng đẩy trang thì MỌI
+       đoạn văn khác cũng bị đẩy theo, chữ tràn ra ngoài mép phải.
+       `min-width` là phần quan trọng: không có nó thì bảng co vừa 390px và mỗi
+       ô còn một chữ mỗi dòng — vừa khung nhưng không đọc được. */
+    .table-wrap > table.data { min-width: 560px; }
+
+    /* Dải khí hậu 12 tháng: `overflow: hidden` (bo góc) đang CẮT MẤT mấy tháng
+       cuối chứ không phải thu nhỏ chúng lại — mất dữ liệu mà không có dấu hiệu
+       gì. Cho cuộn, và đặt bề rộng tối thiểu cho mỗi cột để số còn đọc được. */
+    .climate-strip { grid-template-columns: repeat(12, minmax(44px, 1fr));
+                     overflow-x: auto; overflow-y: hidden; }
+    .meta-top { font-size: var(--fs-cap); }
+
+    /* §6 có 5 khối đặt `style="flex:1; min-width:320px|360px"` THẲNG trên thẻ.
+       Trên màn 320–375px, một thẻ con 360px kéo rộng cả trang. Style nội tuyến
+       thắng mọi selector nên phải !important — đây là chỗ dùng nó đúng nghĩa,
+       không phải để chữa cháy độ đặc hiệu. Các khối đó là sơ đồ SVG có viewBox,
+       co lại vẫn đọc được, chỉ là nhỏ hơn. */
+    [style*="min-width"] { min-width: 0 !important; }
+
+    /* Mã vật liệu trong <code> (M-WP-SIKA-LASTIC…) là một khối chữ không có chỗ
+       ngắt — ở 320px nó chọc ra ngoài 18px và kéo cả trang theo. */
+    code { overflow-wrap: anywhere; }
+
+    /* Bản thu nhỏ cho `.sheet-strip` KHÔNG đặt ở đây được — luật gốc của nó nằm
+       PHÍA DƯỚI khối @media này trong cùng một <style>, cùng độ đặc hiệu, nên
+       luật gốc thắng. Xem khối @media riêng ngay sau luật gốc `.sheet-strip`. */
+  }
+
+  /* === THIẾU — CẦN CUNG CẤP ===
+     Chip đánh dấu những thứ còn THIẾU và chủ nhà là người cung cấp.
+     Dùng màu accent để quét mắt ra ngay. */
+  .missing {
+    display: inline-block; font-family: var(--font-sans); font-size: var(--fs-micro);
+    font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--paper); background: var(--accent);
+    padding: 1px 6px; border-radius: 2px; white-space: nowrap;
+  }
+  .missing-box {
+    border: 1px solid var(--accent); border-left: 3px solid var(--accent);
+    background: var(--accent-pale); padding: 10px 12px; margin: 10px 0;
+    font-size: var(--fs-data);
+  }
+  .missing-box > strong:first-child { color: var(--accent); }
+  @media print { .missing { border: 1px solid #000; } }
+
+  /* === Print === (document-design-383 print layer · v2 2026-07-11)
+     .app grid min-content floor made every page overflow A4 width → block layout;
+     long tables flow across pages with repeated headers; Gantt gets a dedicated
+     landscape sheet; collapsibles are opened via beforeprint JS. */
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm 16mm;
+    @bottom-right { content: "Trang " counter(page) " / " counter(pages);
+                    font-family: "Roboto Mono", monospace; font-size: 9pt; color: #8a8780; }
+  }
+  @page gantt-sheet {
+    size: A4 landscape;
+    margin: 12mm 14mm;
+  }
+  @media print {
+    .table-wrap { overflow: visible !important; }
+    /* Một dòng yêu cầu bị cắt ngang giữa hai tờ là một quy cách đọc thành hai
+       mảnh — cùng luật đã áp cho .callout và figure ở khối in phía trên. */
+    ul.yc > li { break-inside: avoid; page-break-inside: avoid; }
+    .toc, .toc-toggle, .zoom-controls, .ba-slider input, .sheet-frame, .img-lightbox { display: none !important; }
+    html, body { height: auto; overflow: visible; }
+    .page-scroll { position: static; overflow: visible; }
+    .app { display: block; }
+    .main { max-width: none; }
+    body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body::before { display: none; }
+    section { padding: 18px 22px; }
+    h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
+    .group-card, .room, .crew-card, .risk,
+    figure, .callout, .keep-together { page-break-inside: avoid; break-inside: avoid; }
+    table { page-break-inside: auto; }       /* long tables flow across pages… */
+    tr { page-break-inside: avoid; }         /* …but never split mid-row */
+    thead { display: table-header-group; }   /* repeat table headers across pages */
+    table.data { font-size: 8.5pt; }
+    table.data th, table.data td { overflow-wrap: break-word; }
+    p, li { orphans: 3; widows: 3; }
+    a { color: inherit; text-decoration: none; }
+    details.collapsible { border: none; }
+    details.collapsible > summary { padding: 0 0 6px; }
+    details.collapsible > summary::after { display: none; }
+    details.collapsible .body { padding: 0; }
+    .hero-metrics, .summary-grid { grid-template-columns: repeat(5, 1fr); }
+    .sheet-strip { grid-template-columns: repeat(3, minmax(0, auto)); row-gap: 10px; }
+    .risk-grid { grid-template-columns: repeat(2, 1fr); }
+    #gantt { page: gantt-sheet; }
+    .gantt-wrap { overflow: visible; zoom: 0.58; }
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     NEW COMPONENTS — title block, scale bar, north arrow,
+     annotation grammar, placeholder for illustrations to redo.
+     ════════════════════════════════════════════════════════════ */
+
+  /* Sheet metadata strip — sits at top before doc-header */
+  .sheet-strip {
+    background: var(--paper);
+    border-top: 2.5px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 36px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto auto;
+    gap: 28px;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  /* Phải nằm SAU luật gốc ngay trên: cùng độ đặc hiệu thì luật sau thắng, mà
+     khối @media (max-width: 900px) chính của tài liệu lại đứng TRƯỚC luật gốc
+     này. Đặt nhầm chỗ thì rule im lặng không có tác dụng gì.
+     6 cột + gap 28px + padding 36px cần tối thiểu 482px — một mình dải này kéo
+     rộng cả trang trên điện thoại. Xuống 2 cột. (Không phải chừa chỗ cho nút ☰
+     nữa: nút nay nằm trong thanh trên cùng cố định, cả trang đã đẩy xuống 52px.) */
+  @media (max-width: 900px) {
+    .sheet-strip { grid-template-columns: repeat(2, minmax(0, 1fr));
+                   gap: 10px 16px; padding: 14px 16px; }
+    /* Xuống 2 cột thôi vẫn chưa đủ: 6 trường + hoa gió xếp thành ~600px, tức là
+       màn hình ĐẦU TIÊN trên điện thoại toàn thông tin hành chính, phải cuộn
+       một màn rưỡi mới tới tiêu đề tài liệu. Bỏ hai trường đã nói lại ngay bên
+       dưới hoặc không dùng được trên điện thoại:
+         · Project  — dòng đầu phần hero lặp lại y nguyên địa chỉ;
+         · Scale    — "1:50–1:100" vô nghĩa trên màn 390px.
+       GIỮ Issued (kiểm bản), Phát hành để (người nhận là ai) và Trạng thái
+       (CHƯA phải IFC — câu quan trọng nhất của cả dải). */
+    .sheet-strip .field.sec { display: none; }
+    .sheet-strip .north-arrow { width: 46px; height: 46px; }
+  }
+  .sheet-strip .sheet-id {
+    font-family: var(--font-serif);
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+    font-variation-settings: "opsz" 60;
+  }
+  .sheet-strip .sheet-id small {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .sheet-strip .field { display: flex; flex-direction: column; gap: 2px; }
+  /* Ô Project nhận `1fr` trong lưới `auto 1fr auto auto auto auto`, nhưng các ô
+     `auto` sau nó chứa câu dài (Phát hành để / Trạng thái) nên chúng ăn hết bề
+     ngang và bóp `1fr` xuống bằng min-content — tên dự án rơi thành MỘT TỪ MỖI
+     DÒNG. Đặt sàn bề rộng cho ô này; câu dài ở các ô sau xuống dòng thì không sao. */
+  .sheet-strip .field.sec { min-width: 20ch; }
+  .sheet-strip .k {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+  }
+  .sheet-strip .v { color: var(--ink); font-weight: 500; }
+  .sheet-strip .v.accent { color: var(--accent); }
+
+  /* North arrow + scale bar — used inline next to drawings */
+  .north-arrow {
+    display: inline-flex;
+    width: 44px; height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    align-items: center; justify-content: center;
+    background: var(--paper);
+  }
+  .north-arrow svg { width: 32px; height: 32px; }
+
+  .scale-bar {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  .scale-bar .label { display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.12em; font-family: var(--font-sans); color: var(--muted); font-size: var(--fs-micro); }
+  .scale-bar .bar { display: flex; height: 8px; width: 160px; border: 1px solid var(--ink); }
+  .scale-bar .bar div { flex: 1; }
+  .scale-bar .bar div:nth-child(odd) { background: var(--ink); }
+  .scale-bar .ticks { display: flex; justify-content: space-between; width: 160px; margin-top: 2px; }
+
+  /* Drawing frame — wraps drawings with title block & metadata */
+  .dwg-frame {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    margin: 18px 0;
+    position: relative;
+  }
+  .dwg-frame .dwg-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 16px 8px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper-deep);
+  }
+  .dwg-frame .dwg-title {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+  }
+  .dwg-frame .dwg-num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    /* margin-left:auto để khi JS gắn thêm nhãn phóng to (thành 3 con trong một
+       flex space-between) thì số hiệu vẫn dính bên phải cạnh nhãn, chứ không
+       bị đẩy ra giữa. */
+    margin-left: auto;
+  }
+  .dwg-frame .dwg-head { gap: 10px; flex-wrap: wrap; }
+  .dwg-zoom {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  @media print { .dwg-zoom { display: none; } }
+  .dwg-frame .dwg-body { padding: 18px; }
+  .dwg-frame .dwg-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px;
+    border-top: 1px solid var(--line);
+    background: var(--paper-deep);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+
+  /* Placeholder for illustrations awaiting pipeline output */
+  .todo-illustration {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--paper-deep),
+      var(--paper-deep) 8px,
+      var(--paper) 8px,
+      var(--paper) 16px
+    );
+    border: 1.5px dashed var(--accent-soft);
+    padding: 30px 24px;
+    text-align: center;
+    color: var(--ink-soft);
+    margin: 12px 0;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .todo-illustration .label {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .todo-illustration .title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--fs-body);
+    color: var(--ink);
+    font-variation-settings: "opsz" 24;
+  }
+  .todo-illustration .pipeline {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--muted);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 3px 10px;
+    margin-top: 4px;
+  }
+  .todo-illustration .spec {
+    font-family: var(--font-sans);
+    font-size: var(--fs-cap);
+    color: var(--ink-soft);
+    max-width: 50ch;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* Annotation primitives — leader callout & dimension chain */
+  .ann-callout {
+    font-family: var(--font-sans);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+  }
+  .ann-dim {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Pull quote — editorial element */
+  .pullquote {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--fs-h3);
+    line-height: 1.3;
+    color: var(--ink);
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 22px 0;
+    margin: 30px 0;
+    max-width: 38ch;
+    font-variation-settings: "opsz" 60;
+    font-weight: 400;
+  }
+
+  /* Body refinements — reading typography */
+  p { font-family: var(--font-sans); font-size: var(--fs-small); line-height: 1.6; max-width: 100%; }
+  code, .mono { font-family: var(--font-mono); font-size: var(--fs-cap); }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  .doc-foot { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); padding-top: 30px; border-top: 2.5px solid var(--ink); margin-top: 40px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* CAD image lightbox — click a drawing to inspect at full resolution */
+  .dwg-frame > img { cursor: zoom-in; }
+  .img-lightbox { position: fixed; inset: 0; z-index: 300; background: rgba(29,29,27,0.93); overflow: auto; display: none; cursor: zoom-out; }
+  .img-lightbox.open { display: block; }
+  .img-lightbox img { display: block; margin: 24px auto; background: #fff; }
+  .img-lightbox .hint { position: fixed; top: 14px; right: 18px; color: var(--paper); font-family: var(--font-mono); font-size: var(--fs-cap); background: rgba(0,0,0,0.55); padding: 4px 10px; letter-spacing: 0.04em; }
+
+
+  /* ── Hai thẻ: cách làm ↔ nghiệm thu ─────────────────────────────────────
+     Trang chi tiết dài, mà hai câu hỏi người đọc mang tới lại khác hẳn nhau:
+     "làm thế nào" khi đang thi công, và "kiểm cái gì" khi đã xong. Tách làm
+     hai thẻ để phần nghiệm thu không nằm lẫn ở cuối một trang cuộn dài. */
+  .tabbar{display:flex;flex-wrap:wrap;margin:0 0 24px;border-bottom:2px solid var(--accent)}
+  .tabbtn{flex:1 1 160px;min-width:140px;padding:12px 14px;border:1px solid var(--line);border-bottom:none;
+    background:var(--paper);font-family:var(--font-sans);font-size:var(--fs-cap);
+    font-weight:600;letter-spacing:0.04em;color:var(--muted);cursor:pointer;
+    text-align:left;transition:background 0.12s,color 0.12s}
+  .tabbtn+.tabbtn{border-left:none}
+  .tabbtn .sub{display:block;font-weight:400;letter-spacing:0;margin-top:3px;
+    font-size:var(--fs-micro);color:var(--muted)}
+  .tabbtn:hover{color:var(--accent)}
+  .tabbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tabbtn.on .sub{color:#f4dcd5}
+  .tabpane[hidden]{display:none}
+  /* Bản in không có chỗ bấm — in ra cả hai thẻ, nối tiếp nhau. */
+  @media print{.tabbar{display:none}.tabpane[hidden]{display:block!important}}
+  .ts-note{color:var(--muted);font-family:var(--font-mono);font-size:var(--fs-micro)}
+  /* Tiêu đề ngăn — CÓ trong cây, KHÔNG hiện trên màn hình (chủ nhà 2026-08-26).
+     Dải thẻ ngay trên đã ghi «1 · Mái»; in lại đúng chữ đó ngay dưới là một
+     dòng không nói thêm gì. Không xoá hẳn vì: 23 link trong bộ trỏ tới #s1/#s2
+     và `reveal()` dựa vào nó để mở đúng thẻ, còn BẢN IN thì không có dải thẻ
+     nên vẫn cần tên ngăn. Dùng chiều cao 0 chứ không `display:none` — phải còn
+     hộp bố cục thì `scrollIntoView` của `reveal()` mới nhảy đúng chỗ. */
+  h2.pane-title{display:block;height:0;margin:0;padding:0;border:0;overflow:hidden}
+  /* ⚠ Luật in phải đứng NGAY SAU luật gốc. Đặt nó trong khối @media print ở đầu
+     tệp thì nó nằm TRƯỚC luật gốc, cùng mức đặc hiệu ⇒ luật gốc thắng theo thứ
+     tự nguồn và bản in mất luôn tên ngăn — đã sập một lần. */
+  @media print {
+    h2.pane-title{display:flex;height:auto;overflow:visible;
+      margin:0 0 12px;padding-bottom:10px;border-bottom:2px solid var(--ink)}
+  }
+
+  /* Mục cấp trên cùng trong một ngăn — MỘT kiểu duy nhất cho mọi mục cùng cấp.
+     Trước đây «Cấu tạo…» là h3 trần còn «Yêu cầu» là .pane-sub: hai mục ngang
+     hàng nhau mà trông khác hẳn nhau. h3 trần nay chỉ còn dùng cho mục nằm BÊN
+     TRONG một .pane-sub. */
+  .pane-sub{margin-top:34px;padding-top:14px;border-top:2px solid var(--line);
+    font-size:var(--fs-h3)}
+
+  /* ── Danh sách BƯỚC + chi tiết BUNG TẠI CHỖ ─────────────────────────────
+     Chi tiết của từng bước bung ra ngay dưới bước đó, mặc định đóng. Không
+     ngăn kéo, không lớp phủ, không nhảy đi đâu — thợ mở đúng bước đang làm và
+     mọi thứ vẫn nằm trong mạch đọc. Bản in mở hết. */
+  .steps { list-style: none; padding: 0; margin: 14px 0 0; }
+  .step { border: 1px solid var(--line); border-left: 5px solid var(--line-soft);
+          background: var(--paper); padding: 12px 14px; margin: 0 0 10px;
+          display: grid; grid-template-columns: 40px 1fr auto; gap: 12px 12px; align-items: start; }
+  .step.stop { border-left-color: var(--accent); }
+  .step .n { font-family: var(--font-sans); font-weight: 700; font-size: 19px; color: var(--muted); line-height: 1.2; }
+  .step.stop .n { color: var(--accent); }
+  .step .t { font-weight: 600; font-size: var(--fs-small); }
+  .step .w { display: block; font-size: var(--fs-cap); color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .step .g { display: block; font-size: var(--fs-cap); color: var(--accent); margin-top: 6px; line-height: 1.5; }
+
+  /* Nút bung/thu — viền mảnh + mũi tên xoay. Khác hẳn nút điều hướng (không viền)
+     và khác hẳn thẻ (tô đặc). Ba loại điều khiển, ba hình dạng. */
+  .step-more { align-self: start; white-space: nowrap; cursor: pointer;
+               font-family: var(--font-sans); font-size: var(--fs-cap); font-weight: 600;
+               color: var(--accent); background: var(--paper); border: 1px solid var(--accent);
+               padding: 9px 12px; min-height: 44px;
+               display: inline-flex; align-items: center; gap: 7px; }
+  .step-more::after { content: "▾"; font-size: 11px; line-height: 1; transition: transform 0.18s; }
+  .step-more:hover { background: var(--accent); color: #fff; }
+  .step-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .step.open > .step-more::after { transform: rotate(180deg); }
+
+  /* Phần bung ra: chiếm hết bề ngang của thẻ bước, thụt vào cho thẳng cột chữ */
+  .detail-src { display: none; grid-column: 1 / -1; margin: 4px 0 2px 52px;
+                border-left: 3px solid var(--line); padding: 2px 0 2px 16px; }
+  .step.open > .detail-src { display: block; }
+  .detail-src > :first-child { margin-top: 0; }
+  .detail-src > :last-child { margin-bottom: 0; }
+  @media (max-width: 900px) {
+    .step { grid-template-columns: 34px 1fr; }
+    .step-more { grid-column: 1 / -1; justify-content: center; width: 100%; }
+    .detail-src { margin-left: 0; padding-left: 12px; }
+  }
+  @media print {
+    .step-more { display: none !important; }
+    .detail-src { display: block !important; }
+  }
+</style>
+
+<style>
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 0}
+  /* Ảnh không bao giờ được đẩy trang tràn ngang — hồ sơ này đọc trên điện thoại,
+     một tay cầm máy. Ảnh rộng hơn khung thì co lại, không đẩy cả trang. */
+  img { max-width: 100%; height: auto; }
+  figure { margin: 12px 0 8px; max-width: 100%; }
+  .doc-head h1{margin:0 0 6px}
+  main h2{margin:38px 0 10px}
+  main h3{margin:24px 0 8px}
+  .fig-full{margin:18px 0;padding:14px;border:1px solid var(--line);background:var(--paper)}
+  .table-wrap{overflow-x:auto}
+
+  /* ── DẢI ĐIỀU HƯỚNG — đi sang trang khác ────────────────────────────────
+     Cố ý KHÔNG có hộp và KHÔNG có nền: tô đặc là ngôn ngữ của THẺ đang mở, và
+     hai thứ làm việc khác nhau thì không được trông giống nhau. Ở đây chỉ có
+     một nét mảnh ôm cả dải, nhãn chữ đơn cách ở trên, tên trang ở dưới. */
+  .navbar{display:flex;flex-wrap:wrap;gap:2px 28px;margin:0 0 26px;
+          padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+          background:transparent}
+  .navbar.foot{margin:38px 0 0}
+  .btn-big{display:inline-flex;flex-direction:column;gap:3px;
+    padding:8px 0;min-height:44px;justify-content:center;
+    background:none;border:none;color:var(--ink);text-decoration:none;
+    font-family:var(--font-sans);font-size:var(--fs-small);font-weight:600;line-height:1.3;
+    border-left:3px solid transparent;padding-left:0}
+  .btn-big .k{font-family:var(--font-mono);font-size:var(--fs-micro);
+    text-transform:uppercase;letter-spacing:.14em;font-weight:500;color:var(--muted)}
+  .btn-big::after{content:" →";color:var(--muted);font-weight:400}
+  .btn-big:hover{color:var(--accent)}
+  .btn-big:hover .k{color:var(--accent)}
+  .btn-big:hover::after{color:var(--accent)}
+  .btn-big:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+  /* Nút quay lại: nhận ra bằng một VẠCH NHẤN DỌC, không phải bằng ô tô đặc */
+  .btn-big.primary{border-left:3px solid var(--accent);padding-left:12px}
+  .btn-big.primary .k{color:var(--accent)}
+  .btn-big.primary::after{content:""}
+  @media (max-width: 900px) {
+    .navbar{flex-direction:column;gap:0}
+    .navbar .btn-big + .btn-big{border-top:1px solid var(--line-soft)}
+  }
+  @media print { .navbar{border:none;padding:0} .btn-big::after{content:""} }
+
+  /* Nhãn mã việc gắn vào tiêu đề mục */
+  .jobtag{display:inline-block;font-family:var(--font-mono);font-size:var(--fs-micro);
+    font-weight:600;letter-spacing:.12em;background:var(--ink);color:var(--paper);
+    padding:3px 9px;text-transform:uppercase}
+  .job-lead{border-left:3px solid var(--accent);background:var(--paper);
+    padding:12px 16px;margin:10px 0 18px;font-size:var(--fs-small)}
+  .qbox{border:1px solid var(--line);border-top:3px solid var(--accent);
+    background:var(--paper);padding:16px 20px 6px;margin:16px 0}
+  .qbox h3{margin:0 0 4px;font-size:var(--fs-h4)}
+  .qbox .ans{font-family:var(--font-sans);font-weight:700;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.08em;font-size:var(--fs-micro);margin-bottom:6px}
+
+  /* ── HÌNH VẼ TRÊN ĐIỆN THOẠI ─────────────────────────────────────────────
+     Sơ đồ có viewBox rộng 900–1160 đơn vị. Cho nó co vừa màn 390px thì chữ
+     nhỏ nhất trong hình rơi xuống 3,0–3,8px — đo bằng trình duyệt, không phải
+     ước. Cỡ đó không đọc được, tức là hình có mặt nhưng vô dụng.
+     Cách chữa giống hệt cách đã dùng cho bảng: KHÔNG bóp hình cho vừa khung,
+     mà cho hình giữ bề rộng đủ để chữ còn đọc được rồi CUỘN NGANG bên trong
+     khung của nó. `--figmin` tính riêng cho từng hình = bề rộng viewBox ×
+     8,5px ÷ cỡ chữ nhỏ nhất trong hình, kẹp trong khoảng 520–900px.
+     ⚠ Đặt bằng biến `--figmin` chứ không viết thẳng `min-width` vào thuộc tính
+     style: luật `[style*="min-width"]{min-width:0!important}` ở khối trên sẽ
+     xoá sạch nếu viết thẳng. Và khối này phải nằm SAU luật đó để thắng. */
+  @media (max-width: 900px) {
+    .figscroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+                 overscroll-behavior-x: contain; min-width: 0; }
+    /* Khung chứa hình phải được phép HẸP HƠN nội dung của nó. `.dwg-frame` là ô
+       của một lưới, mà ô lưới mặc định có min-width:auto — nghĩa là nó BÀNH ra
+       theo đứa con rộng nhất, kéo cả trang rộng 855px trên màn 390px. Lúc đó
+       `overflow-x:auto` của khung bên trong thành vô nghĩa vì không còn gì để
+       cuộn. Đây đúng là lỗi đã ghi ở chú thích minmax(0,1fr) phía trên, chỉ
+       khác chỗ xảy ra. */
+    .dwg-frame, .fig-full, .simbar { min-width: 0; }
+    /* !important vì luật `[style*="min-width"]{min-width:0!important}` ở khối
+       trên khớp với những hình có sẵn min-width nội tuyến và sẽ xoá mất
+       --figmin. Phạm vi hẹp (chỉ svg trong .figscroll) nên không lan ra đâu. */
+    .figscroll > svg.figsvg { min-width: var(--figmin, 560px) !important; max-width: none; }
+    .figscroll::-webkit-scrollbar { height: 6px; }
+    .figscroll::-webkit-scrollbar-thumb { background: var(--line, #c9c2af); border-radius: 3px; }
+    /* Dấu hiệu cho biết hình còn kéo được — không có thì người đọc tưởng đã hết. */
+    .figscroll::after { content: "› vuốt ngang để xem hết hình";
+      display: block; font-family: var(--font-mono, monospace); font-size: 10px;
+      color: var(--muted, #6b625c); letter-spacing: 0.04em; padding: 4px 0 0; }
+  }
+  @media print {
+    .figscroll { overflow: visible !important; }
+    .figscroll > svg.figsvg { min-width: 0 !important; }
+    .figscroll::after { display: none !important; }
+  }
+
+  /* ── BỀ RỘNG BẢNG THEO SỐ CỘT ────────────────────────────────────────────
+     Đo ở màn 390px: bảng bóc khối lượng 7 cột bị nén còn 276px, cột «Đơn vị»
+     37px và một ô phải xuống 73 dòng; bảng 2 cột thì cột thứ hai còn 72–106px.
+     Bề rộng tối thiểu đặt theo SỐ CỘT để mỗi cột còn đủ chỗ cho một cụm từ,
+     rồi cuộn ngang trong khung. Số cột gắn sẵn vào class `cols-N` khi dựng. */
+  @media (max-width: 900px) {
+    .table-wrap > table[class*="cols-"] { min-width: 480px; }
+    .table-wrap > table.cols-2 { min-width: 480px; }
+    .table-wrap > table.cols-3 { min-width: 640px; }
+    .table-wrap > table.cols-4 { min-width: 740px; }
+    .table-wrap > table.cols-5 { min-width: 860px; }
+    .table-wrap > table.cols-6 { min-width: 940px; }
+    .table-wrap > table.cols-7 { min-width: 1040px; }
+    .table-wrap > table.cols-8,
+    .table-wrap > table.cols-9 { min-width: 1140px; }
+    .table-wrap > table[class*="cols-"] th,
+    .table-wrap > table[class*="cols-"] td { overflow-wrap: break-word; }
+    .table-wrap { overscroll-behavior-x: contain; }
+    .table-wrap::-webkit-scrollbar { height: 6px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: var(--line, #c9c2af); border-radius: 3px; }
+  }
+  @media print {
+    .table-wrap { overflow: visible !important; }
+    .table-wrap > table[class*="cols-"] { min-width: 0 !important; }
+  }
+
+  /* ── ĐỌC ĐƯỢC VÀ BẤM ĐƯỢC TRÊN ĐIỆN THOẠI ────────────────────────────────
+     (a) Cỡ chữ bảng: bảng giữ bề rộng đủ và cuộn ngang, nên chữ không phải
+         thu nhỏ cho vừa màn — 13px cho ô và 12px cho tiêu đề cột.
+     (b) Vùng bấm: các liên kết trong dải «Trong trang» chỉ cao 14px. Ngón tay
+         cần khoảng 36–44px. Cho chúng nở ra thành ô bấm thật. */
+  @media (max-width: 900px) {
+    .table-wrap > table[class*="cols-"] { font-size: 13px; }
+    /* Phải nhắm THẲNG vào ô, không dựa vào kế thừa từ ‹table›: chỉ cần có một
+       luật nào đó khớp trực tiếp với ‹td› (kể cả luật hạng thấp như .deriv) là
+       nó thắng giá trị kế thừa. Đo được: 159 ô vẫn đứng ở 11px vì lý do này. */
+    .table-wrap > table[class*="cols-"] td,
+    .table-wrap > table[class*="cols-"] th { font-size: 12.5px; }
+    .table-wrap > table[class*="cols-"] th { font-weight: 600; }
+    .table-wrap > table[class*="cols-"] td,
+    .table-wrap > table[class*="cols-"] th { padding: 8px 9px; }
+    .jump { display: flex; flex-wrap: wrap; gap: 6px; }
+    .jump a { display: inline-flex; align-items: center; min-height: 38px;
+              padding: 6px 12px; border: 1px solid var(--line-soft, #ddd); }
+    .sc-btn, .tabbtn { min-height: 38px; }
+    .room-filter button, .rf button { min-height: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-scroll"><div class="wrap"><main>
+
+<div class="navbar">
+ <a class="btn-big primary" href="index.html#v-hm21-ong"><span class="k">← Quay lại</span>Kế hoạch tổng thể</a>
+ <a class="btn-big" href="WC-Tang-2-383HaiPhong.html"><span class="k">Trang liên quan</span>C10 — WC tầng 2</a>
+ <a class="btn-big" href="Bep-383HaiPhong.html"><span class="k">Trang liên quan</span>C8 — Bếp</a>
+ <a class="btn-big" href="Cong-Van-Mot-Chieu-383HaiPhong.html"><span class="k">Trang liên quan</span>C3 — Cống và van một chiều</a>
+</div>
+
+<header class="doc-head">
+ <h1>Ống cấp, ống thoát và chỗ khoá nước</h1>
+ <p class="lead">Chi tiết việc <strong>C7 (ống cấp, ống thoát và van khoá)</strong>, thuộc <strong>HM21 (cấp thoát nước)</strong>. Nhà đã xây rồi, nên trang này phân định rõ <strong>cái gì đổi và cái gì giữ</strong>.</p>
+</header>
+
+<div class="tabbar" role="tablist">
+ <button type="button" class="tabbtn on" role="tab" id="tab-gi"
+ aria-controls="pane-gi" aria-selected="true">1 · Ống cấp và ống thoát<span class="sub">Cái gì đổi</span></button>
+ <button type="button" class="tabbtn" role="tab" id="tab-nt"
+ aria-controls="pane-nt" aria-selected="false">2 · Nghiệm thu<span class="sub">Mốc nào thì coi là đạt</span></button>
+</div>
+
+<div class="tabpane" id="pane-gi" role="tabpanel" aria-labelledby="tab-gi">
+<h2 class="pane-title" id="s1"><span class="sec-num">1.</span> Ống cấp</h2>
+<div class="callout critical">
+ <h4>Chỉ đổi ống ở ba chỗ, không thay cho đủ bộ</h4>
+ <p style="margin:6px 0 0;">Việc này có mặt trong đợt vì <strong>ba chỗ đang thật sự đổi đường ống</strong>, và cả ba đều nằm trong tường hoặc dưới lớp hoàn thiện. Ngoài ba chỗ đó thì không thay ống.</p>
+</div>
+<!-- BAN-VE:GIU -->
+<h3 class="pane-sub">Ba chỗ buộc phải đổi ống trong đợt này</h3><ul><li><strong>C10 (WC tầng 2)</strong> — dời bồn cầu nên phải dời cả ống thoát phân.</li><li><strong>C8 (bếp)</strong> — thêm máy rửa bát nên phải thêm một đường cấp và một đường thoát.</li><li><strong>C3 (cống, van một chiều và WC trệt)</strong> — đi cùng cụm chống trào ngược.</li></ul><h3 class="pane-sub">Hai thứ nữa nằm trong cùng đợt mở tường</h3><ul><li><strong>Van khoá riêng cho từng khu ướt</strong> — bếp, WC tầng trệt, WC tầng 2.</li><li><strong>Hộp âm tường cho thân van khoá tổng</strong>, kèm một điểm điện chờ cạnh nó — phần nằm trong tường của cụm van đóng tự động sẽ lắp về sau.</li></ul><p>Trạng thái mà hai thứ đó phải đạt nằm ở thẻ <a href="#s2">Nghiệm thu</a>.</p>
+<p>Một sự thật nữa của ngôi nhà: trong tường có <strong>hai ống thoát nước mưa Ø90</strong> chạy ngầm. Nếu chúng đang đấu chung vào đường thải thì việc tách đường thuộc <a href="Cong-Van-Mot-Chieu-383HaiPhong.html">C3 (cống và van một chiều)</a>, không thuộc đợt ống này.</p>
+
+
+
+
+<details class="collapsible">
+ <summary>Nền của các con số ở trên</summary>
+ <div class="body">
+<details class="collapsible"><summary>Vì sao không thay hết ống cho đủ bộ</summary><div class="body"><p>Thay ống trong nhà đã xây nghĩa là đục tường và sàn ở khắp nơi. Ống cũ chưa hỏng thì việc đó chỉ đổi lấy rủi ro mới: mỗi mét ống mới là thêm mối nối, và mỗi mối nối trong tường là một chỗ có thể rò về sau. Ba chỗ trong danh sách phải đổi vì thiết bị dời chỗ, không phải vì ống hỏng.</p></div></details><details class="collapsible"><summary>Vì sao đặt hộp van khoá tổng bây giờ dù chưa mua van tự động</summary><div class="body"><p>Thân van và điểm điện là phần nằm trong tường; van đóng tự động là phần vặn vào. Làm phần trong tường lúc tường còn hở thì gần như không thêm việc. Làm sau khi sơn thì phải cắt ống, đục tường, vá, bả và sơn lại.</p></div></details><details class="collapsible"><summary>Vì sao van khu ướt phải có cửa thăm</summary><div class="body"><p>Một cái van bị gạch ốp phủ lên là một cái van không tồn tại: lúc có sự cố, người ta vẫn phải chạy đi khoá van tổng và cắt nước cả nhà. Giá trị của việc chia van theo khu nằm hết ở chỗ với tay tới được nó.</p></div></details>
+
+<h3 class="pane-sub">Nền của các con số ở trên</h3>
+<h3>Nguồn nước vào nhà</h3>
+<p>Chúng tôi đọc được nguồn cấp thành phố cho nhà ở thường là Ø20–25mm với áp khoảng <strong>1,5–3 bar</strong>, nhưng đó là con số chung; áp thật tại nhà thì <strong>chúng tôi chưa đo</strong>. Bơm cấp ở hiên tầng 1 <strong>đã có và đã lắp</strong>. Phần bồn nước và bơm tăng áp trên mái nằm ở <a href="Bon-Nuoc-May-Bom-383HaiPhong.html">A4 (bồn nước và máy bơm)</a>, không thuộc trang này — chúng tôi nhắc vì tuyến cấp lên tầng 2 phụ thuộc vào đó.</p>
+<h3>Ống cấp</h3>
+<p>Cấu tạo chúng tôi hình dung:</p>
+<ul>
+ <li><strong>PPR thường nối bằng hàn nhiệt</strong> — chỗ chúng tôi đọc được nói mối vặn ren nằm trong tường là điểm rò phổ biến nhất của ống cấp.</li>
+ <li>Cỡ đọc được cho nhà ở: <strong>Ø25</strong> trục chính · <strong>Ø20</strong> nhánh · <strong>Ø15</strong> tới từng thiết bị.</li>
+ <li>Nước nóng hay được dùng loại <strong>PPR lõi nhôm</strong> — nguồn nói nó giãn nở vì nhiệt ít hơn và giữ nhiệt tốt hơn.</li>
+ <li>Bọc bảo ôn: <strong>13mm cho toàn tuyến nước nóng</strong>, <strong>9mm</strong> cho trục chính nước lạnh và các đoạn lộ ra ngoài. Đây là con số nền đứng sau điều chúng tôi lo ở thẻ <a href="#s2">Nghiệm thu</a>: đoạn nào để hở là đoạn đọng nước rồi nhỏ giọt trong tường.</li>
+</ul>
+<p>Về nước nóng, chúng tôi đang hình dung <strong>một bình nóng lạnh riêng cho từng WC</strong> thay vì một hệ trung tâm. Nếu anh thấy cách khác hợp hơn thì nói sớm, vì kiểu nào cũng quyết định tuyến ống — đổi sau khi đã đi ống là đi lại cả tuyến.</p>
+<h3>Ống thoát và đường thông hơi</h3>
+<p>Cỡ chúng tôi đọc được: PVC, trục thoát phân <strong>Ø110</strong>, nhánh <strong>Ø75</strong>, chậu rửa và thoát sàn <strong>Ø50</strong>. Nguồn nói cỡ nhỏ hơn là hay tắc, mà tắc trong tường thì phải đục ra mới thông được.</p>
+<p>Cùng nguồn nói mỗi trục thoát cần một <strong>đường thông hơi Ø50 lên mái</strong>. Đây là chỗ chúng tôi đọc kỹ nhất, vì nó giải thích điều lo về mùi ở thẻ <a href="#s2">Nghiệm thu</a>: không có chỗ lấy hơi thì bẫy nước ở phễu bị hút cạn, và khi đó mùi cống đi thẳng lên phòng — nguồn mô tả đây là lỗi không sửa được bằng cách thay thiết bị vệ sinh.</p>
+<h3>Dời bồn cầu WC tầng 2</h3>
+<p>Chỗ chúng tôi đọc được nói khoảng cách từ tường tới tâm ống xả của bồn cầu <strong>khác nhau theo từng mẫu máy</strong> — ở Việt Nam hay gặp <strong>305mm</strong> nhưng đó không phải mặc định — nên phải chọn xong mẫu bồn cầu rồi mới đi ống, không làm ngược lại. Đi ống trước rồi mới chọn máy là phải đục lại sàn WC, tức phá luôn lớp chống thấm vừa làm.</p>
+<p>Cùng nguồn có một gợi ý Cùng một lý lẽ với hộp van khoá tổng. Anh thấy có đáng làm trong đợt này không thì nói giúp. ⚠ Về cao độ đặt ổ điện đó thì các nguồn phổ thông mâu thuẫn nhau — <strong>chúng tôi chưa xác minh được</strong>, nên không nêu con số.</p>
+ </div>
+</details>
+<!-- /BAN-VE:GIU -->
+<h3 class="pane-sub" id="s1-yc">Yêu cầu</h3>
+<p>Ngôi nhà lúc xong phải là những thứ dưới đây. Cách biết từng thứ đã đạt nằm ở thẻ <strong>Nghiệm thu</strong>.</p>
+<ul class="yc">
+ <li><span class="yc-t">Mối nối trong tường là loại liền mạch, không phải mối vặn ren.</span></li>
+ <li><span class="yc-t">Mỗi khu ướt khoá riêng được.</span></li>
+ <li><span class="yc-t">Mọi van đều mở cửa thăm ra tới được.</span></li>
+ <li><span class="yc-t">Tuyến nước nóng bọc liên tục, không còn đoạn hở nào.</span></li>
+ <li><span class="yc-t">Có hộp chờ cho thân van khoá tổng và một điểm điện chờ trong tầm dây của nó.</span></li>
+ <li><span class="goi">gợi ý</span><span class="yc-t">Mỗi trục thoát có đường thông hơi lên mái.</span></li>
+</ul>
+</div><!-- /pane-gi -->
+
+<div class="tabpane" id="pane-nt" role="tabpanel" aria-labelledby="tab-nt" hidden>
+<h2 class="pane-title" id="s2"><span class="sec-num">2.</span> Nghiệm thu</h2>
+<p style="margin:0 0 6px;">Mỗi dòng là một thứ phải đạt và cách biết nó đã đạt. Dòng có <strong>vạch đỏ</strong> là điểm dừng: chưa đạt thì không đi tiếp. Dòng ghi <span class="goi">gợi ý</span> là chỗ chúng tôi chưa chắc — anh có cách khác đạt được đích đó thì cách của anh thắng.</p>
+<ul class="chk">
+
+<li class="stop"><strong>Tuyến của ba chỗ đổi đã chốt trước khi rạch tường, và rạch cùng lượt với <strong>C5 (điện)</strong>.</strong>
+<span class="why">Ba chỗ là: WC tầng 2 dời bồn cầu · bếp thêm máy rửa bát · cụm cống chống trào ngược. Một lượt mở tường cho cả hai việc. Sàn tầng trệt không bóc trong đợt này, nên mọi tuyến mới phải đấu vào <strong>ống đứng đang có</strong> — ràng buộc đó quyết định cả ba chỗ, nhất là chỗ dời bồn cầu WC tầng 2, vì ống thoát phân cần độ dốc mà độ dốc phải nằm gọn trong bề dày sàn.</span></li>
+
+<li class="stop"><strong>Thử áp toàn tuyến cấp trước khi che kín — giữ áp, không tụt.</strong>
+<span class="why">Che kín rồi mới thử là đục lại tường. Đây là lúc duy nhất còn nhìn thấy tuyến ống.</span></li>
+
+<li><strong>Mối nối trong tường là loại liền mạch, không phải mối vặn ren.</strong>
+<span class="why">Mối ren là chỗ rò phổ biến nhất của ống cấp, mà rò trong tường thì tới lúc phát hiện là tường đã sơn xong.</span></li>
+
+<li class="stop"><strong>Ảnh hoàn công toàn bộ tuyến ống trong tường, chụp trước khi bả.</strong>
+<span class="why">Sau khi bả, muốn biết ống nằm đâu chỉ còn cách đục thử.</span></li>
+
+<li><strong>Mỗi khu ướt khoá riêng được.</strong>
+<span class="why">Thử khoá từng van: các khu khác vẫn có nước, không phải cắt nước cả nhà.</span></li>
+
+<li><strong>Mọi van đều mở cửa thăm ra tới được.</strong>
+<span class="why">Thử bằng tay, không thử bằng mắt — van bị ốp lát chôn kín là van coi như không có.</span></li>
+
+<li><strong>Tuyến nước nóng bọc liên tục, không còn đoạn hở nào.</strong>
+<span class="why">Soi suốt tuyến lúc tường còn hở. Đoạn hở là đoạn đọng nước rồi nhỏ trong tường.</span></li>
+
+<li class="stop"><strong>Có hộp chờ cho thân van khoá tổng và một điểm điện chờ trong tầm dây của nó.</strong>
+<span class="why">Chốt vị trí cùng <strong>C5 (điện)</strong>, đúng vị trí trong ảnh hoàn công. Đây là lượt duy nhất còn mở tường — sau khi bả thì không ai nhớ nó ở đâu.</span></li>
+
+<li><strong>Xả mạnh ở WC tầng 2 rồi ngửi ngay tại phễu và tại bồn cầu tầng trệt — không có mùi cống, nước trong bẫy vẫn còn.</strong>
+<span class="why">Làm sau khi đã đấu xong ba chỗ đổi, trước khi ốp lát che kín. Bẫy nước là thứ duy nhất chặn mùi từ đường cống, và nó chỉ làm việc khi còn nước trong đó.</span></li>
+
+<li class="goi-y"><span class="goi">gợi ý</span><strong>Mỗi trục thoát có đường thông hơi lên mái.</strong>
+<span class="why">Khi một thiết bị ở tầng trên xả mạnh, cột nước rơi trong ống đứng kéo theo không khí và có thể hút cạn bẫy nước của thiết bị tầng dưới — lúc đó đường cống thông thẳng vào phòng. Đường thông hơi cho không khí vào bù. Ba chỗ đổi đều đấu vào ống đứng đang có, nên nếu trục nào chưa có đường thông hơi thì đây là lượt duy nhất còn mở tường để thêm. Anh có cách khác giữ được bẫy nước khi xả mạnh thì cách của anh thắng.</span></li>
+
+</ul>
+</div><!-- /pane-nt -->
+
+<div class="navbar foot">
+ <a class="btn-big primary" href="index.html#v-hm21-ong"><span class="k">← Quay lại</span>Kế hoạch tổng thể</a>
+ <a class="btn-big" href="WC-Tang-2-383HaiPhong.html"><span class="k">Trang liên quan</span>C10 — WC tầng 2</a>
+ <a class="btn-big" href="Bep-383HaiPhong.html"><span class="k">Trang liên quan</span>C8 — Bếp</a>
+ <a class="btn-big" href="Cong-Van-Mot-Chieu-383HaiPhong.html"><span class="k">Trang liên quan</span>C3 — Cống và van một chiều</a>
+</div>
+<div class="doc-foot">
+ Trang chi tiết · C7 (ống cấp, ống thoát và van khoá) · 383 Hải Phòng
+</div>
+
+</main></div></div>
+
+<script>
+/* Đổi thẻ. Link trỏ tới một mục nằm trong thẻ đang đóng thì mở thẻ đó rồi mới nhảy,
+   nên dải "Trong trang" và link sâu từ Kế hoạch tổng thể vẫn tới đúng chỗ. */
+(function(){
+  var bar=document.querySelector('.tabbar'); if(!bar) return;
+  var btns=Array.prototype.slice.call(bar.querySelectorAll('.tabbtn'));
+  function show(id){
+    btns.forEach(function(b){
+      var on=b.getAttribute('aria-controls')===id;
+      b.classList.toggle('on',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+      var p=document.getElementById(b.getAttribute('aria-controls'));
+      if(p) p.hidden=!on;
+    });
+  }
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      show(b.getAttribute('aria-controls'));
+      bar.scrollIntoView({block:'start'});
+    });
+  });
+  function reveal(hash){
+    if(!hash||hash.length<2) return;
+    var t; try{ t=document.querySelector(hash);}catch(e){return;}
+    if(!t) return;
+    var pane=t.closest('.tabpane');
+    if(pane&&pane.hidden){ show(pane.id); t.scrollIntoView({block:'start'}); }
+  }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a[href^="#"]');
+    if(a) setTimeout(function(){reveal(a.getAttribute('href'));},0);
+  });
+  window.addEventListener('hashchange',function(){reveal(location.hash);});
+  reveal(location.hash);
+})();
+
+/* Bung/thu chi tiết từng bước. Chỉ bật tắt class trên chính thẻ bước —
+   không di chuyển node, không nhân bản innerHTML (nhân bản sinh id trùng và
+   làm hỏng marker/pattern của SVG nằm bên trong). */
+(function(){
+  function label(btn, open){
+    var base = btn.getAttribute('data-label') || 'Chi tiết';
+    btn.firstChild.nodeValue = open ? 'Thu gọn' : base;
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('button.step-more');
+    if(!b) return;
+    e.preventDefault();
+    var li = b.closest('.step'); if(!li) return;
+    var open = !li.classList.contains('open');
+    li.classList.toggle('open', open);
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    label(b, open);
+  });
+  /* Link sâu tới một bước: mở sẵn bước đó ra. */
+  function openFromHash(h){
+    if(!h || h.length < 2) return;
+    var t; try { t = document.querySelector(h); } catch(err) { return; }
+    if(!t) return;
+    var li = t.closest && t.closest('.step');
+    if(li && !li.classList.contains('open')){
+      var b = li.querySelector('button.step-more');
+      if(b){ li.classList.add('open'); b.setAttribute('aria-expanded','true'); label(b, true); }
+    }
+  }
+  window.addEventListener('hashchange', function(){ openFromHash(location.hash); });
+  openFromHash(location.hash);
+  /* Bản in mở hết. */
+  window.addEventListener('beforeprint', function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.step'), function(li){
+      li.classList.add('open');
+    });
+  });
+})();
+</script>
+<link rel="stylesheet" href="binh-luan.css">
+<script>window.BINH_LUAN_CAU_HINH={"url": "https://butoxfkbpcycadwjtbga.supabase.co", "khoa": "sb_publishable_S4Ixp42EgGUUZlhrbY1flA_TZzrbLc0"};</script>
+<script src="binh-luan.js" defer></script>
+</body>
+</html>
