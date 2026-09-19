@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mô hình 3D — 383 Hải Phòng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400..700;1,400..600&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="xem.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<!-- Cấu hình sổ ghi chú (Supabase url + khoá công khai). Không có file này thì trang
+     vẫn xem được, chỉ không ghi chú được. Sinh bởi tools/3d/xem.py hoặc bộ đăng site. -->
+<script src="cau-hinh.js" onerror="void 0"></script>
+</head>
+<body>
+<div class="app">
+  <header class="thanh">
+    <div class="tieu-de"><span class="nhan">Mô hình 3D</span> <strong id="ten-mo-hinh">…</strong></div>
+    <div class="nhom-nut" role="group" aria-label="Góc nhìn">
+      <button data-goc="truc-do" title="Trục đo (phím 0)">Trục đo</button>
+      <button data-goc="truoc" title="Nhìn từ mặt tiền Tây Bắc (phím 1)">Mặt tiền</button>
+      <button data-goc="tay-nam" title="Nhìn từ phía Tây Nam (phím 3)">Tây Nam</button>
+      <button data-goc="dong-bac" title="Nhìn từ phía Đông Bắc">Đông Bắc</button>
+      <button data-goc="sau" title="Nhìn từ phía sau (Đông Nam)">Sau</button>
+      <button data-goc="tren" title="Nhìn từ trên xuống (phím 7)">Trên</button>
+    </div>
+    <div class="nhom-nut" role="group" aria-label="Công cụ">
+      <button id="nut-them" title="Thêm vật chú thích: cầu, mũi tên, hộp (Shift+A)">Thêm ▾</button>
+      <button id="nut-do" title="Thước: bấm hai điểm trên vật thể để đo (phím M) — thước lưu cùng ghi chú">Thước</button>
+      <button id="nut-cat" title="Mặt cắt (phím C)">Cắt</button>
+      <button id="nut-cot" title="Cột lớp: bấm một điểm → đọc mọi lớp theo phương đứng tại đó, từ trên xuống (phím L)">Cột lớp</button>
+      <button id="nut-chep" title="Chép đường dẫn tới đúng góc nhìn và vật thể đang chọn">Chép liên kết</button>
+    </div>
+  </header>
+
+  <aside class="ben trai" id="ben-trai">
+    <section>
+      <h2>Tìm vật thể</h2>
+      <input id="tim" type="search" placeholder="Gõ tên, vd: gioăng, bản mã…" autocomplete="off">
+      <ul id="ket-qua" class="ds-tim"></ul>
+    </section>
+    <section>
+      <h2>Nhóm kết cấu</h2>
+      <ul id="ds-lk" class="ds-lop" aria-label="Nhóm kết cấu — bật một hay nhiều nhóm"></ul>
+    </section>
+    <section>
+      <h2>Lớp</h2>
+      <ul id="ds-lop" class="ds-lop"></ul>
+      <button id="hien-het" class="nut-nho">Hiện lại mọi vật đã ẩn / đặc lại mọi vật xem xuyên</button>
+      <ul id="ds-an" class="ds-an" aria-label="Vật thể đã ẩn"></ul>
+    </section>
+    <section id="khoi-lop-cau-tao" hidden>
+      <h2>Lớp cấu tạo</h2>
+      <div class="hang-boc">
+        <span class="nhan-boc">Bóc lớp</span>
+        <span class="nhom-nut nho" role="group" aria-label="Bóc lớp">
+          <button id="boc-bot" title="Trả lại một lớp (phím [)">−</button>
+          <button id="boc-them" title="Bóc thêm một lớp từ trên xuống (phím ])">+</button>
+        </span>
+        <span id="boc-so" class="mo"></span>
+      </div>
+      <input id="boc" type="range" min="0" max="1" step="1" value="0" aria-label="Số lớp đã bóc">
+      <ol id="ds-boc" class="ds-boc"></ol>
+      <div class="hang-boc"><span class="nhan-boc">Tách lớp</span><span id="tach-so" class="mo"></span></div>
+      <input id="tach" type="range" min="0" max="600" step="10" value="0" aria-label="Khe tách giữa các lớp (mm)">
+    </section>
+    <section>
+      <h2>Ghi chú <span id="dem-gc" class="dem"></span></h2>
+      <label class="chk"><input type="checkbox" id="an-xong" checked> Ẩn ghi chú đã xử lý</label>
+      <ul id="ds-gc" class="ds-gc"></ul>
+      <p id="gc-trang-thai" class="mo"></p>
+    </section>
+  </aside>
+
+  <main class="khung" id="khung">
+    <canvas id="c"></canvas>
+    <div id="nhan-di" class="nhan-di" hidden></div>
+    <div id="lop-ghim"></div>
+    <div id="lop-nhan"></div>
+    <svg id="la-ban" class="la-ban" viewBox="-60 -60 120 120" role="group" aria-label="Trục nhìn: bấm một trục để nhìn dọc trục ấy, bấm lại để nhìn từ phía ngược; kéo để xoay"></svg>
+    <div id="menu-them" class="menu-them" hidden role="menu" aria-label="Thêm vật chú thích">
+      <button data-them="mui_ten" role="menuitem">Mũi tên <span class="mo">bấm đuôi → đầu</span></button>
+      <button data-them="cau" role="menuitem">Cầu</button>
+      <button data-them="hop" role="menuitem">Hộp</button>
+      <button data-them="thuoc" role="menuitem">Thước <span class="mo">M</span></button>
+    </div>
+    <div id="bang-them" class="bang-noi" hidden><span id="them-huong-dan"></span></div>
+    <div id="bang-bien-doi" class="bang-noi" hidden><span id="bien-doi-kq" class="mono"></span></div>
+    <div id="bang-cat" class="bang-noi" hidden>
+      <div class="nhom-nut nho" role="group" aria-label="Hướng cắt">
+        <button data-truc="x" title="Mặt cắt vuông góc trục Tây Nam–Đông Bắc">Dọc nhà</button>
+        <button data-truc="y" title="Mặt cắt vuông góc trục trước–sau">Ngang nhà</button>
+        <button data-truc="z" title="Mặt cắt bằng">Bằng</button>
+      </div>
+      <input id="cat-vi-tri" type="range" min="0" max="1000" value="500" aria-label="Vị trí mặt cắt">
+      <span id="cat-so" class="mono"></span>
+      <label class="chk"><input type="checkbox" id="cat-dao"> Đảo phía</label>
+      <div id="cat-san" class="nhom-nut nho" role="group" aria-label="Mặt cắt sẵn (phím P)" hidden></div>
+    </div>
+    <div id="bang-cot" class="bang-cot" hidden>
+      <div class="cot-dau"><strong>Cột lớp</strong> <span id="cot-vi-tri" class="mono mo"></span>
+        <button type="button" id="cot-dong" class="nut-nho" title="Thôi (L hoặc Esc)">Đóng</button></div>
+      <table class="cot-bang">
+        <thead><tr><th>Vật thể</th><th>Vật liệu</th><th>Đỉnh</th><th>Đáy</th><th>Dày mm</th><th>Khe dưới mm</th></tr></thead>
+        <tbody id="cot-than"></tbody>
+      </table>
+      <p id="cot-huong-dan" class="mo"></p>
+    </div>
+    <div id="bang-vung" class="bang-noi" hidden><span id="vung-huong-dan">Bấm góc thứ nhất trên một mặt — tường giếng, kính, gờ… (Esc: thôi)</span></div>
+    <div id="bang-do" class="bang-noi" hidden><span id="do-kq"></span></div>
+    <p class="huong-dan">Kéo chuột trái: xoay · chuột phải hoặc Shift+kéo: dời · lăn: phóng to · bấm: chọn · Shift+bấm: chọn thêm/bớt · bấm đúp: lấy làm tâm xoay · F: khung vừa · H: ẩn · I: chỉ xem vật đang chọn · T: xem xuyên vật đang chọn · Esc: bỏ chọn · C: mặt cắt · L: cột lớp · Vật chú thích: Shift+A thêm · G dời · R xoay · S co giãn (X/Y/Z khoá trục, gõ số) · Shift+D nhân đôi · X xoá</p>
+  </main>
+
+  <aside class="ben phai" id="ben-phai">
+    <div id="chua-chon" class="mo">Bấm vào một vật thể để xem quy cách và ghi chú cho nó.</div>
+    <div id="thong-tin" hidden>
+      <p class="nhom-cua" id="tt-nhom"></p>
+      <h2 id="tt-ten"></h2>
+      <dl class="so">
+        <dt>Vật liệu</dt><dd id="tt-vl"></dd>
+        <dt>Kích thước bao</dt><dd id="tt-kt" class="mono"></dd>
+        <dt>Cao độ</dt><dd id="tt-cd" class="mono"></dd>
+        <dt>Mã vật thể</dt><dd><code id="tt-id"></code></dd>
+      </dl>
+      <div id="tt-qc-k"><h3>Quy cách</h3><p id="tt-qc"></p></div>
+      <details id="tt-nguon-k"><summary>Vì sao có nó</summary><p id="tt-nguon"></p></details>
+      <details id="tt-khop-k"><summary>Cố ý giao với</summary><p id="tt-khop"></p></details>
+      <details id="tt-khac-k"><summary>Thuộc tính khác</summary><dl id="tt-khac" class="so"></dl></details>
+      <div class="nut-hang">
+        <button id="nut-an">Ẩn (H)</button>
+        <button id="nut-rieng">Chỉ xem vật này (I)</button>
+        <button id="nut-xuyen" aria-pressed="false" title="Vẽ vật này mờ như lớp ◐ — thấy và bấm được thứ nằm sau nó">Xem xuyên (T)</button>
+        <button id="nut-khung">Khung vừa (F)</button>
+      </div>
+    </div>
+    <form id="form-gc" class="form-gc">
+      <h3 id="gc-tieu-de">Ghi chú cho góc nhìn này</h3>
+      <div class="hang-vung">
+        <button type="button" id="nut-vung" title="Bấm hai góc trên một mặt (tường, kính…) để khoanh một vùng, vd chỗ cửa">Khoanh vùng</button>
+        <span id="vung-kq" class="mo"></span>
+      </div>
+      <div id="khoi-nhap" class="khoi-nhap" hidden>
+        <div class="hang-nhap"><strong>Vật chú thích</strong>
+          <span class="nhom-nut nho" role="group" aria-label="Tay nắm">
+            <button type="button" data-tay="translate" aria-pressed="true" title="Tay nắm dời (G)">Dời</button>
+            <button type="button" data-tay="rotate" aria-pressed="false" title="Tay nắm xoay (R)">Xoay</button>
+            <button type="button" data-tay="scale" aria-pressed="false" title="Tay nắm co giãn (S)">Co giãn</button>
+          </span>
+        </div>
+        <ul id="ds-nhap" class="ds-nhap"></ul>
+        <p class="mo">Lưu cùng ghi chú dưới đây. <button type="button" id="xoa-nhap" class="nut-nho">Xoá hết</button></p>
+      </div>
+      <textarea id="gc-noi-dung" rows="4" placeholder="Cần sửa gì? Vd: gờ này cao thêm 50mm; tấm này đổi sang inox…"></textarea>
+      <div class="hang">
+        <input id="gc-ten" placeholder="Tên người ghi" autocomplete="name">
+        <input id="gc-mk" type="password" placeholder="Mật khẩu chung" autocomplete="current-password">
+      </div>
+      <button type="submit" class="chinh">Lưu ghi chú</button>
+      <p id="gc-loi" class="loi" hidden></p>
+    </form>
+  </aside>
+</div>
+<script type="module" src="xem.js"></script>
+</body>
+</html>
