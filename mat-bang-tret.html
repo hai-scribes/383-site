@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mặt bằng trệt — 383 Hải Phòng</title>
+<style>
+  body { margin: 0; padding: 20px; background: #efe9d8; font-family: 'Helvetica', sans-serif; display: flex; justify-content: center; }
+  .sheet { background: #fdfbf3; padding: 24px 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); border: 1px solid #c8bf9d; }
+  h1 { font-size: 16px; letter-spacing: 3px; margin: 0 0 4px 0; font-weight: 600; color: #222; }
+  .scale { font-size: 12px; color: #666; margin-bottom: 14px; letter-spacing: 1.5px; }
+  svg { display: block; }
+
+  .lot-outline { fill: #fdfbf3; stroke: #1a1a1a; stroke-width: 60; stroke-linejoin: miter; }
+  .interior-wall { fill: #1a1a1a; }
+  .room-fill-1 { fill: #f4ead0; }
+  .room-fill-2 { fill: #e8e0c4; }
+  .room-fill-3 { fill: #f0e6cc; }
+  .room-fill-5 { fill: #ece2c6; }
+  .wet-fill { fill: #d8e4e8; }
+  .stair-fill { fill: #e0d5b8; }
+
+  .room-label { font-family: 'Helvetica', sans-serif; font-size: 200px; font-weight: 700; fill: #1a1a1a; text-anchor: middle; letter-spacing: 8px; }
+  .room-sub { font-family: 'Helvetica', sans-serif; font-size: 130px; font-weight: 600; fill: #2a4a55; text-anchor: middle; letter-spacing: 4px; }
+
+  .furn { fill: none; stroke: #3a3a3a; stroke-width: 14; stroke-linejoin: round; }
+  .furn-fill { fill: #c8bb96; stroke: #3a3a3a; stroke-width: 14; }
+  .furn-light { fill: #e8dfc0; stroke: #3a3a3a; stroke-width: 12; }
+  .fixture { fill: #fff; stroke: #3a3a3a; stroke-width: 12; }
+
+  .door-arc { fill: none; stroke: #888; stroke-width: 10; stroke-dasharray: 30 20; }
+  .door-leaf { stroke: #3a3a3a; stroke-width: 14; }
+
+  .dim-line { stroke: #b0392b; stroke-width: 8; fill: none; }
+  .dim-tick { stroke: #b0392b; stroke-width: 8; }
+  .dim-text { font-family: 'Helvetica', sans-serif; font-size: 150px; fill: #b0392b; text-anchor: middle; font-weight: 600; }
+
+  .axis-circle { fill: #fdfbf3; stroke: #b0392b; stroke-width: 10; }
+  .axis-text { font-family: 'Helvetica', sans-serif; font-size: 180px; fill: #b0392b; text-anchor: middle; dominant-baseline: central; font-weight: 700; }
+  .axis-line { stroke: #b0392b; stroke-width: 5; stroke-dasharray: 80 30 15 30; }
+  .center-line { stroke: #b0392b; stroke-width: 5; stroke-dasharray: 100 40 15 40; }
+
+  .stair-tread { stroke: #3a3a3a; stroke-width: 10; fill: none; }
+  .roof-edge { fill: none; stroke: #999; stroke-width: 10; stroke-dasharray: 25 18; }
+
+  /* Bản vẽ đặt cứng width="640" trên nền body flex — trên màn 390px nó đẩy
+     trang rộng 548px và mép phải bị cắt. Cho tờ vẽ co lại theo màn, và bản vẽ
+     giữ tỉ lệ bằng viewBox. */
+  @media (max-width: 900px) {
+    body { padding: 10px; display: block; }
+    .sheet { padding: 14px 12px; }
+    .sheet svg { width: 100%; height: auto; max-width: 640px; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+ <h1>MẶT BẰNG TRỆT</h1>
+ <div class="scale">TL 1:50 · 383 HẢI PHÒNG, THANH KHÊ, ĐÀ NẴNG</div>
+
+ <svg viewBox="-1400 -1100 7400 14000" width="640" height="1210" xmlns="http://www.w3.org/2000/svg">
+
+ <polygon class="lot-outline" points="0,0 4640,0 4640,11470 450,11470"/>
+
+ <polygon class="room-fill-1" points="100,100 4540,100 4540,1870 100,1870"/>
+ <polygon class="room-fill-2" points="100,1970 4540,1970 4540,5410 100,5410"/>
+ <polygon class="room-fill-3" points="100,5510 2900,5510 2900,7710 100,7710"/>
+ <polygon class="wet-fill" points="3000,5510 4540,5510 4540,7710 3000,7710"/>
+ <polygon class="stair-fill" points="100,7810 4540,7810 4540,8310 100,8310"/>
+ <polygon class="room-fill-5" points="100,8410 4540,8410 4540,11370 380,11370"/>
+
+ <rect class="interior-wall" x="100" y="1870" width="4440" height="100"/>
+ <rect class="interior-wall" x="100" y="5410" width="1000" height="100"/>
+ <rect class="interior-wall" x="2100" y="5410" width="2440" height="100"/>
+ <rect class="interior-wall" x="2900" y="5510" width="100" height="2200"/>
+ <rect class="interior-wall" x="3000" y="6650" width="1540" height="100"/>
+ <rect class="interior-wall" x="100" y="7710" width="4440" height="100"/>
+ <rect class="interior-wall" x="100" y="8310" width="2300" height="100"/>
+ <rect class="interior-wall" x="3300" y="8310" width="1240" height="100"/>
+
+ <path class="roof-edge" d="M 200,300 L 1800,1500 L 1800,300 Z"/>
+ <path class="roof-edge" d="M 2840,1500 L 4440,300 L 2840,300 Z"/>
+ <g transform="translate(1500, 1000)">
+ <rect class="furn-fill" x="-180" y="-550" width="360" height="1100" rx="100"/>
+ <circle class="fixture" cx="0" cy="-420" r="160"/>
+ <circle class="fixture" cx="0" cy="420" r="160"/>
+ <rect class="fixture" x="-260" y="-100" width="520" height="60" rx="20"/>
+ </g>
+ <g transform="translate(2400, 1000)">
+ <rect class="furn-fill" x="-180" y="-550" width="360" height="1100" rx="100"/>
+ <circle class="fixture" cx="0" cy="-420" r="160"/>
+ <circle class="fixture" cx="0" cy="420" r="160"/>
+ <rect class="fixture" x="-260" y="-100" width="520" height="60" rx="20"/>
+ </g>
+ <text class="room-sub" x="3700" y="1700">LỐI VÀO</text>
+
+ <path class="door-arc" d="M 3700 100 A 900 900 0 0 0 2800 1000"/>
+ <line class="door-leaf" x1="3700" y1="100" x2="3700" y2="1000"/>
+
+ <rect class="furn-fill" x="3300" y="2700" width="1100" height="700" rx="80"/>
+ <rect class="furn-light" x="3300" y="2700" width="1100" height="200"/>
+ <rect class="furn-light" x="3300" y="2700" width="120" height="700"/>
+ <rect class="furn-light" x="4280" y="2700" width="120" height="700"/>
+ <rect class="furn-light" x="3500" y="3700" width="700" height="400" rx="30"/>
+ <rect class="furn-fill" x="250" y="3400" width="200" height="1500"/>
+ <rect class="furn-light" x="450" y="3900" width="180" height="500"/>
+ <text class="room-label" x="1900" y="3800">P.KHÁCH</text>
+
+ <path class="door-arc" d="M 1100 5410 A 1000 1000 0 0 1 2100 6410"/>
+ <line class="door-leaf" x1="1100" y1="5410" x2="1100" y2="6410"/>
+
+ <rect class="furn-fill" x="800" y="6050" width="1400" height="900" rx="60"/>
+ <rect class="furn-light" x="550" y="6150" width="220" height="280" rx="20"/>
+ <rect class="furn-light" x="550" y="6570" width="220" height="280" rx="20"/>
+ <rect class="furn-light" x="2230" y="6150" width="220" height="280" rx="20"/>
+ <rect class="furn-light" x="2230" y="6570" width="220" height="280" rx="20"/>
+ <text class="room-label" x="1500" y="7450">P.ĂN</text>
+
+ <rect class="fixture" x="3100" y="5650" width="600" height="380" rx="30"/>
+ <circle class="furn" cx="3400" cy="5840" r="80"/>
+ <rect class="fixture" x="3370" y="5800" width="60" height="180"/>
+ <rect class="furn-fill" x="3800" y="5650" width="650" height="380"/>
+ <circle class="fixture" cx="3950" cy="5780" r="80"/>
+ <circle class="fixture" cx="4300" cy="5780" r="80"/>
+ <circle class="fixture" cx="3950" cy="5950" r="40"/>
+ <circle class="fixture" cx="4300" cy="5950" r="40"/>
+ <text class="room-sub" x="3770" y="6320">BẾP</text>
+
+ <g transform="translate(3300, 7100)">
+ <ellipse class="fixture" cx="0" cy="100" rx="180" ry="240"/>
+ <rect class="fixture" x="-220" y="-200" width="440" height="200" rx="20"/>
+ </g>
+ <rect class="fixture" x="3900" y="6850" width="500" height="320" rx="40"/>
+ <circle class="furn" cx="4150" cy="7010" r="60"/>
+ <text class="room-sub" x="3770" y="7550">WC 1</text>
+
+ <g>
+ <line class="stair-tread" x1="800" y1="7900" x2="2300" y2="7900"/>
+ <line class="stair-tread" x1="800" y1="7990" x2="2300" y2="7990"/>
+ <line class="stair-tread" x1="800" y1="8080" x2="2300" y2="8080"/>
+ <line class="stair-tread" x1="800" y1="8170" x2="2300" y2="8170"/>
+ <line class="stair-tread" x1="800" y1="8260" x2="2300" y2="8260"/>
+ <line class="stair-tread" x1="1550" y1="8230" x2="1550" y2="7860"/>
+ <polygon points="1550,7820 1490,7920 1610,7920" fill="#3a3a3a"/>
+ <text class="room-sub" x="2700" y="8170">CT</text>
+ </g>
+
+ <path class="door-arc" d="M 2400 8410 A 900 900 0 0 1 3300 9310"/>
+ <line class="door-leaf" x1="2400" y1="8410" x2="2400" y2="9310"/>
+
+ <rect class="furn-fill" x="900" y="9100" width="1800" height="1900" rx="50"/>
+ <rect class="furn-light" x="900" y="9100" width="1800" height="350"/>
+ <rect class="fixture" x="1050" y="9180" width="700" height="200" rx="30"/>
+ <rect class="fixture" x="1850" y="9180" width="700" height="200" rx="30"/>
+ <line class="furn" x1="900" y1="10300" x2="2700" y2="10300"/>
+ <rect class="furn-light" x="350" y="9100" width="450" height="500"/>
+ <circle class="furn" cx="575" cy="9350" r="50"/>
+ <rect class="furn-fill" x="3700" y="8700" width="800" height="2500"/>
+ <line class="furn" x1="3700" y1="9500" x2="4500" y2="9500"/>
+ <line class="furn" x1="3700" y1="10350" x2="4500" y2="10350"/>
+ <line class="furn" x1="4100" y1="8700" x2="4100" y2="11200"/>
+
+ <text class="room-label" x="1700" y="11280">P.NGỦ 1</text>
+
+ <line class="axis-line" x1="100" y1="-800" x2="100" y2="11800"/>
+ <line class="axis-line" x1="4540" y1="-800" x2="4540" y2="11800"/>
+ <circle class="axis-circle" cx="100" cy="-700" r="240"/>
+ <text class="axis-text" x="100" y="-700">B</text>
+ <circle class="axis-circle" cx="4540" cy="-700" r="240"/>
+ <text class="axis-text" x="4540" y="-700">A</text>
+
+ <line class="axis-line" x1="-800" y1="100" x2="5400" y2="100"/>
+ <line class="axis-line" x1="-800" y1="5410" x2="5400" y2="5410"/>
+ <line class="axis-line" x1="-800" y1="8310" x2="5400" y2="8310"/>
+ <line class="axis-line" x1="-800" y1="11370" x2="5400" y2="11370"/>
+ <circle class="axis-circle" cx="-700" cy="100" r="240"/>
+ <text class="axis-text" x="-700" y="100">1</text>
+ <circle class="axis-circle" cx="-700" cy="5410" r="240"/>
+ <text class="axis-text" x="-700" y="5410">2</text>
+ <circle class="axis-circle" cx="-700" cy="8310" r="240"/>
+ <text class="axis-text" x="-700" y="8310">3</text>
+ <circle class="axis-circle" cx="-700" cy="11370" r="240"/>
+ <text class="axis-text" x="-700" y="11370">4</text>
+
+ <line class="dim-line" x1="0" y1="-400" x2="4640" y2="-400"/>
+ <line class="dim-tick" x1="0" y1="-320" x2="0" y2="-480"/>
+ <line class="dim-tick" x1="4640" y1="-320" x2="4640" y2="-480"/>
+ <text class="dim-text" x="2320" y="-520">4640</text>
+
+ <line class="dim-line" x1="450" y1="11900" x2="4640" y2="11900"/>
+ <line class="dim-tick" x1="450" y1="11820" x2="450" y2="11980"/>
+ <line class="dim-tick" x1="4640" y1="11820" x2="4640" y2="11980"/>
+ <text class="dim-text" x="2545" y="12100">4190</text>
+
+ <line class="dim-line" x1="5200" y1="0" x2="5200" y2="11470"/>
+ <line class="dim-tick" x1="5120" y1="0" x2="5280" y2="0"/>
+ <line class="dim-tick" x1="5120" y1="11470" x2="5280" y2="11470"/>
+ <text class="dim-text" x="5200" y="5800" transform="rotate(90 5200 5800)">11470</text>
+
+ <line class="dim-line" x1="-400" y1="0" x2="-400" y2="1870"/>
+ <line class="dim-tick" x1="-320" y1="0" x2="-480" y2="0"/>
+ <line class="dim-tick" x1="-320" y1="1870" x2="-480" y2="1870"/>
+ <text class="dim-text" x="-560" y="935" transform="rotate(-90 -560 935)">1870</text>
+
+ <line class="dim-line" x1="-400" y1="1870" x2="-400" y2="5410"/>
+ <line class="dim-tick" x1="-320" y1="5410" x2="-480" y2="5410"/>
+ <text class="dim-text" x="-560" y="3640" transform="rotate(-90 -560 3640)">3540</text>
+
+ <line class="dim-line" x1="-400" y1="5410" x2="-400" y2="7710"/>
+ <line class="dim-tick" x1="-320" y1="7710" x2="-480" y2="7710"/>
+ <text class="dim-text" x="-560" y="6560" transform="rotate(-90 -560 6560)">2300</text>
+
+ <line class="dim-line" x1="-400" y1="7710" x2="-400" y2="8310"/>
+ <line class="dim-tick" x1="-320" y1="8310" x2="-480" y2="8310"/>
+ <text class="dim-text" x="-560" y="8010" transform="rotate(-90 -560 8010)">600</text>
+
+ <line class="dim-line" x1="-400" y1="8310" x2="-400" y2="11370"/>
+ <line class="dim-tick" x1="-320" y1="11370" x2="-480" y2="11370"/>
+ <text class="dim-text" x="-560" y="9840" transform="rotate(-90 -560 9840)">3060</text>
+
+ <line class="center-line" x1="2320" y1="-900" x2="2320" y2="12000"/>
+
+ </svg>
+</div>
+</body>
+</html>
