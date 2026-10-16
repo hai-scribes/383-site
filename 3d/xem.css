@@ -760,3 +760,50 @@ body.nhung.mo-pa #khoi-pa.pa-noi:not([hidden]) { top: 12px; max-height: calc(100
   body.nhung:not(.nhung-sua) #ben-phai .nut-hang button, body.chi-xem:not(.nhung) #ben-phai .nut-hang button { padding: 0 4px; font-size: 12px; }
   body.nhung:not(.nhung-sua) .tt-dong, body.chi-xem:not(.nhung) .tt-dong { width: 40px; height: 40px; margin: -4px -4px 0 6px; }
 }
+
+/* ── MỘT DÒNG (chủ nhà 2026-10-16: «bảng dưới chiếm nhiều chỗ · thanh đầu chỉ một dòng») — bo_cuc.js gocVong + catGon ──
+   Nút VÒNG: một nút mang tên thế đang chọn, mỗi lần chạm sang thế kế tiếp (dấu ↻ báo là chạm để đổi). */
+.nut-vong { display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; cursor: pointer;
+  border: 0; border-radius: 10px; min-height: 36px; padding: 0 12px; background: #fff; color: var(--ink); font: inherit; font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.nut-vong::before { content: "↻"; font-weight: 400; color: var(--accent); }
+.nut-vong:active { transform: scale(.96); }
+@media (pointer: coarse) { .nut-vong { min-height: 44px; } }
+.nut-goc-vong { display: none; }
+/* ô mặt cắt: [hướng ↻] [thanh kéo] [số] [⋯] — không bao giờ xuống dòng */
+body:not(.nhung) #bang-cat.gon { flex-wrap: nowrap; justify-content: flex-start; gap: 8px; padding: 4px 4px 4px 6px; border-radius: 14px;
+  width: min(560px, calc(100% - 24px)); }
+body:not(.nhung) #bang-cat.gon > .nhom-nut, body:not(.nhung) #bang-cat.gon > .chk { display: none !important; }
+body:not(.nhung) #bang-cat.gon .nut-cat-vong { flex: none; min-width: 7.6em; background: var(--paper-deep); box-shadow: none; }
+body:not(.nhung) #bang-cat.gon #cat-vi-tri { flex: 1 1 0; min-width: 72px; width: auto; }
+body:not(.nhung) #bang-cat.gon #cat-so { flex: none; min-width: 0; font-size: var(--fs-cap); color: var(--ink-soft); white-space: nowrap; }
+#nut-cat-them { flex: none; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 50%;
+  background: transparent; font-size: 18px; font-weight: 700; letter-spacing: .05em; cursor: pointer; color: var(--ink); }
+#nut-cat-them:hover, #nut-cat-them[aria-expanded="true"] { background: var(--paper-deep); }
+/* trình đơn «⋯» của ô mặt cắt: Đảo phía (✓ khi bật) rồi các mặt cắt sẵn, bật lên trên */
+.menu-cat { width: max-content; max-width: min(340px, calc(100vw - 16px)); max-height: 60vh; overflow-y: auto; border-radius: 12px; }
+.menu-cat button { display: block; width: 100%; min-height: 44px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.menu-cat button[aria-pressed="true"] { color: var(--accent); font-weight: 600; }
+.menu-cat .nut-dao[aria-pressed="true"]::after { content: " ✓"; }
+/* bản đăng ẩn mọi .menu-them (trình đơn «Thêm» của bản soạn) — trừ hai trình đơn nó cần: «⋯» mặt cắt và «Khác ▾» góc nhìn */
+body.chi-xem:not(.nhung) .menu-them.menu-cat:not([hidden]), body.chi-xem:not(.nhung) .menu-them.menu-goc:not([hidden]) { display: flex !important; }
+body:not(.nhung) .menu-cat #cat-san { display: flex; flex-direction: column; flex: none; overflow: visible; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 0; gap: 0; background: transparent; }
+body:not(.nhung) .menu-cat #cat-san[hidden] { display: none; }
+body:not(.nhung) .menu-cat #cat-san button { max-width: none; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; padding: var(--sp-2) var(--sp-3); background: transparent; }
+body:not(.nhung) .menu-cat #cat-san button:last-child { border-bottom: 0; }
+/* thanh đầu bản đăng trên điện thoại: [‹ Kế hoạch] [tên, cắt bớt] [↻ góc nhìn] [Cắt] — một dòng */
+@media (max-width: 820px) {
+  body.chi-xem:not(.nhung) .thanh { flex-wrap: nowrap; gap: 6px; padding: var(--sp-1) var(--sp-3); }
+  body.chi-xem:not(.nhung) .ve-ke-hoach { flex: none; white-space: nowrap; }
+  body.chi-xem:not(.nhung) .tieu-de { flex: 1 1 0; min-width: 0; font-size: var(--fs-data); }
+  body.chi-xem:not(.nhung) .thanh > .nhom-nut:not(.cong-cu) { order: 2; flex: none; width: auto; padding: 0; background: none; overflow: visible; }
+  body.chi-xem:not(.nhung) .thanh > .nhom-nut:not(.cong-cu) > :not(.nut-goc-vong) { display: none; }
+  body.chi-xem:not(.nhung) .nut-goc-vong { display: inline-flex; }
+  body.chi-xem:not(.nhung) .cong-cu { order: 3; flex: none; }
+  body.chi-xem:not(.nhung) #bang-cat.gon { bottom: max(var(--sp-3), env(safe-area-inset-bottom)); }
+}
+/* màn rất hẹp mà còn nút «◑ Vật liệu»: bỏ tên mô hình (đã có ở tên trang) để giữ một dòng */
+@media (max-width: 480px) {
+  body.chi-xem:not(.nhung) .thanh:has(#nut-vat-lieu:not([hidden])) .tieu-de { display: none; }
+  body.chi-xem:not(.nhung) .thanh:has(#nut-vat-lieu:not([hidden])) .ve-ke-hoach { margin-right: auto; }
+}

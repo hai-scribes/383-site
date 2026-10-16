@@ -100,6 +100,8 @@ export function batDau() {
   new MutationObserver(() => sapThanh()).observe(cc, { childList: true, subtree: false, attributes: true, attributeFilter: ["hidden"] });
   sapThanh();
   gocNhin();
+  gocVong();
+  catGon();
   formGon();
   const api = { moThe, capNhat: () => { capNhat(); sapThanh(); } };
   window.BO_CUC = api;
@@ -109,7 +111,7 @@ export function batDau() {
 
 /* Trình đơn bật ra dưới một nút (dùng cho «⋯» và «▾» góc nhìn): vị trí cố định, bấm ra ngoài thì đóng;
    bấm một mục thì đóng, trừ mục `giu(b)` trả false (công tắc như Nét viền — để thấy dấu ✓ đổi). */
-function taoMenu(nut, lop, dong = () => true) {
+function taoMenu(nut, lop, dong = () => true, len = false) {   // len: bật LÊN trên nút (nút nằm ở đáy màn hình)
   const menu = document.createElement("div");
   menu.className = "menu-them " + lop; menu.hidden = true; menu.setAttribute("role", "menu");
   menu.style.position = "fixed"; menu.style.zIndex = "60";
@@ -118,7 +120,8 @@ function taoMenu(nut, lop, dong = () => true) {
   nut.addEventListener("click", (e) => {
     e.stopPropagation();
     const r = nut.getBoundingClientRect();
-    menu.style.top = `${r.bottom + 4}px`;
+    if (len) { menu.style.top = "auto"; menu.style.bottom = `${innerHeight - r.top + 6}px`; }
+    else { menu.style.bottom = "auto"; menu.style.top = `${r.bottom + 4}px`; }
     if (r.left + 240 > innerWidth) { menu.style.left = "auto"; menu.style.right = `${Math.max(8, innerWidth - r.right)}px`; }
     else { menu.style.right = "auto"; menu.style.left = `${Math.max(8, r.left)}px`; }
     menu.hidden = !menu.hidden;
@@ -151,6 +154,78 @@ function gocNhin() {
   };
   new MutationObserver(dat).observe(menu, { subtree: true, attributes: true, attributeFilter: ["aria-pressed"] });
   dat();
+}
+
+/* MỘT NÚT XOAY VÒNG GÓC NHÌN (chủ nhà 2026-10-16: «thanh đầu chỉ một dòng») — bản đăng trên điện thoại: thay điều khiển
+   phân đoạn + «▾» bằng MỘT nút mang tên góc đang xem; mỗi lần chạm sang góc kế tiếp, đi vòng quanh nhà rồi nhìn xuống.
+   Nút gốc `data-goc` vẫn nằm nguyên (xem.js gắn sự kiện, phép thử bấm) — nút vòng chỉ bấm hộ. Hiện/ẩn do xem.css. */
+function gocVong() {
+  const nhom = document.querySelector('.thanh [aria-label="Góc nhìn"]');
+  if (!nhom) return;
+  const VONG = ["truc-do", "truoc", "tay-nam", "sau", "dong-bac", "tren"];
+  const ds = () => VONG.map((g) => document.querySelector(`[data-goc="${g}"]`)).filter(Boolean);
+  const nut = document.createElement("button");
+  nut.type = "button"; nut.className = "nut-vong nut-goc-vong";
+  nut.title = "Góc nhìn — chạm để sang góc kế tiếp: Trục đo · Mặt tiền · Tây Nam · Sau · Đông Bắc · Trên";
+  let cuoi = -1;
+  const dat = () => {
+    const d = ds(), i = d.findIndex((b) => b.getAttribute("aria-pressed") === "true");
+    if (i >= 0) cuoi = i;
+    nut.textContent = i >= 0 ? d[i].textContent : "Góc nhìn";
+    nut.setAttribute("aria-label", `Góc nhìn: ${nut.textContent} — chạm để đổi`);
+  };
+  nut.onclick = (e) => { e.stopPropagation(); const d = ds(); if (d.length) d[(cuoi + 1) % d.length].click(); };
+  nhom.prepend(nut);
+  for (const b of ds()) new MutationObserver(dat).observe(b, { attributes: true, attributeFilter: ["aria-pressed"] });
+  dat();
+}
+
+/* Ô MẶT CẮT MỘT DÒNG (chủ nhà 2026-10-16: «bảng dưới chiếm nhiều chỗ») — [hướng cắt ↻] [thanh kéo] [số] [⋯]:
+   ba nút Dọc nhà · Ngang nhà · Bằng gộp thành MỘT nút, mỗi lần chạm đổi hướng; «Đảo phía» và các mặt cắt sẵn vào trình đơn
+   «⋯» bật lên trên. Nút gốc `data-truc` + ô `#cat-dao` vẫn nằm trong ô (ẩn) — xem.js, khi3d.js đọc và gắn sự kiện trên chúng;
+   `#cat-san` dời nguyên khối (giữ id) vào trình đơn. Khung nhúng (?nhung=1) giữ kiểu riêng của nó, không gộp. */
+function catGon() {
+  const bang = document.getElementById("bang-cat");
+  if (!bang || (new URLSearchParams(location.search).has("nhung") && window.parent !== window)) return;
+  const truc = [...bang.querySelectorAll("[data-truc]")];
+  const dao = document.getElementById("cat-dao");
+  if (!truc.length || !dao) return;
+  bang.classList.add("gon");
+
+  const vong = document.createElement("button");
+  vong.type = "button"; vong.className = "nut-vong nut-cat-vong";
+  vong.title = "Hướng cắt — chạm để đổi: Dọc nhà · Ngang nhà · Bằng";
+  const datVong = () => {
+    const b = truc.find((x) => x.getAttribute("aria-pressed") === "true");
+    vong.textContent = b ? b.textContent : "Hướng cắt";
+    vong.setAttribute("aria-label", `Hướng cắt: ${vong.textContent} — chạm để đổi`);
+  };
+  vong.onclick = () => {
+    const i = truc.findIndex((x) => x.getAttribute("aria-pressed") === "true");
+    truc[(i + 1) % truc.length].click();
+  };
+  for (const b of truc) new MutationObserver(datVong).observe(b, { attributes: true, attributeFilter: ["aria-pressed"] });
+  bang.prepend(vong);
+  datVong();
+
+  const them = document.createElement("button");
+  them.type = "button"; them.id = "nut-cat-them"; them.textContent = "⋯";
+  them.title = "Đảo phía giữ lại · mặt cắt sẵn";
+  them.setAttribute("aria-label", "Thêm: đảo phía, mặt cắt sẵn");
+  const menu = taoMenu(them, "menu-cat", () => true, true);
+  const nutDao = document.createElement("button");
+  nutDao.type = "button"; nutDao.className = "nut-dao"; nutDao.setAttribute("role", "menuitemcheckbox");
+  nutDao.textContent = "Đảo phía";
+  nutDao.title = "Giữ phần bên kia mặt cắt";
+  const datDao = () => { nutDao.setAttribute("aria-pressed", String(dao.checked)); nutDao.setAttribute("aria-checked", String(dao.checked)); };
+  nutDao.onclick = () => { dao.checked = !dao.checked; dao.dispatchEvent(new Event("change", { bubbles: true })); datDao(); };
+  them.addEventListener("click", datDao);           // xem.js tự chọn phía mà không phát sự kiện — đọc lại mỗi lần mở
+  dao.addEventListener("change", datDao);
+  menu.append(nutDao);
+  const san = document.getElementById("cat-san");
+  if (san) menu.append(san);
+  bang.append(them);
+  datDao();
 }
 
 /* Ô GHI CHÚ bên phải (chủ nhà 2026-10-10: «ô ghi chú to luôn chiếm chỗ»): lúc rảnh chỉ còn tiêu đề + một ô chữ một dòng;
