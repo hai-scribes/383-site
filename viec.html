@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trang việc 3D · 383 Hải Phòng</title>
+<!-- TRANG VIỆC 3D — một trang cho mọi việc đã chuyển (nguồn: data/viec-3d.yaml, tools/3d/viec3d.py).
+     Mô hình 3D chiếm màn hình, tải MỘT lần cho cả lượt xem; ô phải liệt kê mục / mục con — bấm một mục là
+     trình xem đổi góc nhìn, mặt cắt, lớp làm nổi, hoặc chạy kịch bản chuyển động của mục (tools/3d/web/nhung.js).
+     #nghiem-thu = bảng gom MỌI ô tick nghiệm thu của mọi việc. Ở bàn soạn (dev server đặt VIEC_CFG.ghi) có nút «✎ Sửa»:
+     sửa việc + mục, chụp góc, dựng kịch bản, hoàn tác (⌘Z), lưu YAML (⌘S).
+     Địa chỉ: viec.html#<việc>  ·  #<việc>/<mục>  ·  #nghiem-thu
+     Giao diện ô phải theo Apple HIG: vùng bấm ≥ 44 px, danh sách nhóm bo góc (grouped inset), thang chữ 12/13/15/17/22. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Merriweather:wght@700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3efe6; --paper: #faf6ec; --paper-deep: #ebe5d6; --ink: #1d1d1b; --ink-soft: #4a4a46; --muted: #6f6c64;
+    --line: #c9c2af; --line-soft: #d8d2c0; --line-ui: #8f866e; --accent: #b8412c; --accent-pale: #f0ddd4; --ok: #2f6b3a;
+    --font-sans: "Roboto", -apple-system, "Segoe UI", sans-serif;
+    --font-serif: "Merriweather", Georgia, serif;
+    --font-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", monospace;
+    --ben: 460px;
+    /* thang chữ (HIG: caption 12 · footnote 13 · subhead/body 15 · headline 17 · title 22) và lưới 4/8 */
+    --t-cap: 12px; --t-foot: 13px; --t-body: 15px; --t-head: 17px; --t-title: 22px;
+    --r: 10px; --cham: 44px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: var(--t-body)/1.45 var(--font-sans); }
+  body { overflow: hidden; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button, select, input, textarea { font: inherit; color: inherit; }
+  .app { display: grid; height: 100vh; height: 100dvh; grid-template-columns: minmax(0, 1fr) var(--ben); }
+  #o-xem { position: relative; min-width: 0; background: #f7f6f2; }   /* cùng nền trắng sữa với trình xem */
+  #xem { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; opacity: 0; transition: opacity .25s ease-out; }
+  #xem.hien { opacity: 1; }
+  .nut-noi { position: absolute; left: 12px; bottom: 12px; z-index: 2; min-height: var(--cham); padding: 0 16px; border: 1px solid var(--line-ui);
+    border-radius: 22px; background: var(--paper); box-shadow: 0 2px 8px rgba(0,0,0,.12); font: 600 var(--t-foot) var(--font-sans); cursor: pointer; }
+  .nut-noi[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  #dang-tai { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 24px; text-align: center; color: var(--muted); font-size: var(--t-foot); }
+  #dang-tai .thanh { width: min(320px, 70vw); height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 8%, transparent); overflow: hidden; }
+  #dang-tai .thanh i { display: block; height: 100%; width: 0; border-radius: 2px; background: var(--accent); transition: width .25s ease-out; }
+  #ben { overflow-y: auto; background: var(--paper-deep); border-left: 1px solid var(--line); }
+
+  /* thanh đầu — thanh điều hướng kiểu HIG: quay lại bên trái · tên việc (bấm để đổi việc) ở giữa · hành động phụ bên phải */
+  .dau { position: sticky; top: 0; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; padding: 4px 8px; min-height: 56px;
+    background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: saturate(1.4) blur(16px); -webkit-backdrop-filter: saturate(1.4) blur(16px);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+  .dau .gian { flex: 1; }
+  .lk-nho { display: inline-flex; align-items: center; gap: 2px; flex: none; min-height: var(--cham); padding: 0 8px; border-radius: 8px; text-decoration: none;
+    font: 500 var(--t-body) var(--font-sans); color: var(--accent); white-space: nowrap; }
+  .lk-nho:hover { background: var(--accent-pale); }
+  #ve-goc { padding-left: 4px; }
+  #ve-goc .mui { font-size: 26px; font-weight: 400; line-height: 1; margin-top: -3px; }
+  .lk-nho.phu { font-size: var(--t-foot); }
+  /* chọn việc = tiêu đề của thanh: không viền, chữ đậm, mũi tên nhỏ — đọc như tên trang, bấm được như một menu */
+  #chon-viec { flex: 1 1 0; min-width: 0; min-height: var(--cham); padding: 0 24px 0 8px; border: 0; border-radius: 8px; background: transparent;
+    font: 600 var(--t-body) var(--font-sans); color: var(--ink); text-overflow: ellipsis; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%236f6c64' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center; }
+  #chon-viec:hover { background-color: color-mix(in srgb, var(--ink) 6%, transparent); }
+  #nut-sua { flex: none; }
+  @media (max-width: 420px) { .lk-nho .dai { display: none; } }
+  /* hàng công cụ sửa: dòng thứ hai của thanh đầu, chỉ hiện khi đang sửa hoặc còn thay đổi chưa lưu */
+  .thanh-sua { display: flex; align-items: center; gap: 8px; flex-basis: 100%; padding: 2px 0 4px; border-top: 1px solid var(--line-soft); }
+  .thanh-sua svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #bao { flex: 1; min-width: 0; font-size: var(--t-foot); line-height: 1.35; color: var(--ink-soft); }
+  #bao[data-loi="1"] { color: var(--accent); }
+
+  /* nút — mọi nút ≥ 44 px cao (HIG); «nho» chỉ gọn chiều ngang */
+  .nut { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--cham); min-width: var(--cham); padding: 0 14px;
+    border: 0; border-radius: 8px; background: color-mix(in srgb, var(--ink) 7%, transparent); cursor: pointer; font-size: var(--t-body); font-weight: 500; }
+  .nut:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 12%, transparent); }
+  .nut:disabled { opacity: .38; cursor: default; }
+  .nut.chinh { background: var(--accent); color: #fff; font-weight: 600; }
+  .nut.chinh:hover:not(:disabled) { background: #9e3624; }
+  .nut.to-mau { background: var(--accent-pale); color: #8a2f1f; }
+  .nut.nho { padding: 0 10px; font-size: var(--t-foot); }
+  .nut.bieu { padding: 0; width: var(--cham); font-size: var(--t-body); }
+  .nut.xoa { color: var(--accent); }
+  .nut[aria-pressed="true"], .nut[aria-pressed="true"]:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .than { padding: 20px 16px 64px; }
+  h1 { margin: 0; font: 700 var(--t-title)/1.3 var(--font-serif); }
+  .phu-de { margin: 4px 0 0; font-size: var(--t-head); line-height: 1.35; color: var(--ink-soft); }
+  .chan { margin: 16px 0 0; padding: 12px 14px; border-radius: var(--r); background: var(--accent-pale); color: #7d2a1b; font: 600 var(--t-foot)/1.45 var(--font-sans); }
+  .mo-dau { margin: 12px 0 0; color: var(--ink-soft); }
+  .lien-quan { display: flex; flex-wrap: wrap; gap: 0 16px; margin: 8px 0 0; font-size: var(--t-foot); }
+  .lien-quan a { display: inline-flex; align-items: center; min-height: 32px; color: var(--accent); text-decoration: none; }
+  .lien-quan a:hover { text-decoration: underline; }
+
+  /* danh sách nhóm bo góc (grouped inset) */
+  .nhom { margin: 24px 0 0; }
+  .nhom-dau { margin: 0 0 6px 16px; font: 500 var(--t-foot)/1.3 var(--font-sans); letter-spacing: .02em; text-transform: uppercase; color: var(--muted); }
+  .nhom-than { border-radius: var(--r); background: #fff; overflow: hidden; }
+  details.nhom > summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: var(--cham); margin: 0 0 6px; padding: 0 16px;
+    border-radius: var(--r); background: #fff; cursor: pointer; font: 500 var(--t-foot)/1.3 var(--font-sans); letter-spacing: .02em; text-transform: uppercase; color: var(--muted); }
+  details.nhom > summary::-webkit-details-marker { display: none; }
+  details.nhom > summary::after { content: "›"; margin-left: auto; font-size: 20px; line-height: 1; transition: transform .15s; }
+  details.nhom[open] > summary { background: transparent; min-height: 0; padding: 0 16px; }
+  details.nhom[open] > summary::after { transform: rotate(90deg); }
+  details.nhom > summary .dem-nho { margin-left: -2px; font: 500 var(--t-cap) var(--font-mono); text-transform: none; }
+  .nhom-chan { margin: 6px 16px 0; font-size: var(--t-foot); line-height: 1.4; color: var(--muted); }
+  .nhom-than > * + * { border-top: 1px solid var(--line-soft); }
+  .dong { padding: 10px 16px; }
+  .dong.hang-nut { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px; }
+
+  /* cây mục */
+  ol.muc, ol.con { list-style: none; margin: 0; padding: 0; }
+  ol.muc > li + li { border-top: 1px solid var(--line-soft); }
+  ol.con { margin: 0 0 4px 30px; }
+  ol.con > li { border-top: 1px solid var(--line-soft); }
+  .hang-muc { display: flex; align-items: center; gap: 12px; width: 100%; min-height: var(--cham); padding: 8px 12px; border: 0;
+    background: transparent; text-align: left; cursor: pointer; }
+  .hang-muc:hover { background: color-mix(in srgb, var(--accent-pale) 60%, transparent); }
+  .hang-muc[aria-current="true"] { background: var(--ink); color: var(--paper); }
+  .hang-muc .so { flex: none; display: inline-grid; place-items: center; min-width: 32px; height: 26px; padding: 0 6px; border-radius: 13px;
+    background: color-mix(in srgb, currentColor 10%, transparent); font: 600 var(--t-cap) var(--font-mono); }
+  .hang-muc .t { flex: 1; font-size: var(--t-body); font-weight: 600; }
+  ol.con .hang-muc .t { font-weight: 400; }
+  .hang-muc .dem { flex: none; font: 500 var(--t-cap) var(--font-mono); opacity: .7; }
+  .hang-muc .kb { flex: none; font-size: var(--t-cap); opacity: .7; }
+  .chi-tiet { padding: 12px 16px 16px; background: #fdfbf6; border-left: 3px solid var(--ink); }
+  .chi-tiet h2 { margin: 0 0 8px; font: 700 var(--t-head)/1.35 var(--font-serif); }
+  .chi-tiet ul.mo-ta { margin: 0 0 12px; padding-left: 18px; }
+  .chi-tiet ul.mo-ta li { margin: 4px 0; }
+  table.ts { width: 100%; border-collapse: collapse; margin: 4px 0 12px; font-size: var(--t-foot); }
+  table.ts th { width: 36%; padding: 8px 12px 8px 0; vertical-align: top; text-align: left; font-weight: 500; color: var(--muted); border-top: 1px solid var(--line-soft); }
+  table.ts td { padding: 8px 0; vertical-align: top; border-top: 1px solid var(--line-soft); }
+  .nt-dau { margin: 16px 0 4px; font: 500 var(--t-cap) var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+
+  /* danh sách tick — hai mức: yêu cầu · gợi ý */
+  ul.chk { list-style: none; margin: 0; padding: 0; }
+  ul.chk li { position: relative; padding: 10px 0 10px 32px; border-top: 1px solid var(--line-soft); }
+  ul.chk li::before { content: ""; position: absolute; left: 2px; top: 13px; width: 18px; height: 18px; border: 1.5px solid var(--ink); border-radius: 5px; background: #fff; }
+  ul.chk li.goi-y::before { border-style: dashed; border-color: var(--line-ui); }
+  ul.chk li.xong::before { background: var(--ok); border-color: var(--ok); }
+  ul.chk li.xong::after { content: "✓"; position: absolute; left: 6px; top: 10px; color: #fff; font-weight: 700; font-size: 14px; }
+  ul.chk li.xong strong { text-decoration: line-through; color: var(--muted); }
+  ul.chk strong { display: block; font-weight: 500; }
+  ul.chk .why { display: block; margin-top: 2px; font-size: var(--t-foot); color: var(--ink-soft); }
+  ul.chk .muc-nho { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; font: 600 10.5px var(--font-mono);
+    letter-spacing: .04em; text-transform: uppercase; vertical-align: 1px; border: 1px dashed var(--line-ui); color: var(--muted); }
+
+  /* bảng nghiệm thu toàn bộ — kiểu bảng tính */
+  body.bang .app { grid-template-columns: minmax(0, 1fr); }
+  body.bang #o-xem { position: fixed; left: -200vw; width: 60vw; height: 60vh; }      /* giữ trình xem sống, khỏi tải lại */
+  body.bang #ben { border: 0; background: var(--paper); }
+  body.bang .than { max-width: none; }
+  body.bang #chon-viec { display: none; }
+  .loc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0 12px; }
+  .loc input, .loc select { min-height: var(--cham); padding: 4px 10px; border: 1px solid var(--line-soft); border-radius: 8px; background: #fff; }
+  .loc input { flex: 1 1 240px; }
+  .tong { font: 500 var(--t-foot) var(--font-mono); color: var(--muted); }
+  .bang-cuon { overflow: auto; max-height: calc(100dvh - 210px); border: 1px solid var(--line); border-radius: var(--r); background: #fff; }
+  table.nt { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1000px; font-size: var(--t-foot); }
+  table.nt th { position: sticky; top: 0; z-index: 1; padding: 10px; background: var(--paper-deep); border-bottom: 1px solid var(--line-ui);
+    text-align: left; font: 600 11px var(--font-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; cursor: pointer; }
+  table.nt td { padding: 8px 10px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  table.nt tr:nth-child(even) td { background: #fcfaf5; }
+  table.nt tr:hover td { background: var(--accent-pale); cursor: pointer; }
+  table.nt td.so { font: 500 12px var(--font-mono); color: var(--muted); white-space: nowrap; }
+  table.nt td.viec { font-weight: 600; min-width: 150px; }
+  table.nt td.tc { min-width: 260px; }
+  table.nt td.biet { color: var(--ink-soft); min-width: 320px; }
+  table.nt td.dat { text-align: center; font-size: 16px; }
+  table.nt td.dat input { width: 22px; height: 22px; margin: 0; accent-color: var(--ok); cursor: pointer; }
+  .the-muc { display: inline-block; padding: 1px 6px; border-radius: 4px; font: 600 10.5px var(--font-mono); text-transform: uppercase; white-space: nowrap; }
+  .the-muc.yeu-cau { border: 1px solid var(--ink); }
+  .the-muc.goi-y { border: 1px dashed var(--line-ui); color: var(--muted); }
+
+  /* sửa (bàn soạn) */
+  .truong { display: grid; gap: 4px; padding: 10px 16px; }
+  .truong > .nhan { font: 500 var(--t-cap) var(--font-sans); letter-spacing: .03em; text-transform: uppercase; color: var(--muted); }
+  .o, textarea.o, select.o { width: 100%; min-height: var(--cham); padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--paper); }
+  .o:focus { border-color: var(--line-ui); background: #fff; }
+  textarea.o { min-height: 72px; resize: vertical; line-height: 1.45; }
+  .o.lon { font-size: var(--t-head); font-weight: 600; }
+  .o.ma { font-family: var(--font-mono); font-size: var(--t-foot); }
+  .hang-sua { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .hang-sua > .o { flex: 1 1 140px; width: auto; }
+  .hang-sua > * { min-width: 0; }                         /* ô chữ mặc định rộng ~20 chữ — đừng để nó đẩy xuống dòng */
+  .dong-sua { display: grid; gap: 8px; padding: 10px 12px 10px 16px; }
+  .dong-sua.xong-roi { background: color-mix(in srgb, var(--ok) 6%, #fff); }
+  .chon-ok { display: inline-flex; align-items: center; gap: 8px; min-height: var(--cham); padding: 0 4px; font-size: var(--t-foot); cursor: pointer; }
+  .chon-ok input { width: 20px; height: 20px; margin: 0; accent-color: var(--ok); }
+  .gian { flex: 1; }
+  .chip { display: inline-flex; align-items: center; gap: 2px; margin: 2px 4px 2px 0; padding: 0 0 0 10px; border-radius: 16px;
+    background: #fff1e4; box-shadow: inset 0 0 0 1px #f0a868; font-size: var(--t-foot); }
+  .chip button { min-width: 32px; min-height: 32px; border: 0; background: transparent; cursor: pointer; color: var(--accent); border-radius: 16px; }
+  .trong { color: var(--muted); font-size: var(--t-foot); }
+  .buoc-kb { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 10px; padding: 10px 12px 10px 16px; }
+  .buoc-kb .stt { display: grid; place-items: center; width: 28px; height: 28px; margin-top: 8px; border-radius: 14px; background: var(--ink); color: var(--paper);
+    font: 600 var(--t-cap) var(--font-mono); }
+  .buoc-kb .v { font: 500 var(--t-cap) var(--font-mono); color: var(--muted); word-break: break-all; }
+  .so-nho { width: 72px !important; flex: 0 0 72px !important; text-align: right; }
+  .don-vi { font-size: var(--t-foot); color: var(--muted); }
+
+  @media (max-width: 899px) {
+    body { overflow: auto; }
+    .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: 46vh auto; height: auto; }
+    #o-xem { position: sticky; top: 0; z-index: 4; height: 46vh; }
+    /* ô dưới là một tấm (sheet): bo góc trên, có vạch nắm; thanh đầu ghim ngay dưới mô hình khi cuộn */
+    .app { background: #f7f6f2; }       /* góc bo của tấm để lộ nền trắng sữa của mô hình, không lộ nền giấy */
+    #ben { position: relative; z-index: 3; border-left: 0; border-radius: 14px 14px 0 0; overflow: visible; }
+    #ben .dau { top: 46vh; border-radius: 14px 14px 0 0; padding-top: 14px; }
+    #ben .dau::before { content: ""; position: absolute; top: 5px; left: 50%; width: 36px; height: 5px; margin-left: -18px; border-radius: 3px;
+      background: color-mix(in srgb, var(--ink) 22%, transparent); }
+    body.bang #ben { border-radius: 0; }
+    body.bang #ben .dau { top: 0; border-radius: 0; padding-top: 4px; }
+    body.bang #ben .dau::before { display: none; }
+    body.bang .app { grid-template-rows: auto; }
+  }
+  @media print {
+    body { overflow: visible; } .app { display: block; height: auto; } #o-xem, .dau .nut, .dau select, .loc { display: none !important; }
+    .bang-cuon { max-height: none; overflow: visible; border: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <main id="o-xem" aria-label="Mô hình 3D"><div id="dang-tai" role="status"><div class="thanh"><i id="tien-i"></i></div><span id="tien-chu">Đang tải mô hình 3D — chỉ tải một lần cho cả lượt xem.</span></div>
+    <!-- «Nắng» không có trên trang việc (chủ nhà 2026-09-28) — còn trong trình xem 3D đầy đủ; «Tách lớp» đứng chỗ của nó -->
+    <button type="button" id="nut-tach" class="nut-noi" aria-pressed="false" style="left:auto;right:12px" title="Tách các lớp mái ra xa nhau, hoặc ghép lại — lớp đang làm nổi vẫn giữ trong khung">⇕ Tách lớp</button></main>
+  <aside id="ben" aria-label="Mục của việc">
+    <div class="dau">
+      <a class="lk-nho" id="ve-goc" href="index.html" aria-label="Về Kế hoạch tổng thể"><span class="mui" aria-hidden="true">‹</span>Kế hoạch</a>
+      <select id="chon-viec" aria-label="Chọn việc" hidden></select>
+      <span class="gian"></span>
+      <a class="lk-nho phu" id="lk-nt" href="#nghiem-thu">Nghiệm thu</a>
+      <a class="lk-nho phu" id="lk-3d" href="3d/xem.html?m=nha" title="Mở mô hình 3D cả nhà — xoay, cắt, đo tự do"><span class="dai">Nhà&nbsp;</span>3D</a>
+      <button class="nut" id="nut-sua" type="button" hidden aria-pressed="false">✎ Sửa</button>
+      <div class="thanh-sua" id="thanh-sua" hidden>
+        <button class="nut bieu" id="nut-lui" type="button" disabled title="Hoàn tác (⌘Z)" aria-label="Hoàn tác"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+        <button class="nut bieu" id="nut-toi" type="button" disabled title="Làm lại (⇧⌘Z)" aria-label="Làm lại"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+        <span id="bao" role="status"></span>
+        <button class="nut chinh" id="nut-luu" type="button" disabled>Đã lưu</button>
+      </div>
+    </div>
+    <div class="than" id="than"></div>
+  </aside>
+</div>
+<script>
+(() => {
+  const CFG = Object.assign({ json: "3d/viec.json", ghi: null, xem: "3d/xem.html", goc: "index.html" }, window.VIEC_CFG || {});
+  const $ = (id) => document.getElementById(id);
+  const h = (tag, attrs = {}, ...con) => {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+      else if (k === "class") e.className = v;
+      else if (k === "value") e.value = v;
+      else if (k === "html") e.innerHTML = v;
+      else e.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of con.flat()) if (c != null && c !== false) e.append(c);
+    return e;
+  };
+  // chữ trong YAML có thể mang <strong> (dòng nghiệm thu cũ) — chỉ giữ strong/em, còn lại là chữ thường
+  const giau = (s) => { const t = document.createElement("template");
+    t.innerHTML = String(s || "").replace(/<(?!\/?(strong|em)\b)[^>]*>/g, "");
+    return t.content; };
+  const khongDau = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+  const slug = (s) => khongDau(s).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+  const MA = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  const sao = (x) => JSON.parse(JSON.stringify(x));
+  $("ve-goc").href = CFG.goc;
+  $("lk-3d").href = CFG.xem + "?m=nha";
+  // hai mức: yêu cầu · gợi ý. «dung» (điểm dừng) đã bỏ (chủ nhà 2026-09-27: nhãn đó mơ hồ) — dòng cũ còn mang nó hiện như yêu cầu
+  const TEN_MUC = { "yeu-cau": "yêu cầu", "goi-y": "gợi ý" };
+  const muc = (l) => (l === "goi-y" ? "goi-y" : "yeu-cau");
+  // bước kịch bản chuyển động — cùng dạng với chayKichBan trong tools/3d/web/xem.js và BUOC trong tools/3d/viec3d.py
+  const TEN_BUOC = { tach: "Tách lớp", camera: "Bay camera", noi_bat: "Làm nổi", cho: "Chờ", noi_len: "Xem rời" };
+
+  /* ── trình xem: một iframe cho cả lượt xem ── */
+  const xem = h("iframe", { id: "xem", title: "Mô hình 3D", src: CFG.xem + "?m=nha&nhung=1" });
+  $("o-xem").append(xem);
+  let sanSang = false, soHoi = 0;
+  const hang = [], cho = new Map();
+  const gui = (m) => (sanSang ? xem.contentWindow.postMessage({ nguon: "khung3d", ...m }, "*") : hang.push(m));
+  const hoi = (lenh, them = {}) => new Promise((r) => { const id = ++soHoi; cho.set(id, r); gui({ lenh, hoi: id, ...them }); });
+  addEventListener("message", (ev) => {
+    if (ev.source !== xem.contentWindow) return;
+    const d = ev.data || {};
+    if (d.nguon !== "xem3d") return;
+    if (d.lenh === "san_sang") {
+      sanSang = true;
+      if (sua) xem.contentWindow.postMessage({ nguon: "khung3d", lenh: "sua", bat: true }, "*");
+      for (const m of hang.splice(0)) gui(m);
+    } else if (d.lenh === "trang_thai" || d.lenh === "chon" || d.lenh === "kich_ban_xong" || d.lenh === "nang" || d.lenh === "da_ap") {
+      const f = cho.get(d.hoi); if (f) { cho.delete(d.hoi); f(d.lenh === "chon" ? d.ds : d.lenh === "trang_thai" ? d.tt : d.lenh === "nang" ? d.nang : d.xong); } }
+    else if (d.lenh === "tien_do") { $("tien-i").style.width = (d.pct * 100).toFixed(1) + "%"; if (!daHienXong) $("tien-chu").textContent = d.chu; }
+    else if (d.lenh === "loi") { $("dang-tai").hidden = false; $("tien-chu").textContent = "Không tải được mô hình 3D: " + d.loi; }
+  });
+  /* góc đang áp: {tt, bay, kb, sid}. Ở chế độ sửa, khoá theo MỤC đang mở (sid) — sửa chữ, thêm bước kịch bản… không làm
+     trình xem chạy lại; chỉ chọn mục khác, hoặc «▶ Chạy», mới áp. */
+  let ttCuoi = "", ttDang = {}, goc = null, daHien = false, daHienXong = false;
+  let tachDe = null;                   // nút «Tách lớp»: null = theo mục; số = người xem ghi đè (giữ qua các mục)
+  const tachHieuLuc = () => (tachDe != null ? tachDe : ttDang.tach || 0);
+  const veNutTach = () => $("nut-tach").setAttribute("aria-pressed", String(tachHieuLuc() > 0));
+  const khoaGoc = (g) => (g.sid != null ? `${g.sid}|${tachDe}` : JSON.stringify([g.tt || {}, tachDe, g.kb || null]));
+  function apGoc(tt, bay, kb, sid) {
+    const g = { tt, bay, kb: kb && kb.length ? kb : null, sid };
+    const k = khoaGoc(g);
+    if (k === ttCuoi) return;
+    ttCuoi = k; goc = g;
+    const tk = (g.kb || []).filter((b) => b.buoc === "tach").pop();
+    ttDang = tk ? { ...(tt || {}), tach: Number(tk.khe) || 0 } : tt || {};
+    if (!daHien) {
+      /* LẦN MỞ ĐẦU: áp thẳng trạng thái CUỐI của mục (không bay, không chạy kịch bản), đợi trình xem vẽ xong rồi mới hiện
+         khung 3D — không thấy mô hình mặc định nhảy sang góc của mục, không thấy thanh công cụ trình xem co lại */
+      const cuoi = { ...(tt || {}) };
+      for (const b of g.kb || []) {
+        if (b.buoc === "tach") cuoi.tach = Number(b.khe) || 0;
+        else if (b.buoc === "camera" && b.v) cuoi.v = b.v;
+        else if (b.buoc === "noi_bat") { if ((b.ds || []).length) cuoi.noi_bat = b.ds; else delete cuoi.noi_bat; }
+        else if (b.buoc === "noi_len" && (b.ds || []).length) cuoi.noi_len = { ds: b.ds, khe: b.khe ?? 0.5, ...(b.lop ? { lop: b.lop } : {}), ...(b.ten ? { ten: b.ten } : {}) };
+      }
+      $("tien-chu").textContent = "Đang dựng góc nhìn…";
+      hoi("ap", { tt: cuoi, bay: 0, tachDe }).then(() => { $("xem").classList.add("hien"); $("dang-tai").hidden = true; daHienXong = true; });
+      daHien = true; veNutTach(); return;
+    }
+    if (g.kb) gui({ lenh: "kich_ban", tt: tt || {}, ds: g.kb, tachDe });
+    else gui({ lenh: "ap", tt: tt || {}, bay: bay ?? 0.8, tachDe });
+    veNutTach();
+  }
+  const dongBo = () => { if (goc) ttCuoi = khoaGoc(goc); };      // trình xem đã tự đổi tại chỗ — đừng áp lại
+  $("nut-tach").onclick = () => {
+    tachDe = tachHieuLuc() > 0 ? 0 : 0.25;
+    dongBo();
+    gui({ lenh: "tach", khe: tachDe, giay: 0.8 });
+    veNutTach();
+  };
+
+
+  /* ── dữ liệu + định tuyến ── */
+  let VIEC = [], NT = [];
+  let sua = false;
+  const ban = new Set();               // id việc có sửa chưa lưu
+  const moiTao = new Set();            // id việc tạo trong phiên này, chưa lưu lần nào
+  const tim = (v, id) => { for (const [, m] of duyet(v.muc)) if (m.id === id) return m; return null; };
+  function* duyet(ds, cha = []) { for (const m of ds || []) { yield [cha, m]; yield* duyet(m.con, [...cha, m]); } }
+  const dem = (m) => { let n = 0, x = 0; for (const [, c] of duyet([m])) for (const r of c.nghiem_thu || []) { n++; if (r.xong) x++; } return [x, n]; };
+  function doc() {
+    const [a, b] = decodeURIComponent(location.hash.slice(1)).split("?")[0].split("/");
+    return { viec: a || "", muc: b || "" };
+  }
+  addEventListener("hashchange", ve);
+
+  /* PHẠM VI (chủ nhà 2026-09-29): vào từ một dòng của Kế hoạch tổng thể (#việc/mục) thì ô phải CHỈ liệt kê mục đó (kèm mục
+     «Chung…» cùng cấp nếu có) — không phải mọi mục của việc. Bấm chuyển mục TRONG trang (di) giữ nguyên phạm vi; địa chỉ đến
+     từ ngoài (nạp trang, link, bảng nghiệm thu) đặt lại phạm vi. Bàn soạn luôn thấy cả việc. */
+  let phamVi = null, noiBo = false;
+  const trongPhamVi = (v) => {
+    if (sua || !phamVi || phamVi.viec !== v.id) return null;
+    for (const [cha, m] of duyet(v.muc)) if (m.id === phamVi.muc) {
+      const ds = cha.length ? cha[cha.length - 1].con : v.muc;
+      return ds.filter((x) => x === m || /^chung/.test(x.id));
+    }
+    return null;
+  };
+
+  function ve() {
+    const d = doc();
+    if (!noiBo) phamVi = d.muc && d.viec !== "nghiem-thu" ? { viec: d.viec, muc: d.muc } : null;
+    noiBo = false;
+    document.body.classList.toggle("bang", d.viec === "nghiem-thu");
+    veChonViec(d.viec);
+    if (d.viec === "nghiem-thu") return veBang();
+    const v = VIEC.find((x) => x.id === d.viec) || (VIEC.length === 1 || !d.viec ? VIEC[0] : null);
+    if (!v) { $("than").replaceChildren(h("p", { class: "trong" }, "Không có việc «" + d.viec + "»."), h("a", { href: CFG.goc }, "Về Kế hoạch tổng thể")); return; }
+    const m = d.muc ? tim(v, d.muc) : null;
+    document.title = `${v.ten} · 383 Hải Phòng`;
+    veViec(v, m);
+    // bước «Xem rời» mang tên mục làm tiêu đề thanh tách rời (không lưu vào kho — chỉ gửi đi)
+    const kb = m && m.kich_ban ? m.kich_ban.map((x) => (x.buoc === "noi_len" && !x.ten ? { ...x, ten: m.ten } : x)) : m && m.kich_ban;
+    apGoc(m && m.tt ? m.tt : v.mac_dinh, m ? m.bay : 1.0, kb, sua ? `sua|${v.id}|${m ? m.id : ""}` : undefined);
+  }
+  const di = (v, m) => { const h_ = "#" + v.id + (m ? "/" + m.id : ""); noiBo = true; if (location.hash !== h_) location.hash = h_; else ve(); };
+  function veChonViec(dang) {
+    const s = $("chon-viec");
+    s.hidden = !(VIEC.length > 1 || sua);
+    s.replaceChildren(...VIEC.map((v) => h("option", { value: v.id, selected: v.id === dang }, v.ten.split(" — ")[0] + (ban.has(v.id) ? " ●" : ""))),
+      sua ? h("option", { value: "+moi" }, "＋ Việc mới…") : null);
+    if (!VIEC.some((v) => v.id === dang) && VIEC[0]) s.value = VIEC[0].id;
+  }
+  $("chon-viec").onchange = (e) => {
+    if (e.target.value === "+moi") { viecMoi(); return; }
+    location.hash = "#" + e.target.value;
+  };
+
+  const nhom = (tieuDe, chan, ...hang_) => h("section", { class: "nhom" }, tieuDe ? h("h3", { class: "nhom-dau" }, tieuDe) : null,
+    h("div", { class: "nhom-than" }, ...hang_), chan ? h("p", { class: "nhom-chan" }, chan) : null);
+
+  const moNhom = new Set();               // khoá nhóm gập đang MỞ — mặc định gập
+  const nhomGap = (khoa, tieuDe, dem, chan, ...hang_) => {
+    const d = h("details", { class: "nhom", open: moNhom.has(khoa) },
+      h("summary", {}, h("span", {}, tieuDe), dem != null ? h("span", { class: "dem-nho" }, "· " + dem) : null),
+      h("div", { class: "nhom-than" }, ...hang_), chan ? h("p", { class: "nhom-chan" }, chan) : null);
+    d.addEventListener("toggle", () => (d.open ? moNhom.add(khoa) : moNhom.delete(khoa)));
+    return d;
+  };
+
+  /* ── ô phải: một việc ── */
+  function veViec(v, chon) {
+    const t = $("than");
+    t.replaceChildren();
+    if (sua) t.append(suaViec(v));
+    else {
+      t.append(h("h1", {}, v.ten));
+      if (v.phu_de) t.append(h("p", { class: "phu-de" }, v.phu_de));
+      if (v.chan) t.append(h("div", { class: "chan" }, v.chan));
+      if (v.mo_dau) t.append(h("p", { class: "mo-dau" }, v.mo_dau));
+      if ((v.lien_quan || []).length) t.append(h("div", { class: "lien-quan" }, v.lien_quan.map((l) => h("a", { href: l.href }, l.ten + " ›"))));
+    }
+    const pv = trongPhamVi(v);
+    const [x, n] = (pv || v.muc).reduce((a, m) => { const [p, q] = dem(m); return [a[0] + p, a[1] + q]; }, [0, 0]);
+    t.append(nhom("Mục", h("span", {}, `Nghiệm thu của ${pv ? "phần này" : "việc này"}: ${x}/${n} ô đạt · `,
+      h("a", { href: "#nghiem-thu?viec=" + encodeURIComponent(v.id) }, "xem trong bảng nghiệm thu"),
+      pv && pv.length < v.muc.length ? h("span", {}, " · ", h("a", { href: "#" + v.id }, `xem cả việc (${v.muc.length} mục)`)) : null),
+      cay(v, pv || v.muc, chon, [], null),
+      sua ? h("div", { class: "dong hang-nut" }, h("button", { type: "button", class: "nut nho to-mau", onclick: () => { const m = mucMoi(v); v.muc.push(m); doi(v, true); di(v, m); } }, "＋ Thêm mục")) : null));
+    const on = t.querySelector('.hang-muc[aria-current="true"]');
+    if (on) on.scrollIntoView({ block: "nearest" });
+  }
+  function cay(v, ds, chon, so, cha) {
+    const ol = h("ol", { class: so.length ? "con" : "muc" });
+    ds.forEach((m, i) => {
+      const s = [...so, i + 1];
+      const [x, n] = dem(m);
+      const dang = chon && chon.id === m.id;
+      const li = h("li", {},
+        h("button", { type: "button", class: "hang-muc", "aria-current": String(!!dang), "aria-expanded": String(!!dang),
+          onclick: () => di(v, dang ? null : m) },
+          h("span", { class: "so" }, m.ma || s.join(".")), h("span", { class: "t" }, m.ten),
+          (m.kich_ban || []).length ? h("span", { class: "kb", title: "Mục có kịch bản chuyển động" }, "▶") : null,
+          n ? h("span", { class: "dem" }, `${x}/${n}`) : null));
+      if (dang) li.append(sua ? suaMuc(v, m, ds, i, cha) : chiTiet(m));
+      if ((m.con || []).length) li.append(cay(v, m.con, chon, s, { ds, i }));
+      ol.append(li);
+    });
+    return ol;
+  }
+  function chiTiet(m) {
+    const k = h("div", { class: "chi-tiet" }, h("h2", {}, (m.ma ? m.ma + " · " : "") + m.ten));
+    if ((m.mo_ta || []).length) k.append(h("ul", { class: "mo-ta" }, m.mo_ta.map((x) => h("li", {}, giau(x)))));
+    if ((m.thong_so || []).length) k.append(h("table", { class: "ts" }, h("tbody", {}, m.thong_so.map(([a, b]) => h("tr", {}, h("th", {}, a), h("td", {}, giau(b)))))));
+    if ((m.nghiem_thu || []).length) {
+      k.append(h("div", { class: "nt-dau" }, "Nghiệm thu"), h("ul", { class: "chk" }, m.nghiem_thu.map((r) =>
+        h("li", { class: `${muc(r.loai)}${r.xong ? " xong" : ""}` },
+          h("strong", {}, muc(r.loai) === "goi-y" ? h("span", { class: "muc-nho" }, "gợi ý") : null, giau(r.dat)),
+          r.biet ? h("span", { class: "why" }, giau(r.biet)) : null))));
+    }
+    if (k.children.length === 1) k.append(h("p", { class: "trong" }, "Xem mục con bên dưới."));
+    return k;
+  }
+
+  /* ── bảng nghiệm thu toàn bộ ── */
+  let sapTheo = null;
+  // dòng của việc đã chuyển dựng lại từ VIEC (kể cả phần sửa chưa lưu); dòng của trang việc cũ giữ như máy chủ gửi
+  function gomNT() {
+    const ra = [];
+    for (const v of VIEC) for (const [cha, m] of duyet(v.muc)) (m.nghiem_thu || []).forEach((r, so) => ra.push({
+      viec: v.ten, viec_id: v.id, muc: [...cha, m].map((x) => x.ten).join(" › "), muc_id: m.id, so,
+      loai: r.loai, dat: r.dat || "", biet: r.biet || "", xong: !!r.xong }));
+    return ra.concat(NT.filter((r) => !r.viec_id));
+  }
+  function veBang() {
+    document.title = "Nghiệm thu · 383 Hải Phòng";
+    const q = new URLSearchParams(location.hash.split("?")[1] || "");
+    const t = $("than");
+    t.replaceChildren(h("h1", {}, "Nghiệm thu — mọi việc"),
+      h("p", { class: "mo-dau" }, "Mỗi dòng là một ô tick của một việc. Bấm một dòng để mở đúng việc và đúng mục."
+        + (sua ? " Đang sửa: bấm ô «Đạt» để đánh dấu (việc đã chuyển), rồi Lưu." : "")));
+    const nt = gomNT();
+    const viecDs = [...new Set(nt.map((r) => r.viec))];
+    const oTim = h("input", { type: "search", placeholder: "Tìm: tôn, chống thấm, 72 giờ…", "aria-label": "Tìm", value: q.get("tim") || "" });
+    const oViec = h("select", { "aria-label": "Việc" }, h("option", { value: "" }, "Mọi việc"), viecDs.map((x) => h("option", { value: x }, x)));
+    const vChon = VIEC.find((x) => x.id === q.get("viec")); if (vChon) oViec.value = vChon.ten;
+    const oMuc = h("select", { "aria-label": "Mức" }, h("option", { value: "" }, "Mọi mức"), Object.entries(TEN_MUC).map(([k, x]) => h("option", { value: k }, x)));
+    const oDat = h("select", { "aria-label": "Trạng thái" }, h("option", { value: "" }, "Đạt và chưa đạt"), h("option", { value: "chua" }, "Chưa đạt"), h("option", { value: "xong" }, "Đã đạt"));
+    const tong = h("span", { class: "tong" });
+    const tbody = h("tbody");
+    const cot = [["so", "#"], ["viec", "Việc"], ["muc", "Mục"], ["dat", "Tiêu chí"], ["biet", "Cách biết đã đạt"], ["loai", "Mức"], ["xong", "Đạt"]];
+    const thead = h("thead", {}, h("tr", {}, cot.map(([k, x]) => h("th", { scope: "col", onclick: () => { sapTheo = sapTheo === k ? "-" + k : k; loc(); } }, x))));
+    const csv = h("button", { type: "button", class: "nut nho", onclick: () => taiCsv(dsLoc()) }, "Tải CSV");
+    t.append(h("div", { class: "loc" }, oTim, oViec, oMuc, oDat, csv, tong), h("div", { class: "bang-cuon" }, h("table", { class: "nt" }, thead, tbody)));
+    const chu = (s) => khongDau(String(s || "").replace(/<[^>]+>/g, ""));
+    function dsLoc() {
+      const tu = chu(oTim.value);
+      let ds = nt.map((r, i) => ({ ...r, loai: muc(r.loai), i: i + 1 })).filter((r) => (!oViec.value || r.viec === oViec.value) && (!oMuc.value || r.loai === oMuc.value)
+        && (!oDat.value || (oDat.value === "xong") === r.xong) && (!tu || chu(`${r.viec} ${r.muc} ${r.dat} ${r.biet}`).includes(tu)));
+      if (sapTheo) { const k = sapTheo.replace("-", ""), d = sapTheo.startsWith("-") ? -1 : 1;
+        ds = ds.sort((a, b) => (String(a[k === "so" ? "i" : k]).localeCompare(String(b[k === "so" ? "i" : k]), "vi", { numeric: true })) * d); }
+      return ds;
+    }
+    const oDatSua = (r) => h("input", { type: "checkbox", checked: r.xong, "aria-label": "Đạt", onclick: (e) => e.stopPropagation(), onchange: (e) => {
+      const v = VIEC.find((x) => x.id === r.viec_id), m = v && tim(v, r.muc_id), dong = m && (m.nghiem_thu || [])[r.so];
+      if (!dong) return;
+      dong.xong = e.target.checked; if (!dong.xong) delete dong.xong;
+      nt[r.i - 1].xong = e.target.checked;
+      doi(v, true); loc();
+    } });
+    function loc() {
+      const ds = dsLoc();
+      tbody.replaceChildren(...ds.map((r) => h("tr", { onclick: () => moDong(r), title: r.viec_id ? "Mở việc và mục này" : "Mở trang việc" },
+        h("td", { class: "so" }, String(r.i)), h("td", { class: "viec" }, r.viec), h("td", {}, r.muc || "—"),
+        h("td", { class: "tc" }, giau(r.dat)), h("td", { class: "biet" }, giau(r.biet)),
+        h("td", {}, h("span", { class: "the-muc " + r.loai }, TEN_MUC[r.loai] || r.loai)),
+        h("td", { class: "dat" }, sua && r.viec_id ? oDatSua(r) : r.xong ? "☑" : "☐"))));
+      const x = ds.filter((r) => r.xong).length;
+      tong.textContent = `${ds.length} dòng · ${x} đạt · ${ds.length - x} chưa đạt`;
+    }
+    for (const o of [oTim, oViec, oMuc, oDat]) o.addEventListener("input", loc);
+    loc();
+  }
+  function moDong(r) {
+    if (r.viec_id) location.hash = `#${r.viec_id}/${r.muc_id}`;
+    else if (r.trang) location.href = r.trang + "#s2";
+  }
+  function taiCsv(ds) {
+    const bo = (s) => '"' + String(s || "").replace(/<[^>]+>/g, "").replace(/"/g, '""') + '"';
+    const dong = [["#", "Việc", "Mục", "Tiêu chí", "Cách biết đã đạt", "Mức", "Đạt"].map(bo).join(",")]
+      .concat(ds.map((r) => [r.i, r.viec, r.muc, r.dat, r.biet, TEN_MUC[r.loai] || r.loai, r.xong ? "đạt" : ""].map(bo).join(",")));
+    const a = h("a", { href: URL.createObjectURL(new Blob(["﻿" + dong.join("\n")], { type: "text/csv" })), download: "nghiem-thu-383.csv" });
+    a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  /* ── SỬA (chỉ bàn soạn) ── */
+  const bao = (chu, loi) => { $("bao").textContent = chu; $("bao").dataset.loi = loi ? "1" : ""; clearTimeout(bao.t); veLuu();
+    bao.t = setTimeout(() => { $("bao").textContent = ""; veLuu(); }, loi ? 12000 : 4000); };
+  /* hoàn tác: mỗi việc giữ bản «đã ổn» cuối (moc); lần đổi đầu của một loạt gõ đẩy bản ấy vào ngăn lùi. Gõ liền nhau
+     (< 0,7 s) gộp một bước; thao tác cấu trúc (thêm, xoá, dời) là một bước riêng. */
+  const lui = [], toi = [], moc = new Map();
+  let hen = null, henV = null;
+  const chotHen = () => { if (!hen) return; clearTimeout(hen); hen = null; moc.set(henV.id, JSON.stringify(henV)); };
+  function doi(v, ngay) {
+    if (!hen || henV !== v) { chotHen(); if (moc.has(v.id)) { lui.push({ id: v.id, j: moc.get(v.id) }); if (lui.length > 200) lui.shift(); toi.length = 0; } }
+    clearTimeout(hen); henV = v;
+    hen = setTimeout(chotHen, 700);
+    if (ngay) chotHen();
+    ban.add(v.id); veLuu();
+  }
+  function hoanTac(lai) {
+    chotHen();
+    const tu = lai ? toi : lui, sang = lai ? lui : toi;
+    const b = tu.pop();
+    if (!b) return;
+    const k = VIEC.findIndex((x) => x.id === b.id);
+    if (k < 0) return;
+    sang.push({ id: b.id, j: JSON.stringify(VIEC[k]) });
+    VIEC[k] = JSON.parse(b.j); moc.set(b.id, b.j);
+    ban.add(b.id); veLuu();
+    const d = doc();
+    if (d.viec !== "nghiem-thu" && d.muc && !tim(VIEC[k], d.muc)) location.hash = "#" + b.id; else ve();
+    bao(lai ? "Đã làm lại" : "Đã hoàn tác");
+  }
+  function veLuu() {
+    const b = $("nut-luu"); b.disabled = !ban.size; b.textContent = ban.size ? "Lưu ●" : "Đã lưu";
+    $("thanh-sua").hidden = !sua && !ban.size && !$("bao").textContent;
+    for (const [id, ds] of [["nut-lui", lui], ["nut-toi", toi]]) { $(id).hidden = !sua; $(id).disabled = !ds.length; }
+  }
+  $("nut-lui").onclick = () => hoanTac(false);
+  $("nut-toi").onclick = () => hoanTac(true);
+  let soMoi = 0;
+  const idMoi = (goc_) => (goc_ ? goc_ + "-" : "muc-") + Date.now().toString(36).slice(-4) + (soMoi++);
+  const mucMoi = () => ({ id: idMoi("muc-moi"), ten: "Mục mới", nghiem_thu: [] });
+  const o = (gt, nhan, doiF, dai, lop) => h(dai ? "textarea" : "input", { class: "o" + (lop ? " " + lop : ""), value: gt || "", "aria-label": nhan, placeholder: nhan,
+    oninput: (e) => doiF(e.target.value) });
+  const truong = (nhan, ...con) => {        // ô chữ đứng một mình trong trường: tên đọc cho trình đọc màn hình = nhãn trường
+    for (const c of con) if (c.matches && c.matches("input, textarea")) c.setAttribute("aria-label", nhan);
+    return h("div", { class: "truong" }, h("span", { class: "nhan" }, nhan), ...con);
+  };
+  const nutNho = (chu, onclick, tuy = {}) => h("button", { type: "button", class: "nut nho" + (tuy.lop ? " " + tuy.lop : ""), onclick, title: tuy.title, disabled: tuy.tat, "aria-label": tuy.nhan }, chu);
+  const doiCho = (ds, a, b) => { [ds[a], ds[b]] = [ds[b], ds[a]]; };
+
+  function suaViec(v) {
+    const d = () => doi(v);
+    const veLai = () => { doi(v, true); ve(); };
+    v.lien_quan = v.lien_quan || [];
+    const lq = v.lien_quan.map((l, j) => h("div", { class: "dong-sua" },
+      h("div", { class: "hang-sua" }, o(l.ten, "Tên trang", (x) => { l.ten = x; d(); }),
+        nutNho("↑", () => { doiCho(v.lien_quan, j, j - 1); veLai(); }, { lop: "bieu", tat: j === 0, nhan: "Lên" }),
+        nutNho("↓", () => { doiCho(v.lien_quan, j, j + 1); veLai(); }, { lop: "bieu", tat: j === v.lien_quan.length - 1, nhan: "Xuống" }),
+        nutNho("✕", () => { v.lien_quan.splice(j, 1); veLai(); }, { lop: "bieu xoa", nhan: "Xoá liên kết" })),
+      o(l.href, "Tên-Tệp-383HaiPhong.html hoặc viec.html#việc/mục", (x) => { l.href = x.trim(); d(); }, false, "ma")));
+    return h("div", {},
+      nhom("Việc", null,
+        truong("Tên việc", o(v.ten, "Tên việc", (x) => { v.ten = x; d(); }, false, "lon")),
+        truong("Phụ đề", o(v.phu_de, "Một dòng dưới tên — trống thì không hiện", (x) => { v.phu_de = x; d(); })),
+        truong("Ô cửa chặn", o(v.chan, "Một câu — trống thì không hiện", (x) => { v.chan = x; d(); })),
+        truong("Mở đầu", o(v.mo_dau, "Vài câu giới thiệu việc", (x) => { v.mo_dau = x; d(); }, true))),
+      nhomGap("lien-quan|" + v.id, "Trang liên quan", v.lien_quan.length + " trang", "Hiện dưới phần mở đầu. Địa chỉ là tên tệp trong bộ hồ sơ.",
+        ...lq, h("div", { class: "dong hang-nut" }, nutNho("＋ Liên kết", () => { v.lien_quan.push({ ten: "", href: "" }); veLai(); }, { lop: "to-mau" }))),
+      nhom("Góc mở đầu", "Góc nhìn khi mở việc mà chưa chọn mục nào.",
+        h("div", { class: "dong hang-nut" },
+          nutNho("⤓ Lấy góc hiện tại", async () => { v.mac_dinh = await hoi("lay"); dongBo(); d(); bao("Đã đặt góc mở đầu — nhớ Lưu"); }, { lop: "to-mau" }),
+          nutNho("▶ Xem góc mở đầu", () => { ttCuoi = ""; apGoc(v.mac_dinh, 1.0); }),
+          moiTao.has(v.id) ? nutNho("Bỏ việc mới", () => { if (!confirm(`Bỏ việc «${v.ten}» (chưa lưu lần nào)?`)) return;
+            VIEC.splice(VIEC.indexOf(v), 1); ban.delete(v.id); moiTao.delete(v.id); veLuu(); location.hash = VIEC[0] ? "#" + VIEC[0].id : ""; }, { lop: "xoa" }) : null)));
+  }
+
+  function suaMuc(v, m, ds, i, cha) {
+    const d = () => doi(v);
+    const veLai = () => { doi(v, true); ve(); };
+    m.nghiem_thu = m.nghiem_thu || []; m.thong_so = m.thong_so || []; m.mo_ta = m.mo_ta || [];
+    // địa chỉ (id) mục: đổi thì sửa luôn trang_gop trỏ vào nó
+    const doiId = (moi) => {
+      if (!MA.test(moi)) { bao("Địa chỉ chỉ gồm chữ thường không dấu, số, gạch nối.", true); return false; }
+      if (moi !== m.id && tim(v, moi)) { bao(`Đã có mục mang địa chỉ «${moi}».`, true); return false; }
+      for (const g of v.trang_gop || []) if (g.muc === m.id) g.muc = moi;
+      m.id = moi; doi(v, true); history.replaceState(null, "", `#${v.id}/${moi}`); return true;
+    };
+    const oId = h("input", { class: "o ma", value: m.id, "aria-label": "Địa chỉ mục", onchange: (e) => { if (!doiId(e.target.value.trim())) e.target.value = m.id; } });
+
+    const nt = m.nghiem_thu.map((r, j) => h("div", { class: "dong-sua" + (r.xong ? " xong-roi" : "") },
+      h("div", { class: "hang-sua" },
+        h("select", { class: "o", style: "flex:0 0 120px", "aria-label": "Mức", onchange: (e) => { r.loai = e.target.value; d(); } },
+          Object.entries(TEN_MUC).map(([k, x]) => h("option", { value: k, selected: muc(r.loai) === k }, x))),
+        h("label", { class: "chon-ok" }, h("input", { type: "checkbox", checked: !!r.xong, onchange: (e) => { if (e.target.checked) r.xong = true; else delete r.xong; veLai(); } }), "Đã đạt"),
+        h("span", { class: "gian" }),
+        nutNho("↑", () => { doiCho(m.nghiem_thu, j, j - 1); veLai(); }, { lop: "bieu", tat: j === 0, nhan: "Lên" }),
+        nutNho("↓", () => { doiCho(m.nghiem_thu, j, j + 1); veLai(); }, { lop: "bieu", tat: j === m.nghiem_thu.length - 1, nhan: "Xuống" }),
+        nutNho("✕", () => { m.nghiem_thu.splice(j, 1); veLai(); }, { lop: "bieu xoa", nhan: "Xoá dòng" })),
+      o(r.dat, "Thứ phải đạt — một câu", (x) => { r.dat = x; d(); }),
+      o(r.biet, "Phép kiểm: nhìn gì, đo gì, thử gì, ngưỡng đạt", (x) => { r.biet = x; d(); }, true)));
+
+    const ts = m.thong_so.map((r, j) => h("div", { class: "dong-sua" },
+      h("div", { class: "hang-sua" },
+        h("input", { class: "o", style: "flex:0 1 38%", value: r[0], placeholder: "Nhãn", "aria-label": "Nhãn", oninput: (e) => { r[0] = e.target.value; d(); } }),
+        h("input", { class: "o", value: r[1], placeholder: "Giá trị", "aria-label": "Giá trị", oninput: (e) => { r[1] = e.target.value; d(); } }),
+        nutNho("↑", () => { doiCho(m.thong_so, j, j - 1); veLai(); }, { lop: "bieu", tat: j === 0, nhan: "Lên" }),
+        nutNho("✕", () => { m.thong_so.splice(j, 1); veLai(); }, { lop: "bieu xoa", nhan: "Xoá thông số" }))));
+
+    return h("div", { class: "chi-tiet", style: "background:var(--paper-deep);border-left:0;padding:0 12px 16px" },
+      nhom("Mục", null,
+        h("div", { class: "truong" }, h("span", { class: "nhan" }, "Mã lớp · tên mục"),
+          h("div", { class: "hang-sua" },
+            h("input", { class: "o ma", style: "flex:0 0 72px", value: m.ma || "", placeholder: "Mã", "aria-label": "Mã lớp", oninput: (e) => { m.ma = e.target.value; d(); } }),
+            o(m.ten, "Tên mục — danh từ ngắn", (x) => { m.ten = x; d(); }, false, "lon")))),
+      nhomGap("mo-ta|" + m.id, "Mô tả", (m.mo_ta || []).filter((x) => String(x).trim()).length + " dòng", null,
+        truong("Mỗi dòng một gạch đầu", o((m.mo_ta || []).join("\n"), "Chỉ điều bảng thông số không nói được", (x) => { m.mo_ta = x.split("\n"); d(); }, true))),
+      nhom("Góc nhìn", "Góc = đúng thứ đang thấy trong khung 3D (lớp, mặt cắt, làm nổi). ★ lấy vật đang chọn trong 3D — Shift+bấm chọn nhiều.",
+        h("div", { class: "dong hang-nut" },
+          nutNho("⤓ Chụp góc", async () => { m.tt = await hoi("lay"); dongBoKb(m); dongBo(); veLai(); bao("Đã chụp góc cho mục" + (m.kich_ban ? " (kịch bản theo góc mới)" : "") + " — nhớ Lưu"); }, { lop: "to-mau", title: "Góc nhìn của mục = đúng thứ đang thấy trong khung 3D" }),
+          nutNho("★ Vật", () => batNoi(v, m, false), { title: "Thêm vào / bỏ khỏi danh sách làm nổi: vật đang chọn trong 3D" }),
+          nutNho("★ Cả lớp", () => batNoi(v, m, true), { title: "Như trên, nhưng làm nổi CẢ LỚP của vật đang chọn" })),
+        h("div", { class: "dong hang-nut" },
+          nutNho("⧉ Chép góc", () => chepGoc(m), { tat: !m.tt && !m.kich_ban, title: "Chép góc nhìn, mặt cắt, lớp, tách, làm nổi, thời gian bay và kịch bản của mục này" }),
+          nutNho("Dán góc", () => danGoc(v, m, false), { tat: !banChep, title: banChep ? `Dán từ «${banChep.ten}» — thay cả danh sách làm nổi` : "Chưa chép góc nào" }),
+          nutNho("Dán, giữ ★", () => danGoc(v, m, true), { tat: !banChep, title: "Dán góc nhưng giữ danh sách làm nổi (★) của mục này" }),
+          h("label", { class: "chon-ok", title: "Giây bay camera tới góc của mục (khi mục không có kịch bản)" }, "Bay",
+            h("input", { type: "number", class: "o so-nho", min: 0, max: 5, step: 0.1, value: m.bay ?? 0.8, oninput: (e) => { m.bay = Number(e.target.value); d(); } }),
+            h("span", { class: "don-vi" }, "giây"))),
+        h("div", { class: "dong" }, chipNoi(v, m, (m.tt && m.tt.noi_bat) || [], (ds_) => { m.tt.noi_bat = ds_; }))),
+      suaKichBan(v, m, veLai, d),
+      nhomGap("thong-so|" + m.id, "Thông số — vật liệu, quy cách, mã, kích thước", m.thong_so.length + " dòng", null, ...ts,
+        h("div", { class: "dong hang-nut" }, nutNho("＋ Thông số", () => { m.thong_so.push(["", ""]); veLai(); }, { lop: "to-mau" }))),
+      nhomGap("nghiem-thu|" + m.id, "Nghiệm thu", `${m.nghiem_thu.filter((r) => r.xong).length}/${m.nghiem_thu.length} đạt`,
+        "Mỗi dòng một ô tick. Chỉ ghi thứ phải đạt và phép kiểm — không kê cách thi công.", ...nt,
+        h("div", { class: "dong hang-nut" }, nutNho("＋ Dòng nghiệm thu", () => { m.nghiem_thu.push({ loai: "yeu-cau", dat: "", biet: "" }); veLai(); }, { lop: "to-mau" }))),
+      nhomGap("sap-xep|" + m.id, "Sắp xếp · nhân bản · xoá", null, null,
+        h("div", { class: "dong hang-nut" },
+          nutNho("↑ Lên", () => { doiCho(ds, i, i - 1); veLai(); }, { tat: i === 0 }),
+          nutNho("↓ Xuống", () => { doiCho(ds, i, i + 1); veLai(); }, { tat: i === ds.length - 1 }),
+          nutNho("→ Vào mục trên", () => { (ds[i - 1].con = ds[i - 1].con || []).push(m); ds.splice(i, 1); veLai(); },
+            { tat: i === 0, title: "Thành mục con cuối của mục ngay trên" }),
+          nutNho("← Ra ngoài", () => { cha.ds.splice(cha.i + 1, 0, m); ds.splice(i, 1); if (!ds.length) delete cha.ds[cha.i].con; veLai(); },
+            { tat: !cha, title: "Ra một cấp, đứng ngay sau mục cha" })),
+        h("div", { class: "dong hang-nut" },
+          nutNho("＋ Mục con", () => { const c = mucMoi(); (m.con = m.con || []).push(c); doi(v, true); di(v, c); }, { lop: "to-mau" }),
+          nutNho("⧉ Nhân bản", () => {
+            const b = sao(m); b.ten = m.ten + " — bản sao";
+            for (const [, c] of duyet([b])) { let x = idMoi(c.id.replace(/-[a-z0-9]{5,6}$/, "").slice(0, 30).replace(/-+$/, "")); while (tim(v, x)) x = idMoi(c.id); c.id = x; }
+            ds.splice(i + 1, 0, b); doi(v, true); di(v, b); }, { title: "Chép mục này (kể cả mục con) đặt ngay dưới" }),
+          nutNho("Xoá mục", () => {
+            if (confirm(`Xoá mục «${m.ten}»${(m.con || []).length ? " và mọi mục con" : ""}? (hoàn tác được bằng ↶)`)) { ds.splice(i, 1); doi(v, true); di(v, null); } }, { lop: "xoa" })),
+        truong("Địa chỉ mục (sau dấu /)", oId)));
+  }
+
+  /* ── chép / dán góc giữa các mục (cả giữa hai việc): tt + bay + kich_ban. Nhớ qua lần tải lại trang trong trình duyệt này. */
+  let banChep = null;
+  try { banChep = JSON.parse(localStorage.getItem("viec3d:chep") || "null"); } catch (_) { /* không có kho */ }
+  function chepGoc(m) {
+    banChep = sao({ ten: m.ten, tt: m.tt || null, bay: m.bay, kich_ban: m.kich_ban || null });
+    try { localStorage.setItem("viec3d:chep", JSON.stringify(banChep)); } catch (_) { /* không có kho */ }
+    ve(); bao(`Đã chép góc của «${m.ten}» — mở mục khác rồi bấm Dán góc`);
+  }
+  function danGoc(v, m, giuNoi) {
+    if (!banChep) return;
+    const noiCu = m.tt && m.tt.noi_bat;
+    const b = sao(banChep);
+    if (b.tt) m.tt = b.tt; else delete m.tt;
+    if (giuNoi) { if (!m.tt) m.tt = {}; if (noiCu) m.tt.noi_bat = noiCu; else delete m.tt.noi_bat; }
+    if (b.bay != null) m.bay = b.bay; else delete m.bay;
+    if (b.kich_ban) {
+      m.kich_ban = b.kich_ban;
+      // giữ ★: bước làm nổi của kịch bản dán vào cũng lấy danh sách của mục này
+      if (giuNoi) for (const x of m.kich_ban) if (x.buoc === "noi_bat") x.ds = [...(noiCu || [])];
+    } else delete m.kich_ban;
+    doi(v, true); ttCuoi = ""; ve();
+    bao(`Đã dán góc của «${banChep.ten}»${giuNoi ? " (giữ ★ của mục)" : ""} — nhớ Lưu`);
+  }
+
+  /* ── kịch bản chuyển động của mục: các bước chạy lần lượt, bước sau chờ bước trước xong ── */
+  function suaKichBan(v, m, veLai, d) {
+    const kb = m.kich_ban || [];
+    const them = async (buoc) => {
+      const b = { buoc };
+      if (buoc === "tach") Object.assign(b, { khe: 0.25, giay: 0.8 });
+      else if (buoc === "camera") Object.assign(b, { v: (await hoi("lay")).v, giay: 1 });
+      else if (buoc === "noi_bat") b.ds = [...((m.tt && m.tt.noi_bat) || [])];
+      else if (buoc === "cho") b.giay = 0.5;
+      else if (buoc === "noi_len") { const c = await hoi("chon"); b.ds = (c || []).map((x) => x.id); b.khe = 0.5; b.giay = 0.8;
+        if (!b.ds.length) bao("Bước «Xem rời» cần các bộ phận của cấu kiện: Shift+bấm chọn chúng trong khung 3D rồi bấm «⤓ Vật đang chọn».", true); }
+      (m.kich_ban = m.kich_ban || []).push(b); veLai();
+    };
+    const tuGoc = async () => {
+      const tt = m.tt || (m.tt = await hoi("lay"));
+      m.kich_ban = [{ buoc: "tach", khe: tt.tach || 0, giay: 0.8 }, { buoc: "camera", v: tt.v, giay: m.bay ?? 0.8 }];
+      if ((tt.noi_bat || []).length) m.kich_ban.push({ buoc: "noi_bat", ds: [...tt.noi_bat] });
+      veLai();
+    };
+    const chay = () => { ttCuoi = ""; apGoc(m.tt || v.mac_dinh, m.bay, m.kich_ban, `sua|${v.id}|${m.id}`); };
+    const so = (b, k, nhan, max) => h("label", { class: "chon-ok" }, nhan,
+      h("input", { type: "number", class: "o so-nho", min: 0, max, step: 0.05, value: b[k] ?? 0, "aria-label": nhan, oninput: (e) => { b[k] = Number(e.target.value); d(); } }));
+    const dong = kb.map((b, j) => {
+      const noi = [];
+      if (b.buoc === "tach") noi.push(h("div", { class: "hang-sua" }, so(b, "khe", "Khe", 0.6), h("span", { class: "don-vi" }, "m"), so(b, "giay", "trong", 10), h("span", { class: "don-vi" }, "giây")));
+      else if (b.buoc === "camera") noi.push(
+        h("div", { class: "hang-sua" }, nutNho("⤓ Lấy camera hiện tại", async () => { b.v = (await hoi("lay")).v; dongBo(); veLai(); bao("Đã lấy camera cho bước " + (j + 1)); }, { lop: "to-mau" }),
+          so(b, "giay", "trong", 10), h("span", { class: "don-vi" }, "giây")),
+        h("div", { class: "v" }, b.v || "chưa có góc"));
+      else if (b.buoc === "noi_bat") noi.push(
+        h("div", { class: "hang-sua" },
+          nutNho("⤓ Lấy ★ của mục", () => { b.ds = [...((m.tt && m.tt.noi_bat) || [])]; veLai(); }),
+          nutNho("★ Vật đang chọn", async () => { const c = await hoi("chon"); if (!c || !c.length) return bao("Bấm chọn vật trong khung 3D trước.", true);
+            for (const x of c) tenNoi.set(x.id, x.ten); b.ds = [...new Set([...(b.ds || []), ...c.map((x) => x.id)])]; veLai(); }),
+          nutNho("∅ Bỏ hết", () => { b.ds = []; veLai(); }, { lop: "xoa", title: "Bước này tắt làm nổi — mọi vật hiện bình thường" })),
+        chipNoi(v, m, b.ds || [], (x) => { b.ds = x; }, true));
+      else if (b.buoc === "cho") noi.push(h("div", { class: "hang-sua" }, so(b, "giay", "Chờ", 10), h("span", { class: "don-vi" }, "giây")));
+      else if (b.buoc === "noi_len") noi.push(
+        h("div", { class: "hang-sua" },
+          nutNho("⤓ Vật đang chọn", async () => { const c = await hoi("chon"); if (!c || !c.length) return bao("Shift+bấm chọn các bộ phận trong khung 3D trước.", true);
+            b.ds = c.map((x) => x.id); d(); veLai(); }),
+          so(b, "khe", "Tách rời", 1), so(b, "giay", "trong", 10), h("span", { class: "don-vi" }, "giây")),
+        h("div", { class: "v" }, (b.ds || []).length ? b.ds.length + " bộ phận: " + b.ds.join(", ") : "chưa chọn bộ phận"));
+      return h("div", { class: "buoc-kb" }, h("span", { class: "stt" }, String(j + 1)),
+        h("div", {}, h("div", { class: "hang-sua" }, h("strong", {}, TEN_BUOC[b.buoc] || b.buoc), h("span", { class: "gian" }),
+          nutNho("↑", () => { doiCho(kb, j, j - 1); veLai(); }, { lop: "bieu", tat: j === 0, nhan: "Lên" }),
+          nutNho("↓", () => { doiCho(kb, j, j + 1); veLai(); }, { lop: "bieu", tat: j === kb.length - 1, nhan: "Xuống" }),
+          nutNho("✕", () => { kb.splice(j, 1); if (!kb.length) delete m.kich_ban; veLai(); }, { lop: "bieu xoa", nhan: "Xoá bước" })), ...noi));
+    });
+    return nhomGap("kich-ban|" + m.id, "Kịch bản chuyển động", kb.length ? kb.length + " bước" : "mặc định",
+      kb.length ? "Mở mục: cảnh nền (góc đã chụp, trừ camera và khe tách) đặt ngay, rồi các bước chạy lần lượt từ trên xuống."
+        : "Chưa có kịch bản — mục chạy mặc định: tách lớp → bay camera tới góc đã chụp → làm nổi.",
+      ...dong,
+      h("div", { class: "dong hang-nut" },
+        ...Object.entries(TEN_BUOC).map(([k, x]) => nutNho("＋ " + x, () => them(k), { lop: "to-mau" }))),
+      h("div", { class: "dong hang-nut" },
+        kb.length ? nutNho("▶ Chạy", chay, { lop: "chinh", title: "Chạy kịch bản từ đầu trong khung 3D" }) : nutNho("Tạo từ góc đã chụp", tuGoc, { title: "Ba bước: tách → camera → làm nổi, lấy từ góc của mục" }),
+        kb.length ? nutNho("Xoá kịch bản", () => { delete m.kich_ban; veLai(); }, { lop: "xoa" }) : null));
+  }
+
+  /* kịch bản theo góc: chụp góc / ★ đổi `tt` thì bước CUỐI cùng loại trong kịch bản (camera, tách, làm nổi) theo luôn —
+     không thì kịch bản vẫn bay tới góc cũ và góc vừa chụp không bao giờ hiện */
+  function dongBoKb(m) {
+    const kb = m.kich_ban || [], tt = m.tt || {};
+    const cuoi = (buoc) => kb.filter((b) => b.buoc === buoc).pop();
+    const c = cuoi("camera"), t = cuoi("tach"), n = cuoi("noi_bat");
+    if (c && tt.v) c.v = tt.v;
+    if (t) t.khe = Number(tt.tach) || 0;
+    if (n) n.ds = [...(tt.noi_bat || [])];
+  }
+  /* ★ công tắc làm nổi: vật (hoặc lớp) đang chọn trong 3D ∈ danh sách ⇒ bỏ ra; chưa có ⇒ thêm vào. Ghi ngay vào mục. */
+  const tenNoi = new Map();
+  async function batNoi(v, m, theoLop) {
+    const ds = await hoi("chon");
+    if (!ds || !ds.length) { bao("Bấm chọn một vật trong khung 3D trước (Shift+bấm để chọn nhiều), rồi bấm ★.", true); return; }
+    if (!m.tt) m.tt = await hoi("lay");
+    const cu = new Set(m.tt.noi_bat || []);
+    const khoa = [...new Set(ds.map((x) => (theoLop ? x.nhom : x.id)))];
+    for (const x of ds) tenNoi.set(theoLop ? x.nhom : x.id, theoLop ? x.nhom : x.ten);
+    const coHet = khoa.every((k) => cu.has(k));
+    for (const k of khoa) coHet ? cu.delete(k) : cu.add(k);
+    m.tt.noi_bat = [...cu];
+    if (!m.tt.noi_bat.length) delete m.tt.noi_bat;
+    dongBoKb(m);
+    await hoi("noi_bat_dat", { ds: m.tt.noi_bat || [] });
+    dongBo(); ttDang = m.tt;
+    doi(v, true); ve();
+    bao(coHet ? `Đã bỏ ${khoa.length} khỏi danh sách làm nổi` : `Đã làm nổi ${khoa.length} ${theoLop ? "lớp" : "vật"} — nhớ Lưu`);
+  }
+  // chip của một danh sách làm nổi; laBuoc = danh sách của một bước kịch bản (bỏ chip không đụng tới trình xem)
+  function chipNoi(v, m, ds, dat, laBuoc) {
+    if (!ds.length) return h("div", { class: "trong" }, laBuoc ? "Bước này tắt làm nổi." : "Chưa làm nổi gì — chọn vật trong 3D rồi bấm ★.");
+    return h("div", {}, ds.map((k) => h("span", { class: "chip", title: k }, (tenNoi.get(k) || k).slice(0, 48),
+      h("button", { type: "button", "aria-label": "Bỏ", onclick: async () => {
+        const con = ds.filter((x) => x !== k);
+        if (laBuoc) { dat(con); doi(v, true); ve(); return; }
+        dat(con); if (!m.tt.noi_bat.length) delete m.tt.noi_bat; dongBoKb(m);
+        await hoi("noi_bat_dat", { ds: m.tt.noi_bat || [] }); dongBo(); ttDang = m.tt; doi(v, true); ve(); } }, "✕"))));
+  }
+
+  function viecMoi() {
+    const ten = (prompt("Tên việc mới (vd «Bếp — tủ, đá, thoát khói»):") || "").trim();
+    if (!ten) { ve(); return; }
+    let id = slug(ten.split(" — ")[0]) || "viec";
+    while (VIEC.some((x) => x.id === id)) id += "-2";
+    const v = { id, ten, muc: [mucMoi()] };
+    VIEC.push(v); moiTao.add(id); moc.set(id, JSON.stringify(v));
+    ban.add(id); veLuu();
+    location.hash = "#" + id;
+    bao(`Đã tạo việc «${ten}» (địa chỉ #${id}) — nhớ Lưu`);
+  }
+
+  $("nut-sua").onclick = () => {
+    sua = !sua;
+    $("nut-sua").setAttribute("aria-pressed", String(sua));
+    $("nut-sua").textContent = sua ? "✓ Xong" : "✎ Sửa";
+    if (sanSang) xem.contentWindow.postMessage({ nguon: "khung3d", lenh: "sua", bat: sua }, "*");
+    veLuu(); ve();
+  };
+  $("nut-luu").onclick = async () => {
+    chotHen();
+    $("nut-luu").disabled = true; $("nut-luu").textContent = "Đang lưu…";
+    const canhBao = [];
+    for (const id of [...ban]) {
+      const v = VIEC.find((x) => x.id === id);
+      if (!v) { ban.delete(id); continue; }
+      let kq;
+      try { kq = await (await fetch(`${CFG.ghi}?viec=${encodeURIComponent(id)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(v) })).json(); }
+      catch (e) { kq = { ok: false, loi: String(e) }; }
+      if (!kq.ok) { veLuu(); bao("Không lưu được: " + kq.loi, true); return; }
+      ban.delete(id); moiTao.delete(id); canhBao.push(...(kq.canh_bao || []));
+    }
+    await nap(); veLuu(); ve();
+    bao(canhBao.length ? `Đã lưu — ⚠ ${canhBao.length} câu chưa đạt luật hồ sơ: ${canhBao[0]}` : "Đã lưu vào data/viec-3d.yaml", canhBao.length > 0);
+  };
+  addEventListener("beforeunload", (e) => { if (ban.size) { e.preventDefault(); e.returnValue = ""; } });
+  addEventListener("keydown", (e) => {
+    if (!(e.metaKey || e.ctrlKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === "s" && ban.size) { e.preventDefault(); $("nut-luu").click(); }
+    // ⌘Z trong ô chữ để trình duyệt hoàn tác chữ; ngoài ô chữ là hoàn tác cả thao tác
+    else if (k === "z" && sua && !/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName)) { e.preventDefault(); hoanTac(e.shiftKey); }
+  });
+
+  /* ── nạp ── */
+  async function nap() {
+    const d = await (await fetch(CFG.json, { cache: "no-cache" })).json();
+    // việc mới chưa lưu lần nào giữ lại qua lần nạp (lưu việc khác không làm mất nó)
+    const giu = VIEC.filter((v) => moiTao.has(v.id));
+    VIEC = (d.viec || []).concat(giu); NT = d.nghiem_thu || [];
+    for (const v of VIEC) { v.muc = v.muc || []; if (!ban.has(v.id)) moc.set(v.id, JSON.stringify(v)); }
+  }
+  if (CFG.ghi) $("nut-sua").hidden = false;
+  nap().then(ve).catch((e) => { $("than").textContent = "Không đọc được dữ liệu việc: " + e; });
+})();
+</script>
+</body>
+</html>

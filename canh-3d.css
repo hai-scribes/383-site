@@ -1,0 +1,41 @@
+/* Khối «Mô hình 3D» trên trang hồ sơ (canh-3d.js). Dùng biến màu của chính trang (--paper, --ink, --accent…),
+   có giá trị dự phòng cho trang không khai. Dải cảnh là NÚT ĐỔI CẢNH trong cùng trang — hình dạng riêng,
+   không giống dải thẻ (.tabbar) hay nút rời trang (.navbar) — SKILL deliverable-rules-383 §2ter.1. */
+.kb3d { margin: 16px 0 24px; padding: 12px 14px 14px; border: 1px solid var(--line-ui, #8f866e); border-left: 4px solid var(--ink, #1d1d1b);
+  border-radius: 4px; background: var(--paper, #faf6ec); font-family: var(--font-sans, -apple-system, sans-serif); }
+.kb3d-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
+.kb3d-nhan { font: 500 10.5px var(--font-mono, ui-monospace, monospace); letter-spacing: .06em; text-transform: uppercase; color: var(--muted, #6f6c64); }
+.kb3d-dau strong { font-size: 15px; }
+.kb3d-ds { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.kb3d-ds > li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.kb3d-canh { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 14px 6px 6px; cursor: pointer;
+  border: 1px solid var(--line-ui, #8f866e); border-radius: 22px; background: transparent; color: var(--ink, #1d1d1b); font: 500 14px inherit; text-align: left; }
+.kb3d-canh:hover { background: var(--accent-pale, #f0ddd4); }
+.kb3d-canh:focus-visible, .kb3d-nut:focus-visible { outline: 2px solid var(--accent, #b8412c); outline-offset: 2px; }
+.kb3d-so { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; flex: none;
+  border: 1px solid var(--line-ui, #8f866e); font: 600 12px var(--font-mono, ui-monospace, monospace); }
+.kb3d-canh[aria-pressed="true"] { background: var(--ink, #1d1d1b); border-color: var(--ink, #1d1d1b); color: var(--paper, #faf6ec); }
+.kb3d-canh[aria-pressed="true"] .kb3d-so { background: var(--paper, #faf6ec); color: var(--ink, #1d1d1b); border-color: var(--paper, #faf6ec); }
+.kb3d-ghi { flex: 1 1 220px; font-size: 13px; color: var(--ink-soft, #4a4a46); }
+@media print { .kb3d, .kb3d-thanh, .kb3d-them { display: none !important; } }
+
+/* nút «3D» trong dòng việc của Kế hoạch tổng thể */
+.kb3d-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 32px; margin-left: 8px;
+  padding: 0 10px; vertical-align: middle; border: 1px solid var(--ink, #1d1d1b); border-radius: 16px; background: transparent;
+  color: var(--ink, #1d1d1b); font: 600 12px var(--font-mono, ui-monospace, monospace); letter-spacing: .04em; cursor: pointer; }
+.kb3d-chip:hover { background: var(--accent-pale, #f0ddd4); }
+.kb3d-chip[aria-pressed="true"] { background: var(--ink, #1d1d1b); color: var(--paper, #faf6ec); }
+@media print { .kb3d-chip { display: none !important; } }
+
+/* ── bàn soạn: nút mở bàn soạn 3D (chỉ dev server) ── */
+.kb3d-nut { min-height: 36px; padding: 0 12px; border: 1px solid var(--line-ui, #8f866e); border-radius: 4px; background: var(--paper, #faf6ec);
+  color: var(--ink, #1d1d1b); font: 500 13px var(--font-sans, -apple-system, sans-serif); cursor: pointer; }
+.kb3d-nut:hover { background: var(--accent-pale, #f0ddd4); }
+.kb3d-nut.nho { min-height: 30px; padding: 0 8px; margin-left: auto; font-size: 12px; }
+.kb3d-thanh { position: fixed; left: 12px; bottom: 12px; z-index: 70; padding: 6px; border: 1px solid var(--line-ui, #8f866e);
+  border-radius: 6px; background: var(--paper, #faf6ec); box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+.kb3d-thanh .kb3d-nut { min-height: 40px; font-weight: 600; }
+
+/* link «Nghiệm thu — mọi việc» trong khung tra cứu của Kế hoạch tổng thể — kiểu như các link bên cạnh, thêm dấu ☑ */
+.toc-extra a.kb3d-nt { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.toc-extra a.kb3d-nt::before { content: "☑"; position: static; }
