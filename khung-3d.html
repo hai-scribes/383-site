@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>383 Hải Phòng</title>
+<!-- KHUNG 3D — hồ sơ bên trái, mô hình 3D bên phải (điện thoại: dưới).
+     Trình xem tải MỘT lần rồi sống suốt lượt xem: đi từ trang này sang trang khác chỉ đổi khung hồ sơ,
+     bấm một cảnh chỉ gửi trạng thái (tools/3d/web/nhung.js). Trang hồ sơ nói chuyện với khung qua
+     window.KHUNG3D (tools/site/web/canh-3d.js). Kịch bản: data/canh-3d.yaml. -->
+<style>
+  :root {
+    --bg: #f3efe6; --paper: #faf6ec; --ink: #1d1d1b; --muted: #6f6c64;
+    --line: #c9c2af; --line-ui: #8f866e; --accent: #b8412c; --accent-pale: #f0ddd4;
+    --font-sans: "Roboto", -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", monospace;
+    --rong: 44vw; --cao: 42dvh;
+  }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; font-family: var(--font-sans); }
+  .khung { display: grid; height: 100vh; height: 100dvh; grid-template-columns: minmax(0, 1fr); }
+  .khung.mo { grid-template-columns: minmax(0, 1fr) 10px var(--rong); }
+  .khung.mo.soan { --rong: max(58vw, 640px); }
+  #tl { width: 100%; height: 100%; border: 0; display: block; background: var(--paper); }
+  #keo { display: none; background: var(--line); cursor: col-resize; touch-action: none; position: relative; }
+  #keo::after { content: ""; position: absolute; inset: 40% 3px; border-left: 1px solid var(--line-ui); border-right: 1px solid var(--line-ui); }
+  .khung.mo #keo { display: block; }
+  /* đóng dock = đẩy ra ngoài màn hình, GIỮ kích thước: trình xem không phải dựng lại khung vẽ */
+  #dock { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: #efeae0; }
+  .khung:not(.mo) #dock { position: fixed; top: 0; right: 0; height: 100%; width: var(--rong); transform: translateX(110%); visibility: hidden; }
+  .dock-dau { display: flex; align-items: center; gap: 8px; padding: 4px 8px 4px 12px; min-height: 48px; box-sizing: border-box;
+    background: var(--paper); border-bottom: 1px solid var(--line); font-size: 13px; }
+  .dock-ten { flex: 1; min-width: 0; line-height: 1.3; }
+  .dock-ten .nhan { display: block; font: 500 10.5px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .dock-ten strong { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nut { min-width: 44px; min-height: 44px; border: 1px solid var(--line-ui); border-radius: 4px; background: transparent; color: var(--ink);
+    font: 500 13px var(--font-sans); cursor: pointer; padding: 0 10px; }
+  .nut:hover { background: var(--accent-pale); }
+  .nut:focus-visible, #nut-3d:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .dai-canh { display: flex; gap: 6px; overflow-x: auto; padding: 6px 8px; background: var(--paper); border-bottom: 1px solid var(--line); }
+  .dai-canh button { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px 0 4px; cursor: pointer;
+    border: 1px solid var(--line-ui); border-radius: 20px; background: transparent; color: var(--ink); font: 500 13px var(--font-sans); white-space: nowrap; }
+  .dai-canh button span { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line-ui);
+    font: 600 11px var(--font-mono); }
+  .dai-canh button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .dai-canh button[aria-pressed="true"] span { background: var(--paper); color: var(--ink); }
+  .dock-ghi { margin: 0; padding: 8px 12px; max-height: 30%; overflow-y: auto; background: var(--paper); border-bottom: 1px solid var(--line);
+    font-size: 13px; line-height: 1.45; color: var(--ink); }
+  .dock-than { position: relative; flex: 1; min-height: 0; }
+  #xem { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+  #dang-tai { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center;
+    color: var(--muted); font-size: 14px; background: #efeae0; }
+  #nut-3d { position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 5; min-width: 44px; min-height: 88px;
+    border: 1px solid var(--line-ui); border-right: 0; border-radius: 6px 0 0 6px; background: var(--paper); color: var(--ink);
+    font: 600 13px var(--font-sans); writing-mode: vertical-rl; cursor: pointer; box-shadow: -2px 2px 8px rgba(0,0,0,.08); }
+  #nut-3d:hover { background: var(--accent-pale); }
+  @media (max-width: 899px) {
+    .khung.mo, .khung.mo.soan { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 10px var(--cao); }
+    #keo { cursor: row-resize; }
+    #keo::after { inset: 3px 40%; border: 0; border-top: 1px solid var(--line-ui); border-bottom: 1px solid var(--line-ui); }
+    .khung:not(.mo) #dock { top: auto; bottom: 0; width: 100%; height: var(--cao); transform: translateY(110%); }
+    #nut-3d { top: auto; bottom: 16px; transform: none; writing-mode: horizontal-tb; min-height: 44px; min-width: 64px; }
+  }
+</style>
+</head>
+<body>
+<div class="khung" id="khung">
+  <iframe id="tl" title="Hồ sơ"></iframe>
+  <div id="keo" role="separator" aria-label="Kéo để đổi cỡ khung 3D" tabindex="0"></div>
+  <section id="dock" aria-label="Mô hình 3D">
+    <div class="dock-dau">
+      <div class="dock-ten"><span class="nhan">Mô hình 3D</span><strong id="dock-ten">—</strong></div>
+      <button class="nut" id="nut-lai" type="button" title="Về đúng cảnh đang chọn">↺</button>
+      <button class="nut" id="nut-dong" type="button" title="Thu khung 3D (mô hình vẫn giữ, mở lại không phải tải)">Thu</button>
+    </div>
+    <div class="dai-canh" id="dai-canh" role="group" aria-label="Các cảnh" hidden></div>
+    <p class="dock-ghi" id="dock-ghi" hidden></p>
+    <div class="dock-than" id="dock-than">
+      <div id="dang-tai">Đang tải mô hình 3D — chỉ tải một lần cho cả lượt xem.</div>
+    </div>
+  </section>
+</div>
+<button id="nut-3d" type="button" hidden>Mô hình 3D</button>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const Q = new URLSearchParams(location.search);
+  const XEM_URL = (window.XEM3D_URL || "3d/xem.html") + "?m=nha&nhung=1";
+  const khung = $("khung"), tl = $("tl");
+  const nho = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch { return null; } };
+
+  // trang hồ sơ: ?p=<tệp>#neo — chỉ nhận tên tệp cùng thư mục (không cho khung mở trang lạ)
+  const p = (Q.get("p") || "").replace(/^.*\//, "");
+  tl.src = (/^[\w.-]+\.html$/.test(p) ? p : "index.html") + location.hash;
+  let dauTien = Q.get("kb") ? { kb: Q.get("kb"), c: Number(Q.get("c") || 0) } : null;
+
+  /* ── trình xem: một iframe, tạo lần đầu cần, không bao giờ tạo lại ── */
+  let xem = null, sanSang = false, soan = false, dangCanh = null, dongTay = false, api = null;
+  const hang = [], cho = new Map();
+  let soHoi = 0;
+  function taoXem() {
+    if (xem) return;
+    xem = document.createElement("iframe");
+    xem.id = "xem"; xem.title = "Mô hình 3D"; xem.src = XEM_URL; xem.allow = "fullscreen";
+    $("dock-than").append(xem);
+  }
+  function gui(m) {
+    if (sanSang) xem.contentWindow.postMessage({ nguon: "khung3d", ...m }, "*");
+    else hang.push(m);
+  }
+  function hoi(lenh, them = {}) {
+    taoXem();
+    return new Promise((r) => { const id = ++soHoi; cho.set(id, r); gui({ lenh, hoi: id, ...them }); });
+  }
+  window.addEventListener("message", (ev) => {
+    if (!xem || ev.source !== xem.contentWindow) return;
+    const d = ev.data || {};
+    if (d.nguon !== "xem3d") return;
+    if (d.lenh === "san_sang") {
+      sanSang = true; $("dang-tai").hidden = true;
+      if (soan) gui({ lenh: "sua", bat: true });
+      for (const m of hang.splice(0)) gui(m);
+    } else if (d.lenh === "trang_thai") {
+      const f = cho.get(d.hoi); if (f) { cho.delete(d.hoi); f(d.tt); }
+    } else if (d.lenh === "loi") {
+      $("dang-tai").hidden = false; $("dang-tai").textContent = "Không tải được mô hình 3D: " + d.loi;
+    }
+  });
+
+  function moDock(bat) {
+    khung.classList.toggle("mo", bat);
+    if (bat) taoXem();
+    $("nut-3d").hidden = bat || !(api && api.co) && !xem;
+  }
+  $("nut-dong").onclick = () => { dongTay = true; moDock(false); };
+  $("nut-3d").onclick = () => { dongTay = false; moDock(true); if (!dangCanh && api && api.co) api.bam(); };
+  $("nut-lai").onclick = () => { if (dangCanh) gui({ lenh: "ap", tt: dangCanh.tt, bay: dangCanh.bay }); };
+
+  /* ── kéo đổi cỡ (ngang trên máy tính, dọc trên điện thoại) ── */
+  const dung = () => matchMedia("(max-width: 899px)").matches;
+  const r0 = nho("khung3d:rong"), c0 = nho("khung3d:cao");
+  if (r0) document.documentElement.style.setProperty("--rong", r0);
+  if (c0) document.documentElement.style.setProperty("--cao", c0);
+  $("keo").addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    const k = $("keo"); k.setPointerCapture(e.pointerId);
+    tl.style.pointerEvents = "none"; if (xem) xem.style.pointerEvents = "none";
+    const di = (ev) => {
+      if (dung()) {
+        const h = Math.min(innerHeight - 120, Math.max(160, innerHeight - ev.clientY - 5));
+        document.documentElement.style.setProperty("--cao", h + "px");
+      } else {
+        const w = Math.min(innerWidth - 320, Math.max(280, innerWidth - ev.clientX - 5));
+        document.documentElement.style.setProperty("--rong", w + "px");
+      }
+    };
+    const thoi = () => {
+      k.removeEventListener("pointermove", di); k.removeEventListener("pointerup", thoi);
+      tl.style.pointerEvents = ""; if (xem) xem.style.pointerEvents = "";
+      const s = getComputedStyle(document.documentElement);
+      nho("khung3d:rong", s.getPropertyValue("--rong").trim()); nho("khung3d:cao", s.getPropertyValue("--cao").trim());
+    };
+    k.addEventListener("pointermove", di); k.addEventListener("pointerup", thoi);
+  });
+
+  /* ── đồng bộ địa chỉ + tiêu đề theo trang hồ sơ đang mở ── */
+  function dongBo() {
+    try {
+      const l = tl.contentWindow.location;
+      const ten = l.pathname.split("/").pop() || "index.html";
+      history.replaceState(null, "", "?p=" + encodeURIComponent(ten) + l.hash);
+      document.title = tl.contentDocument.title || document.title;
+    } catch { /* trang khác nguồn: để nguyên */ }
+  }
+  tl.addEventListener("load", () => {
+    // canh-3d.js có thể đăng ký TRƯỚC sự kiện load (nó chỉ chờ tệp kịch bản, không chờ ảnh) — chỉ bỏ đăng ký của trang CŨ
+    let win = null; try { win = tl.contentWindow; } catch { /* khác nguồn */ }
+    if (api && api.win !== win) { api = null; dangCanh = null; }
+    dongBo();
+    try { tl.contentWindow.addEventListener("hashchange", dongBo); } catch { /* khác nguồn */ }
+    // trang không có canh-3d.js (khác nguồn, trang lạ) ⇒ không bao giờ đăng ký: thu dock sau một nhịp
+    setTimeout(() => { if (!api) { moDock(false); } }, 1500);
+  });
+
+  function veDai(kb, i) {
+    const d = $("dai-canh");
+    d.replaceChildren();
+    d.hidden = !kb || kb.canh.length < 2;
+    if (d.hidden) return;
+    kb.canh.forEach((c, j) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.setAttribute("aria-pressed", String(j === i)); b.title = c.ghi || c.ten;
+      const so = document.createElement("span"); so.textContent = String(j + 1);
+      b.append(so, c.ten);
+      b.onclick = () => {
+        if (api && api.bam) { try { api.bam(kb.id, j); return; } catch { /* trang cũ đã đi */ } }
+        window.KHUNG3D.ap(c, `${kb.ten} · ${c.ten}`, kb, j);
+      };
+      d.append(b);
+    });
+    const on = d.children[i]; if (on) on.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+
+  /* ── API cho trang hồ sơ (canh-3d.js gọi qua window.parent.KHUNG3D) ── */
+  window.KHUNG3D = {
+    phienBan: 1,
+    // trang báo nó có kịch bản nào; khung tự áp cảnh đầu (hoặc cảnh trong địa chỉ lúc mở khung)
+    dangKy(a) {
+      api = a;
+      if (!a.co && !soan) { moDock(false); return; }
+      if (dongTay) { moDock(false); $("nut-3d").hidden = false; return; }
+      moDock(true);
+      if (dauTien) { const x = dauTien; dauTien = null; a.bam(x.kb, x.c, true); }
+      else if (a.co) a.bam();
+    },
+    // áp một cảnh: {tt, bay} + tên hiện ở đầu dock; kèm cả kịch bản ⇒ dải cảnh dưới đầu dock để đổi cảnh ngay tại đây
+    ap(canh, ten, kb, i) {
+      dangCanh = JSON.parse(JSON.stringify({ tt: canh.tt || {}, bay: canh.bay ?? 0.8 }));
+      $("dock-ten").textContent = ten || canh.ten || "—";
+      $("dock-ghi").textContent = canh.ghi || ""; $("dock-ghi").hidden = !canh.ghi;
+      veDai(kb ? JSON.parse(JSON.stringify(kb)) : null, i);
+      dongTay = false; moDock(true);
+      gui({ lenh: "ap", tt: dangCanh.tt, bay: dangCanh.bay });
+    },
+    soan(bat) {
+      soan = !!bat; khung.classList.toggle("soan", soan);
+      if (soan) moDock(true);
+      if (xem) gui({ lenh: "sua", bat: soan });
+    },
+    lay: () => hoi("lay"),
+    noiBat: (theoLop) => hoi("noi_bat", { theo_lop: !!theoLop }),
+    boNoiBat: () => gui({ lenh: "bo_noi_bat" }),
+  };
+})();
+</script>
+</body>
+</html>
