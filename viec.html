@@ -1,0 +1,1741 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trang việc 3D · 383 Hải Phòng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Merriweather:wght@700&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3efe6; --paper: #faf6ec; --paper-deep: #ebe5d6; --ink: #1d1d1b; --ink-soft: #4a4a46; --muted: #6f6c64;
+    --line: #c9c2af; --line-soft: #d8d2c0; --line-ui: #8f866e; --accent: #b8412c; --accent-pale: #f0ddd4; --ok: #2f6b3a;
+    --font-sans: "Roboto", -apple-system, "Segoe UI", sans-serif;
+    --font-serif: "Merriweather", Georgia, serif;
+    --font-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", monospace;
+    --ben: 460px;
+    --t-cap: 12px; --t-foot: 13px; --t-body: 15px; --t-head: 17px; --t-title: 22px;
+    --r: 10px; --cham: 44px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: var(--t-body)/1.45 var(--font-sans); }
+  body { overflow: hidden; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button, select, input, textarea { font: inherit; color: inherit; }
+  .app { display: grid; height: 100vh; height: 100dvh; grid-template-columns: minmax(0, 1fr) var(--ben); }
+  #o-xem { position: relative; min-width: 0; background: #f7f6f2; }    
+  #xem { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; opacity: 0; transition: opacity .25s ease-out; }
+  #xem.hien { opacity: 1; }
+  .nut-noi { position: absolute; left: 12px; bottom: 12px; z-index: 2; min-height: var(--cham); padding: 0 16px; border: 1px solid var(--line-ui);
+    border-radius: 22px; background: var(--paper); box-shadow: 0 2px 8px rgba(0,0,0,.12); font: 600 var(--t-foot) var(--font-sans); cursor: pointer; }
+  .nut-noi[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  #dang-tai { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 24px; text-align: center; color: var(--muted); font-size: var(--t-foot); }
+  #dang-tai .thanh { width: min(320px, 70vw); height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 8%, transparent); overflow: hidden; }
+  #dang-tai .thanh i { display: block; height: 100%; width: 0; border-radius: 2px; background: var(--accent); transition: width .25s ease-out; }
+  #ben { overflow-y: auto; background: var(--paper-deep); border-left: 1px solid var(--line); }
+
+  .dau { position: fixed; top: 12px; left: 64px; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; max-width: min(560px, calc(100vw - 80px)); }
+  .dau:has(#nut-sua[hidden]) { display: none; }
+  body.bang .dau { left: auto; right: 12px; }
+  body.dang-sua .dau { position: sticky; top: 0; left: auto; max-width: none; padding: 8px 12px; background: var(--paper); border-bottom: 1px solid var(--line-soft); }
+  body.dang-sua .dau-dt { top: 60px; }
+  #nut-sua { flex: none; }
+  .thanh-sua { display: flex; align-items: center; gap: 8px; flex-basis: 100%; padding: 2px 0 4px; border-top: 1px solid var(--line-soft); }
+  .thanh-sua svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #bao { flex: 1; min-width: 0; font-size: var(--t-foot); line-height: 1.35; color: var(--ink-soft); }
+  #bao[data-loi="1"] { color: var(--accent); }
+
+  .nut { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--cham); min-width: var(--cham); padding: 0 14px;
+    border: 0; border-radius: 8px; background: color-mix(in srgb, var(--ink) 7%, transparent); cursor: pointer; font-size: var(--t-body); font-weight: 500; }
+  .nut:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 12%, transparent); }
+  .nut:disabled { opacity: .38; cursor: default; }
+  .nut.chinh { background: var(--accent); color: #fff; font-weight: 600; }
+  .nut.chinh:hover:not(:disabled) { background: #9e3624; }
+  .nut.to-mau { background: var(--accent-pale); color: #8a2f1f; }
+  .nut.nho { padding: 0 10px; font-size: var(--t-foot); }
+  .nut.bieu { padding: 0; width: var(--cham); font-size: var(--t-body); }
+  .nut.xoa { color: var(--accent); }
+  .nut[aria-pressed="true"], .nut[aria-pressed="true"]:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .than { padding: 20px 16px 64px; }
+  h1 { margin: 0; font: 700 var(--t-title)/1.3 var(--font-serif); }
+  .phu-de { margin: 4px 0 0; font-size: var(--t-head); line-height: 1.35; color: var(--ink-soft); }
+  .chan { margin: 16px 0 0; padding: 12px 14px; border-radius: var(--r); background: var(--accent-pale); color: #7d2a1b; font: 600 var(--t-foot)/1.45 var(--font-sans); }
+  .mo-dau { margin: 12px 0 0; color: var(--ink-soft); }
+  .ban-ve { display: flex; align-items: center; gap: 14px; margin: 16px 0 0; padding: 14px 16px; min-height: 64px; border-radius: var(--r);
+    background: var(--ink); color: var(--paper); text-decoration: none; }
+  .ban-ve:hover { background: #000; }
+  .ban-ve svg { flex: none; width: 30px; height: 30px; }
+  .ban-ve-chu { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .ban-ve-ten { font: 700 var(--t-head)/1.3 var(--font-sans); }
+  .ban-ve-phu { font-size: var(--t-foot); line-height: 1.35; opacity: .8; }
+  .ban-ve-mui { flex: none; font-size: 22px; }
+  .lien-quan { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 0; }
+  .lien-quan .ban-ve { margin: 0; min-height: 52px; padding: 10px 14px; background: #fff; color: var(--ink);
+    border: 1px solid var(--line); }
+  .lien-quan .ban-ve:hover { background: color-mix(in srgb, var(--accent-pale) 60%, #fff); }
+  .lien-quan .ban-ve svg { width: 24px; height: 24px; color: var(--accent); }
+  .lien-quan .ban-ve-ten { font-size: var(--t-body); }
+  .chi-tiet > .lien-quan { margin: 0 0 12px; }
+
+  .nhom { margin: 24px 0 0; }
+  .nhom-dau { margin: 0 0 6px 16px; font: 500 var(--t-foot)/1.3 var(--font-sans); letter-spacing: .02em; text-transform: uppercase; color: var(--muted); }
+  .nhom-than { border-radius: var(--r); background: #fff; overflow: hidden; }
+  details.nhom > summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: var(--cham); margin: 0 0 6px; padding: 0 16px;
+    border-radius: var(--r); background: #fff; cursor: pointer; font: 500 var(--t-foot)/1.3 var(--font-sans); letter-spacing: .02em; text-transform: uppercase; color: var(--muted); }
+  details.nhom > summary::-webkit-details-marker { display: none; }
+  details.nhom > summary::after { content: "›"; margin-left: auto; font-size: 20px; line-height: 1; transition: transform .15s; }
+  details.nhom[open] > summary { background: transparent; min-height: 0; padding: 0 16px; }
+  details.nhom[open] > summary::after { transform: rotate(90deg); }
+  details.nhom > summary .dem-nho { margin-left: -2px; font: 500 var(--t-cap) var(--font-mono); text-transform: none; }
+  .nhom-chan { margin: 6px 16px 0; font-size: var(--t-foot); line-height: 1.4; color: var(--muted); }
+  .nhom-than > * + * { border-top: 1px solid var(--line-soft); }
+  .dong { padding: 10px 16px; }
+  .dong.hang-nut { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px; }
+
+  ol.muc, ol.con { list-style: none; margin: 0; padding: 0; }
+  ol.muc > li + li { border-top: 1px solid var(--line-soft); }
+  ol.con { margin: 0 0 4px 30px; }
+  ol.con > li { border-top: 1px solid var(--line-soft); }
+  .hang-muc { display: flex; align-items: center; gap: 12px; width: 100%; min-height: var(--cham); padding: 8px 12px; border: 0;
+    background: transparent; text-align: left; cursor: pointer; }
+  .hang-muc:hover { background: color-mix(in srgb, var(--accent-pale) 60%, transparent); }
+  .hang-muc[aria-current="true"] { background: var(--ink); color: var(--paper); }
+  .hang-muc .so { flex: none; display: inline-grid; place-items: center; min-width: 32px; height: 26px; padding: 0 6px; border-radius: 13px;
+    background: color-mix(in srgb, currentColor 10%, transparent); font: 600 var(--t-cap) var(--font-mono); }
+  .hang-muc .t { flex: 1; font-size: var(--t-body); font-weight: 600; }
+  ol.con .hang-muc .t { font-weight: 400; }
+  .hang-muc .dem { flex: none; font: 500 var(--t-cap) var(--font-mono); opacity: .7; }
+  .hang-muc .kb { flex: none; font-size: var(--t-cap); opacity: .7; }
+  .chi-tiet { padding: 12px 16px 16px; background: #fdfbf6; border-left: 3px solid var(--ink); }
+  .chi-tiet h2 { margin: 0 0 8px; font: 700 var(--t-head)/1.35 var(--font-serif); }
+  .chi-tiet ul.mo-ta { margin: 0 0 12px; padding-left: 18px; }
+  .chi-tiet ul.mo-ta li { margin: 4px 0; }
+  .anh-muc { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin: 0 0 12px; }
+  .anh-muc figure { margin: 0; }
+  .anh-muc img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; border: 1px solid var(--line-soft); background: #fff; }
+  .anh-muc figcaption { margin-top: 4px; font-size: var(--t-foot); color: var(--muted); line-height: 1.35; }
+  table.ts { width: 100%; border-collapse: collapse; margin: 4px 0 12px; font-size: var(--t-foot); }
+  table.ts th { width: 36%; padding: 8px 12px 8px 0; vertical-align: top; text-align: left; font-weight: 500; color: var(--muted); border-top: 1px solid var(--line-soft); }
+  table.ts td { padding: 8px 0; vertical-align: top; border-top: 1px solid var(--line-soft); }
+  .nt-dau { margin: 16px 0 4px; font: 500 var(--t-cap) var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+
+  ul.chk { list-style: none; margin: 0; padding: 0; }
+  ul.chk li { position: relative; padding: 10px 0 10px 32px; border-top: 1px solid var(--line-soft); }
+  ul.chk li::before { content: ""; position: absolute; left: 2px; top: 13px; width: 18px; height: 18px; border: 1.5px solid var(--ink); border-radius: 5px; background: #fff; }
+  ul.chk li.goi-y::before { border-style: dashed; border-color: var(--line-ui); }
+  ul.chk li.xong::before { background: var(--ok); border-color: var(--ok); }
+  ul.chk li.xong::after { content: "✓"; position: absolute; left: 6px; top: 10px; color: #fff; font-weight: 700; font-size: 14px; }
+  ul.chk li.xong strong { text-decoration: line-through; color: var(--muted); }
+  ul.chk strong { display: block; font-weight: 500; }
+  ul.chk .why { display: block; margin-top: 2px; font-size: var(--t-foot); color: var(--ink-soft); }
+  ul.chk .muc-nho { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; font: 600 10.5px var(--font-mono);
+    letter-spacing: .04em; text-transform: uppercase; vertical-align: 1px; border: 1px dashed var(--line-ui); color: var(--muted); }
+
+  body.bang .app { grid-template-columns: minmax(0, 1fr); }
+  body.bang #o-xem { position: fixed; left: -200vw; width: 60vw; height: 60vh; }       
+  body.bang #ben { border: 0; background: var(--paper); }
+  body.bang .than { max-width: none; }
+  .loc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0 12px; }
+  .loc input, .loc select { min-height: var(--cham); padding: 4px 10px; border: 1px solid var(--line-soft); border-radius: 8px; background: #fff; }
+  .loc select { max-width: 100%; min-width: 0; flex: 1 1 9em; height: var(--cham); -webkit-appearance: none; appearance: none; padding-right: 28px;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23555' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 10px center; }
+  .loc input { min-width: 0; max-width: 100%; height: var(--cham); }
+  .loc input { flex: 1 1 240px; }
+  .tong { font: 500 var(--t-foot) var(--font-mono); color: var(--muted); }
+  .bang-cuon { overflow: auto; max-height: calc(100dvh - 210px); border: 1px solid var(--line); border-radius: var(--r); background: #fff; }
+  table.nt { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1000px; font-size: var(--t-foot); }
+  table.nt th { position: sticky; top: 0; z-index: 1; padding: 10px; background: var(--paper-deep); border-bottom: 1px solid var(--line-ui);
+    text-align: left; font: 600 11px var(--font-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; cursor: pointer; }
+  table.nt td { padding: 8px 10px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  table.nt tr:nth-child(even) td { background: #fcfaf5; }
+  table.nt tr:hover td { background: var(--accent-pale); cursor: pointer; }
+  table.nt td.so { font: 500 12px var(--font-mono); color: var(--muted); white-space: nowrap; }
+  table.nt td.viec { font-weight: 600; min-width: 150px; }
+  table.nt td.tc { min-width: 260px; }
+  table.nt td.biet { color: var(--ink-soft); min-width: 320px; }
+  table.nt td.dat { text-align: center; font-size: 16px; }
+  table.nt td.dat input { width: 22px; height: 22px; margin: 0; accent-color: var(--ok); cursor: pointer; }
+  .the-muc { display: inline-block; padding: 1px 6px; border-radius: 4px; font: 600 10.5px var(--font-mono); text-transform: uppercase; white-space: nowrap; }
+  .the-muc.yeu-cau { border: 1px solid var(--ink); }
+  .the-muc.goi-y { border: 1px dashed var(--line-ui); color: var(--muted); }
+
+  .truong { display: grid; gap: 4px; padding: 10px 16px; }
+  .truong > .nhan { font: 500 var(--t-cap) var(--font-sans); letter-spacing: .03em; text-transform: uppercase; color: var(--muted); }
+  .o, textarea.o, select.o { width: 100%; min-height: var(--cham); padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--paper); }
+  .o:focus { border-color: var(--line-ui); background: #fff; }
+  textarea.o { min-height: 72px; resize: vertical; line-height: 1.45; }
+  .o.lon { font-size: var(--t-head); font-weight: 600; }
+  .o.ma { font-family: var(--font-mono); font-size: var(--t-foot); }
+  .hang-sua { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .hang-sua > .o { flex: 1 1 140px; width: auto; }
+  .hang-sua > * { min-width: 0; }                          
+  .dong-sua { display: grid; gap: 8px; padding: 10px 12px 10px 16px; }
+  .dong-sua.xong-roi { background: color-mix(in srgb, var(--ok) 6%, #fff); }
+  .chon-ok { display: inline-flex; align-items: center; gap: 8px; min-height: var(--cham); padding: 0 4px; font-size: var(--t-foot); cursor: pointer; }
+  .chon-ok input { width: 20px; height: 20px; margin: 0; accent-color: var(--ok); }
+  .gian { flex: 1; }
+  .chip { display: inline-flex; align-items: center; gap: 2px; margin: 2px 4px 2px 0; padding: 0 0 0 10px; border-radius: 16px;
+    background: #fff1e4; box-shadow: inset 0 0 0 1px #f0a868; font-size: var(--t-foot); }
+  .chip button { min-width: 32px; min-height: 32px; border: 0; background: transparent; cursor: pointer; color: var(--accent); border-radius: 16px; }
+  .trong { color: var(--muted); font-size: var(--t-foot); }
+  .buoc-kb { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 10px; padding: 10px 12px 10px 16px; }
+  .buoc-kb .stt { display: grid; place-items: center; width: 28px; height: 28px; margin-top: 8px; border-radius: 14px; background: var(--ink); color: var(--paper);
+    font: 600 var(--t-cap) var(--font-mono); }
+  .buoc-kb .v { font: 500 var(--t-cap) var(--font-mono); color: var(--muted); word-break: break-all; }
+  .so-nho { width: 72px !important; flex: 0 0 72px !important; text-align: right; }
+  .don-vi { font-size: var(--t-foot); color: var(--muted); }
+
+  #so-do { position: absolute; inset: 0; z-index: 1; background: #f7f6f2; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+  #so-do.keo { cursor: grabbing; }
+  #so-do svg { display: block; width: 100%; height: 100%; }
+  #so-do .tb { position: absolute; inset: 0; display: grid; place-content: center; padding: 24px; text-align: center; color: var(--muted); font-size: var(--t-foot); }
+  body:not(.so-do) #so-do, body.so-do:not(.so-do-tran) #nut-kt { display: none; }
+  #so-do .td { cursor: pointer; }
+  #so-do .td-kt { display: none; }
+  #so-do .td.chon .td-kt { display: inline; }
+  .so-do-chu.tran { pointer-events: auto; flex-direction: column; flex-wrap: nowrap; gap: 2px; max-height: calc(100% - 90px); overflow: auto; }
+  #so-do .den-luu { position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%); display: flex; gap: 8px; align-items: center;
+    padding: 6px 8px 6px 14px; border-radius: 999px; background: #1d1d1b; color: #fff; box-shadow: 0 6px 24px rgba(0,0,0,.18); font-size: var(--t-foot); z-index: 3; }
+  #so-do .den-luu button { min-height: var(--cham); padding: 0 16px; border-radius: 999px; border: 0; background: rgba(255,255,255,.14); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+  #so-do .den-luu button.chinh { background: #f2c14e; color: #1d1d1b; }
+  #so-do .den-tt .den-kieu { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  #so-do .den-tt select { flex: 1; min-height: var(--cham); font: inherit; border-radius: 8px; border: 1px solid #d9d3c4; background: #fff; padding: 0 8px; }
+  #so-do .den-tt .goi-y-keo { margin-top: 6px; color: var(--muted); font-size: 12px; }
+  #so-do .td { cursor: grab; }
+  .so-do-chu .ma-loai, #than .ma-loai { font-family: var(--font-mono); font-weight: 700; color: var(--ink); min-width: 2.2em; }
+  #than .den-dau { margin: 20px 0 6px; font-size: var(--t-foot); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  #than details.den-tang { border: 1px solid var(--line, #e3ddd0); border-radius: 12px; background: #fff; margin: 8px 0; overflow: hidden; }
+  #than details.den-tang > summary { cursor: pointer; min-height: var(--cham); display: flex; align-items: center; gap: 6px; padding: 0 14px; font-weight: 700; }
+  #than .den-phong { margin: 10px 14px 2px; font-size: var(--t-foot); color: var(--muted); font-weight: 600; }
+  #than .den-hang { display: flex; align-items: center; gap: 10px; width: 100%; min-height: var(--cham); padding: 4px 14px; border: 0; border-top: 1px solid #f0ece2;
+    background: none; text-align: left; font: inherit; color: var(--ink); cursor: pointer; }
+  #than .den-hang:hover, #than .den-hang.dang { background: #fbf3e4; }
+  #than .den-hang svg { flex: none; }
+  #than .den-hang .t { flex: 1; }
+  #than .den-hang .dem { font-family: var(--font-mono); color: var(--muted); font-size: var(--t-foot); }
+  #than .den-ct { padding: 8px 14px 14px; background: #fbf8f1; border-top: 1px solid #f0ece2; }
+  #than .den-ct img { display: block; width: 100%; max-height: 220px; object-fit: contain; background: #fff; border-radius: 8px; margin-bottom: 8px; }
+  #than .den-ct dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; font-size: var(--t-foot); }
+  #than .den-ct dt { color: var(--muted); }
+  #than .den-ct dd { margin: 0; }
+  #than .den-ma { display: block; width: 100%; min-height: var(--cham); margin: 8px 0 0; padding: 0; border: 0; background: none; text-align: left;
+    font-family: var(--font-mono); font-size: 12px; color: var(--muted); cursor: copy; }
+  #than .den-ma:hover { text-decoration: underline; }
+  #than .den-ma[data-da]::after { content: " — đã chép mã"; color: #2f7d4a; font-weight: 600; }
+  #so-do .td-vong { display: none; }
+  #so-do .td.chon .td-vong { display: inline; }
+  #so-do .den-tt { position: absolute; right: 12px; top: 12px; width: min(320px, calc(100% - 24px)); padding: 10px 14px; border-radius: 10px;
+    background: color-mix(in srgb, var(--paper) 96%, transparent); box-shadow: 0 2px 10px rgba(0,0,0,.12); font-size: var(--t-cap); line-height: 1.45; color: var(--ink-soft); }
+  body.so-do-tran #so-do .nut-noi { right: 96px; }
+  #so-do .den-tt b { display: block; color: var(--ink); font-size: var(--t-foot); }
+  #so-do .den-tt .ma { display: block; font-family: var(--font-mono); color: var(--muted); }
+  #so-do .den-tt button.den-chep { float: none; display: block; width: calc(100% - var(--cham)); min-height: var(--cham); margin: 0; padding: 2px 0;
+    text-align: left; font: inherit; font-size: inherit; color: inherit; border-radius: 6px; }
+  #so-do .den-tt button.den-chep:hover b { text-decoration: underline; }
+  #so-do .den-tt .chep-bao { display: block; font-size: 11px; color: var(--muted); }
+  #so-do .den-tt .chep-bao.da { color: #2f7d4a; font-weight: 600; }
+  #so-do .den-tt button { float: right; min-width: var(--cham); min-height: var(--cham); margin: -10px -14px 0 0; border: 0; background: none; font-size: 20px; color: var(--muted); cursor: pointer; }
+  .so-do-chu.tran .nhom-chu { margin-top: 6px; font-weight: 600; color: var(--ink); }
+  .so-do-chu.tran summary { cursor: pointer; font-weight: 600; min-height: var(--cham); display: flex; align-items: center; }
+  .so-do-chu.tran span { display: flex; align-items: center; gap: 6px; }
+  #so-do .so-do-chu.tran svg { flex: none; width: 26px; height: 26px; }
+  .so-do-chu i.kt { background: transparent; border: 0; border-top: 2px solid #b8412c; height: 0; vertical-align: 3px; border-radius: 0; }
+  .so-do-chu { position: absolute; left: 12px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 4px 14px; max-width: calc(100% - 150px); padding: 8px 12px;
+    border-radius: 10px; background: color-mix(in srgb, var(--paper) 92%, transparent); font-size: var(--t-cap); line-height: 1.4; color: var(--ink-soft); pointer-events: none; }
+  .so-do-chu span { white-space: nowrap; }
+  .so-do-chu i.x { background: linear-gradient(45deg, transparent 46%, #8f866e 46% 54%, transparent 54%), linear-gradient(-45deg, transparent 46%, #8f866e 46% 54%, transparent 54%), #fff; border-color: #8f866e; }
+  .so-do-chu i.che { background: transparent; border: 1.5px dashed #b8412c; }
+  .so-do-chu i { display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -3px; border: 1px solid #6b5b40; border-radius: 2px; }
+  #so-do .nut-noi { left: auto; right: 12px; }
+  .huong-bv { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 2; display: flex; align-items: center;
+    gap: 4px; padding: 0 4px; border: 1px solid var(--line-ui); border-radius: 999px; background: var(--paper); }
+  .huong-bv[hidden] { display: none; }
+  .huong-bv button { min-width: var(--cham); min-height: var(--cham); border: 0; background: none; font-size: 22px; cursor: pointer; color: inherit; }
+  .huong-bv .bv-ten { min-width: 9em; text-align: center; font-size: 14px; }
+  body.so-do .huong-bv { display: none; }
+  @media (max-width: 899px) { .so-do-chu { display: none; } .so-do-chu.tran { display: flex; max-width: calc(100% - 110px); } }
+  @media (max-width: 899px) {
+    body { overflow: auto; }
+    .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: 46vh auto; height: auto; }
+    #o-xem { position: sticky; top: 0; z-index: 4; height: 46vh; }
+    .app { background: #f7f6f2; }        
+    #ben { position: relative; z-index: 3; border-left: 0; border-radius: 14px 14px 0 0; overflow: visible; }
+    body.bang #ben { border-radius: 0; }
+    body.bang .app { grid-template-rows: auto; }
+  }
+  #nut-x { display: none; }
+  body.dt #nut-x { display: inline-grid; place-items: center; position: absolute; left: 12px; top: 12px; z-index: 2; width: var(--cham); height: var(--cham);
+    padding: 0; border: 1px solid var(--line-ui); border-radius: 22px; background: var(--paper); box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    font-size: 18px; line-height: 1; text-decoration: none; color: var(--ink); }
+  .dau-dt { display: block; position: sticky; top: 0; z-index: 2; padding: 4px 8px 4px 12px;
+    background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: saturate(1.4) blur(16px); -webkit-backdrop-filter: saturate(1.4) blur(16px);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+  .dau-dt .hang { display: flex; align-items: center; gap: 4px; min-height: 52px; }
+  .dau-dt .ten-dt { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; min-height: var(--cham); padding: 0 6px; border: 0; border-radius: 8px;
+    background: transparent; text-align: left; cursor: pointer; }
+  .dau-dt .ten-dt:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+  .dau-dt .ten-dt .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 var(--t-head)/1.3 var(--font-serif); }
+  .dau-dt .ten-dt .ma { flex: none; font: 500 var(--t-cap) var(--font-mono); color: var(--muted); }
+  .dau-dt .ten-dt .mui { flex: none; font-size: 12px; color: var(--muted); transition: transform .15s; }
+  .dau-dt .ten-dt[aria-expanded="true"] .mui { transform: rotate(180deg); }
+  .dau-dt .nut { flex: none; }
+  .dau-dt .ds-dt { max-height: 50vh; overflow-y: auto; margin: 4px 0 8px; border-radius: var(--r); background: #fff; }
+  @media (max-width: 899px) {
+    body.dt .dau-dt { top: 46vh; z-index: 3; padding-top: 14px; border-radius: 14px 14px 0 0; touch-action: none; }
+    body.dt .dau-dt::before { content: ""; position: absolute; top: 5px; left: 50%; width: 36px; height: 5px; margin-left: -18px; border-radius: 3px;
+      background: color-mix(in srgb, var(--ink) 22%, transparent); }
+    body.dt.thu .app { grid-template-rows: calc(100dvh - 72px) auto; }
+    body.dt.thu #o-xem { height: calc(100dvh - 72px); }
+    body.dt.thu .dau-dt { top: calc(100dvh - 72px); }
+    body.dt.thu #than, body.dt.thu .dau-dt .ds-dt { display: none; }
+    body.dt.thu { overflow: hidden; }
+  }
+  @media print {
+    body { overflow: visible; } .app { display: block; height: auto; } #o-xem, .dau .nut, .dau select, .loc { display: none !important; }
+    .bang-cuon { max-height: none; overflow: visible; border: 0; }
+  }
+</style>
+</head>
+<body class="dt">
+<div class="app">
+  <main id="o-xem" aria-label="Mô hình 3D"><div id="dang-tai" role="status"><div class="thanh"><i id="tien-i"></i></div><span id="tien-chu">Đang tải mô hình 3D — chỉ tải một lần cho cả lượt xem.</span></div>
+    <button type="button" id="nut-kt" class="nut-noi" style="left:auto;right:12px">3D</button>
+    <div id="huong-bv" class="huong-bv" hidden><button type="button" id="bv-truoc" aria-label="Hướng nhìn trước">‹</button><button type="button" id="bv-ten" class="bv-ten" aria-live="polite" title="Bấm để đổi mặt nhìn"></button><button type="button" id="bv-sau" aria-label="Hướng nhìn sau">›</button></div>
+    <a id="nut-x" href="3d/xem.html?m=nha" aria-label="Đóng — về mô hình 3D cả nhà" title="Về mô hình 3D cả nhà">✕</a></main>
+  <aside id="ben" aria-label="Mục của việc">
+    <div class="dau">
+      <button class="nut" id="nut-sua" type="button" hidden aria-pressed="false">✎ Sửa</button>
+      <div class="thanh-sua" id="thanh-sua" hidden>
+        <button class="nut bieu" id="nut-lui" type="button" disabled title="Hoàn tác (⌘Z)" aria-label="Hoàn tác"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+        <button class="nut bieu" id="nut-toi" type="button" disabled title="Làm lại (⇧⌘Z)" aria-label="Làm lại"><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+        <span id="bao" role="status"></span>
+        <button class="nut chinh" id="nut-luu" type="button" disabled>Đã lưu</button>
+      </div>
+    </div>
+    <div class="dau-dt" id="dau-dt"></div>
+    <div class="than" id="than"></div>
+  </aside>
+</div>
+<script>
+(() => {
+  const CFG = Object.assign({ json: "3d/viec.json", ghi: null, xem: "3d/xem.html", goc: "3d/xem.html?m=nha" }, window.VIEC_CFG || {});
+  const $ = (id) => document.getElementById(id);
+  const h = (tag, attrs = {}, ...con) => {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+      else if (k === "class") e.className = v;
+      else if (k === "value") e.value = v;
+      else if (k === "html") e.innerHTML = v;
+      else e.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of con.flat()) if (c != null && c !== false) e.append(c);
+    return e;
+  };
+  const giau = (s) => { const t = document.createElement("template");
+    t.innerHTML = String(s || "").replace(/<(?!\/?(strong|em)\b)[^>]*>/g, "");
+    return t.content; };
+  const khongDau = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+  const slug = (s) => khongDau(s).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+  const MA = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  const sao = (x) => JSON.parse(JSON.stringify(x));
+  $("nut-x").href = CFG.xem + "?m=nha";
+  const DT = matchMedia("(max-width: 899px)");                    
+  const TEN_MUC = { "yeu-cau": "yêu cầu", "goi-y": "gợi ý" };
+  const muc = (l) => (l === "goi-y" ? "goi-y" : "yeu-cau");
+  const TEN_BUOC = { tach: "Tách lớp", camera: "Bay camera", noi_bat: "Làm nổi", cho: "Chờ", noi_len: "Xem rời" };
+
+  const xem = h("iframe", { id: "xem", title: "Mô hình 3D", src: CFG.xem + "?m=nha&nhung=1&khong_the=1" });
+  $("o-xem").append(xem);
+  let sanSang = false, soHoi = 0;
+  const hang = [], cho = new Map();
+  const gui = (m) => (sanSang ? xem.contentWindow.postMessage({ nguon: "khung3d", ...m }, "*") : hang.push(m));
+  const hoi = (lenh, them = {}) => new Promise((r) => { const id = ++soHoi; cho.set(id, r); gui({ lenh, hoi: id, ...them }); });
+  addEventListener("message", (ev) => {
+    if (ev.source !== xem.contentWindow && ev.origin !== location.origin) return;
+    const d = ev.data || {};
+    if (d.nguon !== "xem3d") return;
+    if (d.lenh === "san_sang") {
+      sanSang = true;
+      if (sua) xem.contentWindow.postMessage({ nguon: "khung3d", lenh: "sua", bat: true }, "*");
+      for (const m of hang.splice(0)) gui(m);
+    } else if (d.lenh === "trang_thai" || d.lenh === "chon" || d.lenh === "kich_ban_xong" || d.lenh === "da_ap" || d.lenh === "ban_ve" || d.lenh === "bo_phan") {
+      const f = cho.get(d.hoi); if (f) { cho.delete(d.hoi); f(d.lenh === "chon" || d.lenh === "bo_phan" ? d.ds : d.lenh === "trang_thai" ? d.tt : d.lenh === "ban_ve" ? d.kq : d.xong); } }
+    else if (d.lenh === "tien_do") { $("tien-i").style.width = (d.pct * 100).toFixed(1) + "%"; if (!daHienXong) $("tien-chu").textContent = d.chu; }
+    else if (d.lenh === "loi") { $("dang-tai").hidden = false; $("tien-chu").textContent = "Không tải được mô hình 3D: " + d.loi; }
+  });
+  let ttCuoi = "", ttDang = {}, goc = null, daHien = false, daHienXong = false;
+  const tachDe = null;                 
+  let kichThuoc = true;
+  const chiBa = (tt) => !!tt && tt.ban_ve === false;
+  const laTran = (v) => !!v && /^(tran-|ban-do-den$|vach-dau-thang$)/.test(v.so_do || "");   
+  let viecDang = null;
+  const banVeBat = (tt = goc && goc.tt) => kichThuoc && !sua && !chiBa(tt) && !laTran(viecDang);
+  const HUONG_BV = [[null, "Tự chọn mặt nhìn"], ["y-", "Nhìn từ Tây Bắc"], ["x+", "Nhìn từ Tây Nam"], ["y+", "Nhìn từ Đông Nam"],
+    ["x-", "Nhìn từ Đông Bắc"], ["z+", "Nhìn từ trên xuống"]];
+  const laTrangCua = () => !!viecDang && CUA_VIEC.has(viecDang.id) && !sua;
+  const GOC_DUNG = { ten: "Mặt đứng" };
+  let gocCua = [GOC_DUNG], cuaDang = null;
+  const dsGoc = () => (laTrangCua() ? gocCua : HUONG_BV.map(([huong, ten]) => ({ ten, huong })));
+  let iHuong = 0;
+  const gocBV = () => {
+    const g = dsGoc()[iHuong] || dsGoc()[0];
+    return { huong: g.huong || null, chi: g.chi || null, bp: g.bp || null, cat: !!g.cat, vi_tri: !!g.vi_tri, tuong: !!g.tuong };
+  };
+  const veTenHuong = () => {
+    const ds = dsGoc(); if (iHuong >= ds.length) iHuong = 0;
+    $("bv-ten").textContent = ds[iHuong].ten;
+    $("bv-truoc").hidden = $("bv-sau").hidden = ds.length < 2; $("bv-ten").disabled = ds.length < 2;
+  };
+  const doiHuong = (b) => {
+    const n = dsGoc().length;
+    if (n < 2) return;
+    iHuong = (iHuong + b + n) % n;
+    veTenHuong();
+    if (!banVeBat()) return;
+    gui({ lenh: "ban_ve", bat: true, ...gocBV() });
+  };
+  const laCuaSo = (m) => /^Cửa sổ/.test(m.ten || "");
+  function taiGocCua(m) {
+    hoi("bo_phan").then((ds) => {
+      if (!laTrangCua() || cuaDang !== m.id) return;
+      const bp = new Map((ds || []).map((x) => [x.ten, x.ids]));
+      if (laCuaSo(m)) { gocCua = [GOC_DUNG, { ten: "Vị trí trên tường", tuong: true }]; veTenHuong(); return; }
+      gocCua = [GOC_DUNG,
+        ...(bp.has("Nẹp chỉ") ? [{ ten: "Nẹp chỉ — mặt cắt", chi: bp.get("Nẹp chỉ"), bp: "Nẹp chỉ", huong: "z+", cat: true }] : []),
+        ...(bp.has("Lam chân") ? [{ ten: "Lam chân", chi: bp.get("Lam chân"), bp: "Lam chân" }] : []),
+        ...(bp.has("Khoá và tay nắm") ? [{ ten: "Tay nắm và khoá", chi: bp.get("Khoá và tay nắm"), bp: "Khoá và tay nắm", vi_tri: true }] : [])];
+      veTenHuong();
+    });
+  }
+  $("bv-truoc").onclick = () => doiHuong(-1);
+  $("bv-sau").onclick = () => doiHuong(1);
+  $("bv-ten").onclick = () => doiHuong(1);
+  const veNutKt = () => {
+    veTenHuong();
+    $("huong-bv").hidden = !banVeBat();
+    const b = $("nut-kt"), bv = banVeBat();
+    b.hidden = sua || chiBa(goc && goc.tt);
+    if (laTran(viecDang) && !sua) {
+      b.hidden = false;
+      const tenSd = viecDang.so_do === "vach-dau-thang" ? "Mặt bằng" : "Mặt bằng trần";
+      b.textContent = kichThuoc ? "3D" : tenSd;
+      b.title = kichThuoc ? "Xem mô hình 3D — xoay, phóng tự do" : tenSd === "Mặt bằng" ? "Mặt bằng đúng tỉ lệ, số đo mm"
+        : "Mặt bằng trần nhìn từ trên xuống, ghi khoảng cách tới mặt tường (mm)";
+      return;
+    }
+    b.textContent = bv ? "3D" : "Kích thước";
+    b.title = bv ? "Xem mô hình 3D — xoay, phóng tự do" : "Bản vẽ 2D nhìn thẳng, ghi kích thước mm để dựng";
+  };
+  const khoaGoc = (g) => (g.sid != null ? `${g.sid}|${banVeBat(g.tt)}` : JSON.stringify([g.tt || {}, g.kb || null, banVeBat(g.tt)]));
+  const ttCuoiCua = (tt, kb) => {                                
+    const cuoi = { ...(tt || {}) };
+    for (const b of kb || []) {
+      if (b.buoc === "tach") cuoi.tach = Number(b.khe) || 0;
+      else if (b.buoc === "camera" && b.v) cuoi.v = b.v;
+      else if (b.buoc === "noi_bat") { if ((b.ds || []).length) cuoi.noi_bat = b.ds; else delete cuoi.noi_bat; }
+      else if (b.buoc === "noi_len" && (b.ds || []).length) cuoi.noi_len = { ds: b.ds, khe: b.khe ?? 0.5, ...(b.lop ? { lop: b.lop } : {}), ...(b.ten ? { ten: b.ten } : {}) };
+    }
+    return cuoi;
+  };
+  function apGoc(tt, bay, kb, sid) {
+    const g = { tt, bay, kb: kb && kb.length ? kb : null, sid };
+    const k = khoaGoc(g);
+    if (k === ttCuoi) return null;
+    ttCuoi = k; goc = g;
+    const tk = (g.kb || []).filter((b) => b.buoc === "tach").pop();
+    ttDang = tk ? { ...(tt || {}), tach: Number(tk.khe) || 0 } : tt || {};
+    if (!daHien) {
+      $("tien-chu").textContent = "Đang dựng góc nhìn…";
+      const xong = hoi("ap", { tt: ttCuoiCua(tt, g.kb), bay: 0, tachDe }).then(() => (banVeBat() && ttCuoi === k ? hoi("ban_ve", { bat: true, ...gocBV() }) : null));
+      xong.then(() => { $("xem").classList.add("hien"); $("dang-tai").hidden = true; daHienXong = true; });
+      daHien = true; veNutKt(); return xong;
+    }
+    let xong;
+    if (banVeBat()) { gui({ lenh: "ap", tt: ttCuoiCua(tt, g.kb), bay: 0, tachDe }); xong = hoi("ban_ve", { bat: true, ...gocBV() }); }
+    else {
+      gui({ lenh: "ban_ve", bat: false });
+      if (g.kb) xong = hoi("kich_ban", { tt: tt || {}, ds: g.kb, tachDe });
+      else xong = hoi("ap", { tt: tt || {}, bay: bay ?? 0.8, tachDe });
+    }
+    veNutKt();
+    return xong;
+  }
+  const dongBo = () => { if (goc) ttCuoi = khoaGoc(goc); };      
+  $("nut-kt").onclick = () => { kichThuoc = !kichThuoc; ve(); veNutKt(); };
+
+  const SD = { el: null, g: null, cam: { s: 60, tx: 0, ty: 0 }, khung: [], dich: null, ten: null, du: {} };
+  const svgE = (tag, at = {}, ...con) => {
+    const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [k, v] of Object.entries(at)) if (v != null) e.setAttribute(k, v);
+    for (const c of con.flat()) if (c != null) e.append(c);
+    return e;
+  };
+  const TO = { nen: "#f7f6f2", tuong: "#2b2a27", khong: "#e8e3d6", nguyen: "#d6bf95", cat: "#f3e7d0", hoa: "#a9b48c", hoa_cat: "#d9dfc8", vien: "#6b5b40", chu: "#3d3528", mo: "#8f866e" };
+  function veSoDoSvg(d) {
+    const g = svgE("g");
+    const NC = 1.7;                                              
+    let ox = 0;
+    SD.khung = [];
+    for (const t of d.tang) {
+      const ds = [...t.tuong.flat(), ...t.vien.flatMap((v) => v.p)];
+      const x0 = Math.min(...ds.map((p) => p[0])), x1 = Math.max(...ds.map((p) => p[0]));
+      const y0 = Math.min(...ds.map((p) => p[1])), y1 = Math.max(...ds.map((p) => p[1]));
+      const X = (p) => ox + p[0] - x0, Y = (p) => y1 - p[1];
+      const pts = (q) => q.map((p) => `${X(p).toFixed(3)},${Y(p).toFixed(3)}`).join(" ");
+      const gi = svgE("g");
+      const hop = (q) => { const xs = q.map(X), ys = q.map(Y); return [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]; };
+      const chu = (x, y, s, co, at = {}) => svgE("text", { x: x.toFixed(3), y: y.toFixed(3), "font-size": co, "text-anchor": "middle", "dominant-baseline": "central", ...at }, s);
+      const cheo = (q, nen) => {
+        const id = `sd-c-${t.ma}-${SD.so = (SD.so || 0) + 1}`, [a, b, c, e] = hop(q), net = { stroke: TO.mo, "stroke-width": 1, "vector-effect": "non-scaling-stroke" };
+        gi.append(svgE("clipPath", { id }, svgE("polygon", { points: pts(q) })),
+          svgE("g", { "clip-path": `url(#${id})` }, svgE("polygon", { points: pts(q), fill: nen }),
+            svgE("line", { x1: a, y1: c, x2: b, y2: e, ...net }), svgE("line", { x1: a, y1: e, x2: b, y2: c, ...net })));
+      };
+      for (const ph of t.phong) if (ph.lat) gi.append(svgE("polygon", { points: pts(ph.p), fill: "#fff" })); else cheo(ph.p, "#fff");
+      for (const q of t.lo) cheo(q, "#fff");
+      for (const st of t.thang) {
+        if (!st.tren) cheo(st.vet, "#fff");
+        gi.append(svgE("polygon", { points: pts(st.vet), fill: "none", stroke: TO.mo, "stroke-width": 1, "vector-effect": "non-scaling-stroke" }));
+        for (const [a, b] of st.vach) gi.append(svgE("line", { x1: X(a), y1: Y(a), x2: X(b), y2: Y(b), stroke: TO.mo, "stroke-width": 1, "vector-effect": "non-scaling-stroke" }));
+        if (st.goc) for (const [a, b] of st.goc.chia) gi.append(svgE("line", { x1: X(a), y1: Y(a), x2: X(b), y2: Y(b), stroke: TO.mo, "stroke-width": 1, "vector-effect": "non-scaling-stroke" }));
+      }
+      for (const v of t.vien) gi.append(svgE("polygon", { points: pts(v.p), fill: v.hoa ? (v.nguyen ? TO.hoa : TO.hoa_cat) : v.nguyen ? TO.nguyen : TO.cat, stroke: TO.vien, "stroke-width": 1, "vector-effect": "non-scaling-stroke" },
+        svgE("title", {}, `${v.w} × ${v.h}${v.nguyen ? " — viên nguyên" : " — viên cắt"}`)));
+      for (const v of t.vien) {
+        if (v.nguyen && (Math.min(v.w, v.h) > 900 || v.hoa)) continue;   
+        const [a, b, c, e] = hop(v.p), w = b - a, hh = e - c;
+        const doc_ = hh > w * 1.4 && w < 0.6;                     
+        const co = Math.max(0.06, Math.min(0.12, Math.min(w, hh) * 0.3));
+        const x = (a + b) / 2, y = (c + e) / 2;
+        gi.append(chu(x, y, `${v.w}×${v.h}`, co, { fill: TO.chu, "font-family": "Roboto Mono, monospace", ...(doc_ ? { transform: `rotate(-90 ${x.toFixed(3)} ${y.toFixed(3)})` } : {}) }));
+      }
+      for (const q of t.che || []) gi.append(svgE("polygon", { points: pts(q), fill: "none", stroke: "#b8412c", "stroke-width": 1.5, "stroke-dasharray": "5 4", "vector-effect": "non-scaling-stroke" }));
+      for (const q of t.tuong) gi.append(svgE("polygon", { points: pts(q), fill: TO.tuong }));
+      for (const q of t.cot) gi.append(svgE("polygon", { points: pts(q), fill: TO.tuong }));
+      for (const q of t.cua_so) gi.append(svgE("polygon", { points: pts(q), fill: "#fff", stroke: TO.tuong, "stroke-width": 1, "vector-effect": "non-scaling-stroke" }));
+      const nhan = (s, q, co, at) => {                           
+        const [a, b, c, e] = hop(q), x = (a + b) / 2, y = (c + e) / 2;
+        gi.append(chu(x, y, s, co, e - c > 1.8 * (b - a) && s.length * co * 0.55 > b - a ? { ...at, transform: `rotate(-90 ${x.toFixed(3)} ${y.toFixed(3)})` } : at));
+      };
+      const quang = { stroke: "#fff", "stroke-width": 4, "paint-order": "stroke", "stroke-linejoin": "round", "vector-effect": "non-scaling-stroke" };
+      for (const ph of t.phong) if (!ph.lat || !t.vien.some((v) => v.phong === ph.id && v.nguyen))
+        nhan(ph.ten.replace(/\s*\(.*\)\s*/, ""), ph.p, 0.12, { fill: TO.mo, "font-weight": 500, ...quang });
+      for (const ph of t.phong) if (ph.lat && t.vien.some((v) => v.phong === ph.id && v.nguyen)) {
+        const nv = t.vien.find((v) => v.phong === ph.id && v.nguyen && Math.min(v.w, v.h) > 900) || t.vien.find((v) => v.phong === ph.id && v.nguyen);        
+        nhan(ph.ten.replace(/\s*\(.*\)\s*/, ""), nv.p, 0.13, { fill: TO.chu, "font-weight": 600, ...quang });
+      }
+      const hoa = t.vien.filter((v) => v.hoa), lon = t.vien.filter((v) => !v.hoa);
+      const w = x1 - x0, hh = y1 - y0, n = lon.length, ng = lon.filter((v) => v.nguyen).length;
+      gi.append(chu(ox + w / 2, -0.62, t.ten, 0.3, { fill: TO.chu, "font-weight": 700, "font-family": "Merriweather, Georgia, serif" }),
+        chu(ox + w / 2, -0.25, `${n} mảnh · ${ng} viên nguyên · ${n - ng} viên cắt` + (hoa.length ? ` · gạch hoa 200×200: ${hoa.filter((v) => v.nguyen).length} nguyên, ${hoa.filter((v) => !v.nguyen).length} cắt` : ""), 0.13, { fill: TO.mo }),
+        chu(ox + w / 2, hh + 0.3, "Mặt tiền — Tây Bắc", 0.12, { fill: TO.mo }));
+      SD.khung.push([ox - 0.2, ox + w + 0.2, -0.95, hh + 0.5]);
+      g.append(gi);
+      ox += w + NC;
+    }
+    SD.ca = [SD.khung[0][0], SD.khung[SD.khung.length - 1][1], Math.min(...SD.khung.map((k) => k[2])), Math.max(...SD.khung.map((k) => k[3]))];
+    return g;
+  }
+  const apCam = () => { const c = SD.cam; SD.g.setAttribute("transform", `matrix(${c.s} 0 0 ${c.s} ${c.tx} ${c.ty})`); };
+  function camVua(k) {                                         
+    const r = SD.el.getBoundingClientRect(), dem = 24;
+    const cg = SD.den && r.width >= 900 ? SD.el.querySelector(".so-do-chu[open]") : null, trai = cg ? cg.offsetWidth + 12 : 0;
+    const ngang = (r.width - trai - 2 * dem) / (k[1] - k[0]);
+    const doc_ = (r.height - 2 * dem - 56) / (k[3] - k[2]);
+    const s = SD.den && SD.khung.includes(k) ? Math.min(ngang, doc_ * 1.6) : k === SD.ca || SD.tran || SD.den ? Math.min(ngang, doc_) : Math.min(ngang, 400);
+    return { s, tx: trai + (r.width - trai) / 2 - s * (k[0] + k[1]) / 2, ty: (r.height - 56) / 2 - s * (k[2] + k[3]) / 2 };
+  }
+  const NUT_SD = () => SD.dich === SD.khung[0] ? [SD.khung[1], "Xem tầng 2"] : SD.dich === SD.khung[1] ? [SD.ca, "Xem cả hai tầng"] : [SD.khung[0], "Xem tầng 1"];
+  function bayToi(k, ngay) {
+    SD.dich = k;
+    const nut = SD.el.querySelector(".nut-noi");                
+    if (nut) nut.textContent = SD.den ? (SD.tangDen ? "Xem tầng 1" : "Xem tầng 2") : NUT_SD()[1];
+    const a = { ...SD.cam }, b = camVua(k);
+    if (ngay || matchMedia("(prefers-reduced-motion: reduce)").matches) { SD.cam = b; apCam(); return; }
+    const t0 = performance.now(), T = 320;
+    const buoc = (t) => {
+      const u = Math.min(1, (t - t0) / T), e = 1 - Math.pow(1 - u, 3);
+      SD.cam = { s: a.s + (b.s - a.s) * e, tx: a.tx + (b.tx - a.tx) * e, ty: a.ty + (b.ty - a.ty) * e };
+      apCam();
+      if (u < 1) requestAnimationFrame(buoc);
+    };
+    requestAnimationFrame(buoc);
+  }
+  function taoSoDo() {
+    const el = h("div", { id: "so-do", role: "img", "aria-label": "Sơ đồ lát gạch hai tầng — kéo để dời, chạm một tầng để đưa vào giữa" });
+    $("o-xem").append(el);
+    SD.el = el;
+    const ptr = new Map();
+    let goc0 = null, chum = null, di_ = 0;
+    const diem = (e) => { const r = el.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    const phong = (p, f) => { const c = SD.cam, s = Math.max(5, Math.min(2000, c.s * f)); f = s / c.s; SD.cam = { s, tx: p[0] - (p[0] - c.tx) * f, ty: p[1] - (p[1] - c.ty) * f }; apCam(); SD.dich = null; };
+    let keo = null;                                              
+    const theGioi = (p) => { const c = SD.cam; return [(p[0] - c.tx) / c.s, (p[1] - c.ty) / c.s]; };
+    el.addEventListener("pointerdown", (e) => {
+      if (e.target.closest("button, select, label, .so-do-chu, .den-tt, .den-luu") || !SD.g) return;
+      el.setPointerCapture(e.pointerId);
+      ptr.set(e.pointerId, diem(e));
+      if (ptr.size === 1) { goc0 = diem(e); di_ = 0; }
+      keo = null;
+      if (SD.den && CFG.ghi_den && ptr.size === 1) {               
+        const w = theGioi(goc0);
+        let tot = null, dmin = Math.max(0.2, 22 / SD.cam.s);
+        for (const [k, o] of SD.diem) { const dd = Math.hypot(o.x - w[0], o.y - w[1]); if (dd < dmin) { dmin = dd; tot = k; } }
+        if (tot) { const o = SD.diem.get(tot); keo = { key: tot, w0: w, x0: o.p.x, y0: o.p.y, vet0: o.p.vet ? [...o.p.vet] : null }; }
+      }
+      if (ptr.size === 2) { const [a, b] = [...ptr.values()]; chum = Math.hypot(a[0] - b[0], a[1] - b[1]); di_ = 99; }
+      el.classList.add("keo");
+    });
+    el.addEventListener("pointermove", (e) => {
+      if (!ptr.has(e.pointerId)) return;
+      const cu = ptr.get(e.pointerId), p = diem(e);
+      ptr.set(e.pointerId, p);
+      if (ptr.size === 1) {
+        di_ = Math.max(di_, Math.hypot(p[0] - goc0[0], p[1] - goc0[1]));
+        if (keo && di_ > 6) {                                       
+          const o = SD.diem.get(keo.key), w = theGioi(p);
+          o.p.x = Math.round((keo.x0 + w[0] - keo.w0[0]) * 100) / 100;
+          o.p.y = Math.round((keo.y0 - (w[1] - keo.w0[1])) * 100) / 100;
+          o.hinh.setAttribute("transform", `translate(${(o.p.x - keo.x0).toFixed(3)} ${(-(o.p.y - keo.y0)).toFixed(3)})`);
+          for (const [k_, q_] of SD.diem) q_.el.classList.toggle("chon", k_ === keo.key);
+          const kt_ = ktTuong(o.t, o.p.x, o.p.y);
+          o.kt.replaceWith(o.kt = veKt(kt_, o.X, o.Y));
+          const the = SD.el.querySelector(".den-tt .den-vt");
+          if (the) the.textContent = kt_.map((k) => `${mSo(k.mm)} mm tới tường ${k.phia.replace(/^phía /, "")}`).join(" · ");
+          return;
+        }
+        if (di_ > 6) { SD.cam.tx += p[0] - cu[0]; SD.cam.ty += p[1] - cu[1]; apCam(); SD.dich = null; }
+      } else if (ptr.size === 2 && chum) {
+        const [a, b] = [...ptr.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+        phong([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], d / chum); chum = d;
+      }
+    });
+    const tha = (e) => {
+      if (!ptr.has(e.pointerId)) return;
+      ptr.delete(e.pointerId);
+      if (ptr.size < 2) chum = null;
+      if (ptr.size) return;
+      el.classList.remove("keo");
+      if (keo && di_ > 6) {                                         
+        const o = SD.diem.get(keo.key), dx = o.p.x - keo.x0, dy = o.p.y - keo.y0;
+        if (keo.vet0) o.p.vet = [keo.vet0[0] + dx, keo.vet0[1] + dy, keo.vet0[2] + dx, keo.vet0[3] + dy];
+        o.p.kt = ktTuong(o.t, o.p.x, o.p.y);
+        ghiDoi(o); SD.chonDen = keo.key; keo = null; veLaiDen();
+        return;
+      }
+      keo = null;
+      if (di_ > 6 || e.type === "pointercancel") return;
+      const p = diem(e), c = SD.cam, w = [(p[0] - c.tx) / c.s, (p[1] - c.ty) / c.s];   
+      if (SD.den) {                                               
+        let tot = null, dmin = Math.max(0.2, 22 / c.s);
+        for (const [id, o] of SD.diem) { const dd = Math.hypot(o.x - w[0], o.y - w[1]); if (dd < dmin) { dmin = dd; tot = id; } }
+        if (tot) { chonDen(tot); if (tot.startsWith("chot:")) moDongDen(tot.slice(5)); return; }
+        chonDen(null);
+        return;
+      }
+      if (SD.tran) {
+        let tot = null, dmin = Math.max(0.25, 22 / c.s);
+        for (const [id, o] of SD.diem) { const dd = Math.hypot(o.x - w[0], o.y - w[1]); if (dd < dmin) { dmin = dd; tot = id; } }
+        const v = viecDang;
+        if (v) { const m = tot ? tim(v, tot) : null; di(v, m); }
+        return;
+      }
+      const k = SD.khung.find((q) => w[0] >= q[0] && w[0] <= q[1] && w[1] >= q[2] && w[1] <= q[3]);
+      bayToi(k && SD.dich !== k ? k : SD.ca);                       
+    };
+    el.addEventListener("pointerup", tha);
+    el.addEventListener("pointercancel", tha);
+    el.addEventListener("wheel", (e) => { if (!SD.g) return; e.preventDefault(); phong(diem(e), Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015))); }, { passive: false });
+    new ResizeObserver(() => { if (SD.g && SD.dich) bayToi(SD.dich, true); }).observe(el);
+  }
+  function veHinhSvg(d) {
+    const g = svgE("g"), q = svgE("g", { transform: `scale(${d.m})` });
+    q.innerHTML = d.svg;
+    g.append(q);
+    SD.khung = [[0, d.w * d.m, 0, d.h * d.m]];
+    SD.ca = SD.khung[0];
+    return g;
+  }
+  async function moSoDo(ten) {
+    if (!SD.el) taoSoDo();
+    if (SD.ten === ten) { if (SD.g) bayToi(SD.ca, true); return; }
+    SD.ten = ten;
+    SD.el.replaceChildren(h("div", { class: "tb" }, "Đang tải sơ đồ…"));
+    let d = SD.du[ten];
+    try { d = d || (SD.du[ten] = await (await fetch(new URL("mo-hinh/" + ten + ".json", new URL(CFG.xem, location.href)), { cache: "no-cache" })).json()); }
+    catch (e) { SD.el.replaceChildren(h("div", { class: "tb" }, "Không tải được sơ đồ.")); SD.ten = null; return; }
+    if (SD.ten !== ten) return;
+    SD.tran = d.loai === "tran";
+    SD.den = d.loai === "den";
+    SD.g = SD.tran ? veTranSvg(d) : SD.den ? veDenSvg(d) : d.loai === "hinh" ? veHinhSvg(d) : veSoDoSvg(d);
+    const svg = svgE("svg", { "aria-hidden": "true", "font-family": "Roboto, sans-serif" },
+      svgE("rect", { width: "100%", height: "100%", fill: TO.nen }), SD.g);
+    if (SD.den) {
+      const mau = new Map();
+      for (const t of d.tang) for (const p of t.diem) if (!mau.has(p.ky_hieu)) mau.set(p.ky_hieu, p);
+      const chuGiai = h("details", { class: "so-do-chu tran" },
+        h("summary", {}, "Bảng đèn — mã loại"),
+        ...(d.bang || []).map((r) => h("span", {}, miniDen(mau.get(r.ky_hieu)), h("b", { class: "ma-loai" }, r.ky_hieu), `${r.ten} · ${r.so}`)),
+        h("span", { class: "nhom-chu" }, "Đọc ký hiệu"),
+        h("span", {}, "○ bộ đèn · ● giữa = âm trần · ◎ = ống ốp nổi · ✕ = đèn ốp trần · lõi đặc = đèn thả"),
+        h("span", {}, "mũi tên = hướng rọi · nửa tròn áp tường = đèn tường · nét đứt = khuất hoặc cắm ổ"),
+        h("span", {}, h("i", { class: "kt" }), "Đèn đang chọn: tâm → mặt tường, mm"));
+      chuGiai.addEventListener("toggle", () => bayToi(SD.dich || SD.ca, true));
+      SD.el.replaceChildren(svg, chuGiai,
+        h("button", { type: "button", class: "nut-noi", onclick: () => doiTang(SD.tangDen ? 0 : 1) }, SD.tangDen ? "Xem tầng 1" : "Xem tầng 2"));
+      requestAnimationFrame(() => { chonDen(null); bayToi(SD.ca, true); veThanhLuu(); if (viecDang && viecDang.so_do === ten && !sua) veDenBen(viecDang); });
+      return;
+    }
+    if (d.loai === "hinh") { SD.el.replaceChildren(svg); requestAnimationFrame(() => bayToi(SD.ca, true)); return; }
+    if (SD.tran) {
+      const co = new Set(d.diem.map((p) => p.kieu || (p.loai === "quat" ? "QUAT" : "")));
+      const coKieu = Object.keys(KIEU_TRAN).filter((k) => co.has(k));       
+      const mau = (k) => {                                        
+        const to = k === "QUAT" || k === "QUAT-DEN" ? 0.66 : k === "HUT" || k === "SUOI-HUT" ? 0.42 : k === "DAY-HAT" ? 0.3 : 0.24;
+        const gia = { kieu: k, x: 0, y: 0, huong: 0, vet: k === "DAY-HAT" ? [-0.04, -0.25, 0.04, 0.25] : k === "OP-DOI-MAU" ? [-0.175, -0.175, 0.175, 0.175]
+          : k === "OP-OPAL" ? [-0.145, -0.145, 0.145, 0.145] : k.startsWith("THA") ? [-0.13, -0.13, 0.13, 0.13] : k.endsWith("HUT") ? [-0.13, -0.13, 0.13, 0.13] : null,
+          vet_ong: k.endsWith("HUT") ? [0.12, -0.05, 0.4, 0.05] : null };
+        return svgE("svg", { viewBox: `${-to} ${-to} ${2 * to} ${2 * to}`, width: 26, height: 26, "aria-hidden": "true" }, kyHieu(gia, 0, 0, (q) => q[0], (q) => -q[1]));
+      };
+      const chuGiai = h("details", { class: "so-do-chu tran", ...(matchMedia("(min-width: 700px)").matches ? { open: "" } : {}) },
+        h("summary", {}, "Ký hiệu"),
+        ...coKieu.map((k) => h("span", {}, mau(k), KIEU_TRAN[k])),
+        h("span", {}, h("i", { class: "kt" }), "Tâm → mặt tường, mm"));
+      SD.el.replaceChildren(svg, chuGiai);
+      requestAnimationFrame(() => { SD.chonId ? chonTran(SD.chonId, true) : bayToi(SD.ca, true); });
+      return;
+    }
+    SD.el.replaceChildren(svg,
+      h("div", { class: "so-do-chu" },
+        h("span", {}, h("i", { style: `background:${TO.nguyen}` }), "Viên nguyên 1200×1200"),
+        h("span", {}, h("i", { style: `background:${TO.cat}` }), "Viên cắt — ghi ngang × dọc nhà, mm"),
+        ...(d.tang.some((t) => t.vien.some((v) => v.hoa)) ? [h("span", {}, h("i", { style: `background:${TO.hoa}` }), "Gạch hoa lá 200×200 — bếp, góc hở bo cong")] : []),
+        h("span", {}, h("i", { class: "che" }), "Gầm tủ, kệ, bàn — viên cắt hẹp được"),
+        h("span", {}, h("i", { class: "x" }), "Không lát gạch này")),
+      h("button", { type: "button", class: "nut-noi", onclick: () => bayToi(NUT_SD()[0]) }, "Xem tầng 1"));
+    requestAnimationFrame(() => bayToi(SD.ca, true));
+  }
+  const MUC = "#1d1d1b", XAM = "#8a8780";
+  const KIEU_TRAN = {
+    "QUAT": "Quạt trần — vòng cánh Ø1200", "QUAT-DEN": "Quạt trần có đèn", "OP-DOI-MAU": "Đèn ốp trần đổi màu trắng",
+    "OP-OPAL": "Đèn ốp trần tán quang", "AT-RONG": "Downlight âm trần chống chói", "AT-NEN": "Downlight âm trần nền, chùm rộng",
+    "ONG-NEN": "Downlight ốp nổi (ống)", "AT-ROI": "Spotlight âm trần xoay góc — mũi tên chỉ hướng rọi",
+    "ONG-ROI": "Spotlight ốp nổi (ống) — mũi tên chỉ hướng rọi", "THA-CHAO": "Đèn thả chao", "THA-DAU-GIUONG": "Đèn thả đầu giường",
+    "DAY-HAT": "Dải LED hắt sáng", "HUT": "Quạt hút + 1 m ống đầu", "SUOI-HUT": "Máy sưởi kèm hút gió + 1 m ống đầu" };
+  function kyHieu(p, cx, cy, X, Y) {
+    const G = svgE("g", { class: "kh" });
+    const n = (co = MUC, w = 1.3, them = {}) => ({ stroke: co, "stroke-width": w, "vector-effect": "non-scaling-stroke", ...them });
+    const tron = (r, at, x = cx, y = cy) => svgE("circle", { cx: x, cy: y, r, ...at });
+    const duong = (x1, y1, x2, y2, at) => svgE("line", { x1, y1, x2, y2, ...at });
+    const hop = (v, at) => svgE("rect", { x: X([v[0], 0]), y: Y([0, v[3]]), width: Math.max(0.02, v[2] - v[0]), height: Math.max(0.02, v[3] - v[1]), ...at });
+    const v = p.vet || [p.x - 0.05, p.y - 0.05, p.x + 0.05, p.y + 0.05];
+    const r = Math.max(v[2] - v[0], v[3] - v[1]) / 2;
+    const k = p.kieu || (p.loai === "quat" ? "QUAT" : "");
+    const muiTen = (r0, dai) => {                                    
+      const a = -((p.huong ?? 0) * Math.PI) / 180, u = [Math.cos(a), Math.sin(a)], w = [-u[1], u[0]];
+      const A = [cx + u[0] * r0, cy + u[1] * r0], B = [cx + u[0] * (r0 + dai), cy + u[1] * (r0 + dai)];
+      G.append(duong(A[0], A[1], B[0], B[1], n()),
+        svgE("polygon", { points: `${B[0] + u[0] * 0.06},${B[1] + u[1] * 0.06} ${B[0] + w[0] * 0.035},${B[1] + w[1] * 0.035} ${B[0] - w[0] * 0.035},${B[1] - w[1] * 0.035}`, fill: MUC }));
+    };
+    const tuongGan = () => {                                         
+      const kk = (p.kt || []).slice().sort((a, b) => a.mm - b.mm)[0];
+      const h_ = kk ? kk.huong : "x-";
+      return { "x+": [1, 0], "x-": [-1, 0], "y+": [0, -1], "y-": [0, 1] }[h_];
+    };
+    if (k === "QUAT" || k === "QUAT-DEN") {                          
+      G.append(tron(0.6, { fill: "none", ...n(XAM, 1, { "stroke-dasharray": "5 4" }) }));
+      for (const goc of [90, 210, 330]) G.append(svgE("rect", { x: cx + 0.13, y: cy - 0.055, width: 0.44, height: 0.11, rx: 0.055,
+        transform: `rotate(${-goc} ${cx} ${cy})`, fill: "#fff", ...n(MUC, 1.1) }));
+      G.append(tron(0.12, { fill: "#fff", ...n() }));
+      if (k === "QUAT-DEN") { const q = 0.085 * Math.SQRT1_2; G.append(duong(cx - q, cy - q, cx + q, cy + q, n()), duong(cx - q, cy + q, cx + q, cy - q, n())); }
+    } else if (k === "OP-DOI-MAU" || k === "OP-OPAL") {               
+      const q = r * Math.SQRT1_2;
+      G.append(tron(r, { fill: "#fff", ...n(MUC, 1.5) }), duong(cx - q, cy - q, cx + q, cy + q, n()), duong(cx - q, cy + q, cx + q, cy - q, n()));
+      if (k === "OP-DOI-MAU") G.append(tron(r * 0.42, { fill: "none", ...n(MUC, 1) }));
+    } else if (k === "AT-RONG" || k === "AT-NEN") {                    
+      G.append(tron(0.09, { fill: "#fff", ...n(MUC, 1.5) }), tron(0.03, { fill: MUC }));
+      if (k === "AT-RONG") G.append(tron(0.055, { fill: "none", ...n(MUC, 0.9) }));   
+    } else if (k === "ONG-NEN") {                                    
+      G.append(tron(0.09, { fill: "#fff", ...n(MUC, 1.5) }), tron(0.05, { fill: "#fff", ...n(MUC, 1.2) }));
+    } else if (k === "AT-ROI") {                                     
+      G.append(tron(0.08, { fill: "#fff", ...n(MUC, 1.5) }), tron(0.028, { fill: MUC })); muiTen(0.08, 0.16);
+    } else if (k === "ONG-ROI") {                                    
+      G.append(tron(0.08, { fill: "#fff", ...n(MUC, 1.5) }), tron(0.045, { fill: "#fff", ...n(MUC, 1.1) })); muiTen(0.08, 0.16);
+    } else if (k === "THA-CHAO" || k === "THA-DAU-GIUONG") {         
+      const rr = Math.max(r, 0.08);
+      G.append(tron(rr, { fill: "#fff", ...n(MUC, 1.5) }), tron(rr * 0.4, { fill: MUC }));
+    } else if (k === "DAY-HAT" || k === "DAY-VIEC" || k === "DEM") {   
+      const an = k !== "DAY-HAT";
+      G.append(hop(v, { fill: an ? "#fff" : "#f1efe8", ...n(k === "DEM" ? XAM : MUC, 1.3, an ? { "stroke-dasharray": "4 3" } : {}) }));
+    } else if (k === "TUONG-XUONG" || k === "GUONG-DEN-BEN") {         
+      const [ux, uy] = tuongGan(), a0 = Math.atan2(uy, ux), R = k === "GUONG-DEN-BEN" ? 0.07 : 0.09;
+      const P = (g) => `${(cx + R * Math.cos(g)).toFixed(3)},${(cy + R * Math.sin(g)).toFixed(3)}`;
+      G.append(svgE("path", { d: `M${P(a0 + Math.PI / 2)} A${R},${R} 0 0 0 ${P(a0 - Math.PI / 2)} Z`, fill: MUC }),
+        svgE("path", { d: `M${P(a0 - Math.PI / 2)} A${R},${R} 0 0 0 ${P(a0 + Math.PI / 2)} Z`, fill: "#fff", ...n() }));
+    } else if (k === "DOC-DAU-GIUONG") {                             
+      G.append(tron(0.05, { fill: "#fff", ...n(MUC, 1.3) }), tron(0.018, { fill: MUC })); muiTen(0.05, 0.14);
+    } else if (k.startsWith("CAM-O")) {                              
+      G.append(tron(0.13, { fill: "#fff", ...n(MUC, 1.3, { "stroke-dasharray": "3 2.5" }) }), tron(0.025, { fill: MUC }));
+      if (k === "CAM-O-CAY-DOC" || p.huong != null) muiTen(0.13, 0.14);
+    } else if (k === "DEM-PIN") {                                    
+      G.append(svgE("rect", { x: cx - 0.05, y: cy - 0.05, width: 0.1, height: 0.1, fill: "#fff", ...n(XAM, 1.3) }), duong(cx - 0.05, cy + 0.05, cx + 0.05, cy - 0.05, n(XAM, 1)));
+    } else if (k === "HUT" || k === "SUOI-HUT") {                    
+      if (p.vet_ong) G.append(hop(p.vet_ong, { fill: "none", ...n(XAM, 1, { "stroke-dasharray": "4 3" }) }));
+      const c = Math.min(v[2] - v[0], v[3] - v[1]);
+      G.append(hop(v, { fill: "#fff", ...n(MUC, 1.3) }), tron(c * 0.32, { fill: "none", ...n(MUC, 1) }));
+      if (k === "SUOI-HUT") G.append(svgE("text", { x: cx, y: cy, "font-size": c * 0.36, "text-anchor": "middle", "dominant-baseline": "central", fill: MUC, "font-weight": 700 }, "S"));
+      else for (const g of [20, 140, 260]) { const a = (g * Math.PI) / 180; G.append(duong(cx, cy, cx + c * 0.3 * Math.cos(a), cy + c * 0.3 * Math.sin(a), n(MUC, 1))); }
+    } else {
+      G.append(tron(Math.max(0.05, r), { fill: "#fff", ...n() }));
+    }
+    return G;
+  }
+  function veTranSvg(d) {
+    const g = svgE("g");
+    const ds = [...d.tuong.flat(), ...d.diem.flatMap((p) => (p.vet ? [[p.vet[0], p.vet[1]], [p.vet[2], p.vet[3]]] : [[p.x, p.y]]))];
+    const x0 = Math.min(...ds.map((p) => p[0])), x1 = Math.max(...ds.map((p) => p[0]));
+    const y0 = Math.min(...ds.map((p) => p[1])), y1 = Math.max(...ds.map((p) => p[1]));
+    const X = (p) => p[0] - x0, Y = (p) => y1 - p[1];
+    const pts = (q) => q.map((p) => `${X(p).toFixed(3)},${Y(p).toFixed(3)}`).join(" ");
+    const net = (co, w = 1, them = {}) => ({ stroke: co, "stroke-width": w, "vector-effect": "non-scaling-stroke", ...them });
+    const chu = (x, y, s, co, at = {}) => svgE("text", { x: x.toFixed(3), y: y.toFixed(3), "font-size": co, "text-anchor": "middle", "dominant-baseline": "central", ...at }, s);
+    const quang = { stroke: "#fff", "stroke-width": 3, "paint-order": "stroke", "stroke-linejoin": "round", "vector-effect": "non-scaling-stroke" };
+    for (const ph of d.phong) g.append(svgE("polygon", { points: pts(ph.p), fill: "#fff" }));
+    for (const q of d.lo) g.append(svgE("polygon", { points: pts(q), fill: TO.khong, ...net(TO.mo) }));
+    for (const st of d.thang) {
+      g.append(svgE("polygon", { points: pts(st.vet), fill: "none", ...net(TO.mo) }));
+      for (const [a, b] of st.vach) g.append(svgE("line", { x1: X(a), y1: Y(a), x2: X(b), y2: Y(b), ...net(TO.mo) }));
+    }
+    for (const q of d.tuong) g.append(svgE("polygon", { points: pts(q), fill: TO.tuong }));
+    for (const q of d.cot) g.append(svgE("polygon", { points: pts(q), fill: TO.tuong }));
+    for (const q of d.cua_so) g.append(svgE("polygon", { points: pts(q), fill: "#fff", ...net(TO.tuong) }));
+    const vuong = d.diem.map((p) => [X([p.x, p.y]), Y([p.x, p.y]), p.loai === "quat" ? 0.62 : 0.1]);
+    for (const ph of d.phong) {
+      const xs = ph.p.map(X), ys = ph.p.map(Y), ten = ph.ten.replace(/\s*\(.*\)\s*/, "");
+      const cx = (Math.min(...xs) + Math.max(...xs)) / 2, nua = ten.length * 0.04;
+      const c0 = (Math.min(...ys) + Math.max(...ys)) / 2;
+      const vuongO = (y) => vuong.some(([a, b, r]) => Math.abs(a - cx) < nua + r + 0.05 && b - y < r + 0.32 && y - b < r + 0.12);
+      let cy = c0;
+      for (const dy of [0.2, -0.2, 0.4, -0.4, 0.6, -0.6, 0.8, -0.8, 1.0, -1.0]) { if (!vuongO(cy)) break; cy = c0 + dy; }
+      g.append(chu(cx, cy, ten, 0.15, { fill: TO.mo, "font-weight": 500, ...quang }));
+    }
+    SD.diem = new Map();
+    for (const p of d.diem) {
+      const gi = svgE("g", { class: "td", "data-id": p.id });
+      const cx = X([p.x, p.y]), cy = Y([p.x, p.y]);
+      const v = p.vet || [p.x - 0.05, p.y - 0.05, p.x + 0.05, p.y + 0.05];
+      const w = v[2] - v[0], hh = v[3] - v[1];
+      gi.append(kyHieu(p, cx, cy, X, Y));
+      gi.append(svgE("circle", { cx, cy, r: 0.018, fill: TO.tuong }));
+      const kt = svgE("g", { class: "td-kt" });
+      for (const k of p.kt || []) {
+        const A = [X(k.a), Y(k.a)], B = [X(k.b), Y(k.b)], ngang = Math.abs(B[0] - A[0]) > Math.abs(B[1] - A[1]);
+        const t = 0.06, gach = ngang ? [[0, -t], [0, t]] : [[-t, 0], [t, 0]];
+        kt.append(svgE("line", { x1: A[0], y1: A[1], x2: B[0], y2: B[1], ...net("#b8412c", 1.6) }));
+        for (const Q of [A, B]) kt.append(svgE("line", { x1: Q[0] + gach[0][0], y1: Q[1] + gach[0][1], x2: Q[0] + gach[1][0], y2: Q[1] + gach[1][1], ...net("#b8412c", 1.6) }));
+        const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2;
+        kt.append(chu(mx + (ngang ? 0 : 0.14), my + (ngang ? -0.12 : 0), String(k.mm), 0.13,
+          { fill: "#b8412c", "font-weight": 700, "font-family": "Roboto Mono, monospace", ...quang, ...(ngang ? {} : { transform: `rotate(-90 ${(mx + 0.14).toFixed(3)} ${my.toFixed(3)})` }) }));
+      }
+      gi.append(kt, chu(cx, cy - Math.max(hh, p.loai === "quat" ? 0.4 : 0.1) / 2 - 0.13, p.ma, 0.11,
+        { fill: TO.chu, "font-weight": 600, "font-family": "Roboto Mono, monospace", ...quang }),
+        svgE("title", {}, p.ten));
+      g.append(gi);
+      SD.diem.set(p.id, { el: gi, x: cx, y: cy });
+    }
+    const W = x1 - x0, H = y1 - y0;
+    g.append(chu(W / 2, -0.62, d.ten, 0.3, { fill: TO.chu, "font-weight": 700, "font-family": "Merriweather, Georgia, serif" }),
+      chu(W / 2, -0.25, "Nhìn từ trên xuống — khoảng cách tính từ tâm đèn, tâm quạt tới mặt tường hoàn thiện", 0.12, { fill: TO.mo }),
+      chu(W / 2, H + 0.3, "Mặt tiền — Tây Bắc", 0.12, { fill: TO.mo }),
+      chu(-0.3, H / 2, d.phia["x-"], 0.12, { fill: TO.mo, transform: `rotate(-90 -0.3 ${(H / 2).toFixed(3)})` }),
+      chu(W + 0.3, H / 2, d.phia["x+"], 0.12, { fill: TO.mo, transform: `rotate(90 ${(W + 0.3).toFixed(3)} ${(H / 2).toFixed(3)})` }));
+    SD.khung = [[-0.6, W + 0.6, -0.95, H + 0.5]];
+    SD.ca = SD.khung[0];
+    return g;
+  }
+  const GAN_MAU = { tuong: MUC, do_go: MUC, roi: MUC, pin: XAM };
+  const kyHieuDen = (p, cx, cy, X, Y) => kyHieu(p, cx, cy, X, Y);
+  const BEN = [["chu_nha", "Chủ nhà đặt"], ["chot", "Đang chốt"]];
+  function ktTuong(t, x, y) {                                    
+    const canh = [];
+    for (const q of [...(t.tuong_day || t.tuong), ...(t.cot || [])]) for (let i = 0; i < q.length; i++) canh.push([q[i], q[(i + 1) % q.length]]);
+    const tia = (dx, dy) => {
+      let best = null;
+      for (const [A, B] of canh) {
+        const ex = B[0] - A[0], ey = B[1] - A[1], den = dx * ey - dy * ex;
+        if (Math.abs(den) < 1e-12) continue;
+        const t_ = ((A[0] - x) * ey - (A[1] - y) * ex) / den, u = ((A[0] - x) * dy - (A[1] - y) * dx) / den;
+        if (t_ > 0.005 && u >= 0 && u <= 1 && (!best || t_ < best)) best = t_;
+      }
+      return best;
+    };
+    const ra = [];
+    for (const truc of ["x", "y"]) {
+      let b_ = null;
+      for (const [h_, dx, dy] of truc === "x" ? [["x-", -1, 0], ["x+", 1, 0]] : [["y-", 0, -1], ["y+", 0, 1]]) {
+        const d_ = tia(dx, dy);
+        if (d_ != null && (!b_ || d_ < b_[1])) b_ = [h_, d_, dx, dy];
+      }
+      if (b_) ra.push({ huong: b_[0], phia: (SD.du[SD.ten].phia || {})[b_[0]] || "", mm: Math.round(b_[1] * 1000),
+        a: [x, y], b: [x + b_[2] * b_[1], y + b_[3] * b_[1]] });
+    }
+    return ra;
+  }
+  function veKt(ds, X, Y) {                                     
+    const kt = svgE("g", { class: "td-kt" });
+    const net = { stroke: "#b8412c", "stroke-width": 1.6, "vector-effect": "non-scaling-stroke" };
+    const quang = { stroke: "#fff", "stroke-width": 3, "paint-order": "stroke", "stroke-linejoin": "round", "vector-effect": "non-scaling-stroke" };
+    for (const k of ds || []) {
+      const A = [X(k.a), Y(k.a)], B = [X(k.b), Y(k.b)], ngang = Math.abs(B[0] - A[0]) > Math.abs(B[1] - A[1]);
+      const t_ = 0.06, gach = ngang ? [[0, -t_], [0, t_]] : [[-t_, 0], [t_, 0]];
+      kt.append(svgE("line", { x1: A[0], y1: A[1], x2: B[0], y2: B[1], ...net }));
+      for (const Q of [A, B]) kt.append(svgE("line", { x1: Q[0] + gach[0][0], y1: Q[1] + gach[0][1], x2: Q[0] + gach[1][0], y2: Q[1] + gach[1][1], ...net }));
+      const mx = (A[0] + B[0]) / 2 + (ngang ? 0 : 0.14), my = (A[1] + B[1]) / 2 + (ngang ? -0.12 : 0);
+      kt.append(svgE("text", { x: mx.toFixed(3), y: my.toFixed(3), "font-size": 0.13, "text-anchor": "middle", "dominant-baseline": "central",
+        fill: "#b8412c", "font-weight": 700, "font-family": "Roboto Mono, monospace", ...quang,
+        ...(ngang ? {} : { transform: `rotate(-90 ${mx.toFixed(3)} ${my.toFixed(3)})` }) }, String(k.mm)));
+    }
+    return kt;
+  }
+  function veDenSvg(d) {
+    const g = svgE("g"), NC = 1.7;
+    const net = (co, w = 1, them = {}) => ({ stroke: co, "stroke-width": w, "vector-effect": "non-scaling-stroke", ...them });
+    const chu = (x, y, s, co, at = {}) => svgE("text", { x: x.toFixed(3), y: y.toFixed(3), "font-size": co, "text-anchor": "middle", "dominant-baseline": "central", ...at }, s);
+    const quang = { stroke: "#fff", "stroke-width": 3, "paint-order": "stroke", "stroke-linejoin": "round", "vector-effect": "non-scaling-stroke" };
+    let ox = 0;
+    SD.khung = [];
+    SD.diem = new Map();
+    SD.tangDen = SD.tangDen || 0;
+    const t = d.tang[SD.tangDen];
+    const ds_ = t.tuong.flat();
+    const x0 = Math.min(...ds_.map((p) => p[0])), x1 = Math.max(...ds_.map((p) => p[0]));
+    const y0 = Math.min(...ds_.map((p) => p[1])), y1 = Math.max(...ds_.map((p) => p[1]));
+    for (const [ben, tenBen] of BEN.filter(([b]) => b === "chot" || (t.chu_nha || []).length)) {
+      const ds = ben === "chot" ? t.diem : t.chu_nha || [];
+      const o0 = ox, X = (p) => o0 + p[0] - x0, Y = (p) => y1 - p[1];
+      const pts = (q) => q.map((p) => `${X(p).toFixed(3)},${Y(p).toFixed(3)}`).join(" ");
+      const gi = svgE("g", { class: "ben-den", "data-ben": ben });
+      for (const ph of t.phong) gi.append(svgE("polygon", { points: pts(ph.p), fill: "#fff" }));
+      for (const q of t.lo) gi.append(svgE("polygon", { points: pts(q), fill: TO.khong, ...net(TO.mo) }));
+      for (const st of t.thang) {
+        gi.append(svgE("polygon", { points: pts(st.vet), fill: "none", ...net(TO.mo) }));
+        for (const [a, b] of st.vach) gi.append(svgE("line", { x1: X(a), y1: Y(a), x2: X(b), y2: Y(b), ...net(TO.mo) }));
+      }
+      for (const q of t.tuong) gi.append(svgE("polygon", { points: pts(q), fill: TO.tuong }));
+      for (const q of t.cot) gi.append(svgE("polygon", { points: pts(q), fill: TO.tuong }));
+      for (const q of t.cua_so) gi.append(svgE("polygon", { points: pts(q), fill: "#fff", ...net(TO.tuong) }));
+      if (ben === "chu_nha") for (const q of t.quat || [])          
+        gi.append(kyHieu({ kieu: "QUAT", x: q.x, y: q.y }, X([q.x, q.y]), Y([q.x, q.y]), X, Y));
+      const vuong = ds.map((p) => [X([p.x, p.y]), Y([p.x, p.y]), p.kieu === "QUAT-DEN" ? 0.62 : 0.15]);
+      for (const ph of t.phong) {                                 
+        const xs = ph.p.map(X), ys = ph.p.map(Y), ten = ph.ten.replace(/\s*\(.*\)\s*/, "");
+        const cx = (Math.min(...xs) + Math.max(...xs)) / 2, nua = ten.length * 0.04, c0 = (Math.min(...ys) + Math.max(...ys)) / 2;
+        const vuongO = (y) => vuong.some(([a, b, r]) => Math.abs(a - cx) < nua + r + 0.05 && b - y < r + 0.32 && y - b < r + 0.12);
+        let cy = c0;
+        for (const dy of [0.2, -0.2, 0.4, -0.4, 0.6, -0.6, 0.8, -0.8, 1.0, -1.0]) { if (!vuongO(cy)) break; cy = c0 + dy; }
+        gi.append(chu(cx, cy, ten, 0.14, { fill: TO.mo, "font-weight": 500, ...quang }));
+      }
+      for (const p of [...ds].sort((a, b) => (a.gan === "tran" ? 0 : 1) - (b.gan === "tran" ? 0 : 1))) {
+        const key = ben + ":" + p.id, sua_ = SD.doi?.[ben]?.has(p.ma);
+        const el = svgE("g", { class: "td" + (sua_ ? " da-doi" : ""), "data-id": key }), hinh = svgE("g", { class: "td-hinh" });
+        const cx = X([p.x, p.y]), cy = Y([p.x, p.y]);
+        const v = p.vet || [p.x - 0.05, p.y - 0.05, p.x + 0.05, p.y + 0.05];
+        const r = Math.max(0.11, Math.min(0.3, Math.max(v[2] - v[0], v[3] - v[1]) / 2 + 0.05));
+        hinh.append(svgE("circle", { class: "td-vong", cx, cy, r: Math.max(r, p.kieu === "QUAT-DEN" ? 0.66 : r) + 0.06, fill: "rgba(184,65,44,.08)", ...net("#b8412c", 2) }));
+        if (sua_) hinh.append(svgE("circle", { cx, cy, r: r + 0.1, fill: "none", ...net("#2f6fb0", 1.4, { "stroke-dasharray": "3 2" }) }));
+        hinh.append(kyHieu(p, cx, cy, X, Y));
+        const kt = veKt(p.kt, X, Y);
+        el.append(hinh, kt);
+        const tren = (p.kieu === "QUAT-DEN" ? 0.62 : Math.max(0.1, Math.max(v[2] - v[0], v[3] - v[1]) / 2)) + 0.03;
+        hinh.append(chu(cx + tren * 0.75, cy - tren * 0.75, p.ky_hieu || "", 0.095, { fill: MUC, "font-weight": 700, "font-family": "Roboto Mono, monospace", "text-anchor": "start", ...quang }));
+        if (p.gan !== "tran" && p.z_mm != null)
+          hinh.append(chu(cx, cy + Math.max(0.13, r) + 0.08, "+" + (p.z_mm / 1000).toFixed(2).replace(".", ","), 0.085, { fill: XAM, "font-weight": 600, ...quang }));
+        el.append(svgE("title", {}, `${p.ma} · ${p.ten}`));
+        if (SD.xoa?.[ben]?.has(p.ma)) continue;                  
+        gi.append(el);
+        SD.diem.set(key, { el, hinh, kt, X, Y, x: cx, y: cy, p, ben, t, ox: o0, x0, y1 });
+      }
+      const w = x1 - x0, hh = y1 - y0;
+      gi.append(chu(ox + w / 2, -0.62, (t.chu_nha || []).length ? `${tenBen} — ${t.ten}` : t.ten, 0.28, { fill: TO.chu, "font-weight": 700, "font-family": "Merriweather, Georgia, serif" }),
+        chu(ox + w / 2, -0.25, ben === "chot" ? `${ds.length} đèn · «+1,45» = cao tâm đèn trên sàn, m` : `${ds.length} điểm đặt bằng ghi chú 3D · vòng nét đứt = quạt trần`, 0.12, { fill: TO.mo }),
+        chu(ox + w / 2, hh + 0.3, "Mặt tiền — Tây Bắc", 0.12, { fill: TO.mo }));
+      SD.khung.push([ox - 0.2, ox + w + 0.2, -0.95, hh + 0.5]);
+      g.append(gi);
+      ox += w + NC;
+    }
+    SD.ca = [SD.khung[0][0], SD.khung[SD.khung.length - 1][1], Math.min(...SD.khung.map((k) => k[2])), Math.max(...SD.khung.map((k) => k[3]))];
+    return g;
+  }
+  function veLaiDen() {                                          
+    const svg = SD.el.querySelector("svg"), chon = SD.chonDen;
+    SD.g.replaceWith(SD.g = veDenSvg(SD.du[SD.ten]));
+    apCam();
+    if (chon && SD.diem.has(chon)) chonDen(chon);
+    veThanhLuu();
+  }
+  function doiTang(i) {                                          
+    SD.tangDen = i; SD.chonDen = null;
+    SD.el.querySelector(".den-tt")?.remove();
+    SD.g.replaceWith(SD.g = veDenSvg(SD.du[SD.ten]));
+    const nut = SD.el.querySelector(".nut-noi"); if (nut) nut.textContent = i === 0 ? "Xem tầng 2" : "Xem tầng 1";
+    bayToi(SD.ca, true);
+  }
+  function ghiDoi(o) {                                           
+    SD.doi = SD.doi || { chu_nha: new Map(), chot: new Map() };
+    const p = o.p;
+    SD.doi[o.ben].set(p.ma, { ma: p.ma, x: Math.round(p.x * 1000), y: Math.round(p.y * 1000), kieu: p.kieu });
+  }
+  function veThanhLuu() {
+    SD.el.querySelector(".den-luu")?.remove();
+    const n = SD.doi ? SD.doi.chu_nha.size + SD.doi.chot.size : 0, nx = SD.xoa ? SD.xoa.chu_nha.size + SD.xoa.chot.size : 0;
+    if (!n && !nx) return;
+    const coGhi = !!CFG.ghi_den;
+    SD.el.append(h("div", { class: "den-luu", role: "status" },
+      h("span", {}, [n ? `${n} đèn đã đổi` : "", nx ? `${nx} đèn bỏ` : ""].filter(Boolean).join(" · ") + (coGhi ? "" : " — bản xem thử, không lưu được ở đây")),
+      coGhi ? h("button", { type: "button", class: "chinh", onclick: luuDen }, "Lưu") : null,
+      h("button", { type: "button", onclick: () => { SD.doi = null; SD.xoa = null; delete SD.du[SD.ten]; const t_ = SD.ten; SD.ten = null; moSoDo(t_); } }, "Bỏ thay đổi")));
+  }
+  async function luuDen() {
+    const b = { chu_nha: [...(SD.doi?.chu_nha.values() || [])], chot: [...(SD.doi?.chot.values() || [])],
+      xoa: { chu_nha: [...(SD.xoa?.chu_nha || [])], chot: [...(SD.xoa?.chot || [])] } };
+    const nut = SD.el.querySelector(".den-luu .chinh"); if (nut) { nut.disabled = true; nut.textContent = "Đang lưu…"; }
+    let kq;
+    try { kq = await (await fetch(CFG.ghi_den, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) })).json(); }
+    catch (e) { kq = { ok: false, loi: String(e) }; }
+    if (!kq.ok) { alert("Không lưu được: " + (kq.loi || "")); if (nut) { nut.disabled = false; nut.textContent = "Lưu"; } return; }
+    if ((kq.con_nhac || []).length) alert("Đã lưu. Mã đèn đã bỏ còn được nhắc ở:\n" + kq.con_nhac.join("\n"));
+    SD.doi = null; SD.xoa = null; delete SD.du[SD.ten]; const t_ = SD.ten, tg = SD.tangDen; SD.ten = null;
+    await moSoDo(t_); if (tg) doiTang(tg);
+  }
+  function chonDen(id, bay) {                                    
+    if (!SD.diem) return;
+    if (id && !id.includes(":")) id = "chot:" + id;
+    if (id && !SD.diem.has(id) && SD.du[SD.ten]) {               
+      const i = SD.du[SD.ten].tang.findIndex((t) => t.diem.some((p) => "chot:" + p.id === id) || (t.chu_nha || []).some((p) => "chu_nha:" + p.id === id));
+      if (i >= 0 && i !== SD.tangDen) doiTang(i);
+    }
+    SD.chonDen = id || null;
+    for (const [k, o] of SD.diem) o.el.classList.toggle("chon", k === id);
+    SD.el.querySelector(".den-tt")?.remove();
+    const o = id && SD.diem.get(id);
+    document.querySelectorAll("#than .den-hang").forEach((r) => r.classList.toggle("dang", "chot:" + r.dataset.id === id));
+    if (!o) return;
+    o.el.parentNode.append(o.el);
+    if (bay) bayToi([o.x - 2.3, o.x + 2.3, o.y - 2.3, o.y + 2.3]);
+    const p = o.p, d = SD.du[SD.ten];
+    const cungCho = (d.kieu_ds || []).filter((k) => (k.gan || "tran") === (p.gan || "tran"));
+    const chon = h("select", { "aria-label": "Kiểu đèn", onchange: (e) => {
+      const k = d.kieu_ds.find((x) => x.kieu === e.target.value);
+      Object.assign(p, { kieu: k.kieu, ky_hieu: k.ky_hieu, kieu_ten: k.ten });
+      ghiDoi(o); veLaiDen(); } },
+      ...cungCho.map((k) => h("option", { value: k.kieu, selected: k.kieu === p.kieu }, `${k.ky_hieu} — ${k.ten}`)));
+    const vt = (p.kt || []).map((k) => `${mSo(k.mm)} mm tới tường ${k.phia.replace(/^phía /, "")}`).join(" · ");
+    SD.el.append(h("div", { class: "den-tt", role: "status" },
+      h("button", { type: "button", "aria-label": "Đóng", onclick: () => chonDen(null) }, "×"),
+      h("button", { type: "button", class: "den-chep", title: `Chép mã ${p.ma}`, onclick: () => chepMa(p.ma) },
+        h("b", {}, o.ben === "chot" ? p.ten : `Chủ nhà đặt — ghi chú #${p.ghi_chu_3d}`),
+        h("span", { class: "ma" }, `${p.ma} · ${p.phong}`), h("span", { class: "chep-bao" }, "bấm để chép mã")),
+      CFG.ghi_den ? h("label", { class: "den-kieu" }, "Kiểu ", chon) : h("div", {}, `${p.ky_hieu} — ${p.kieu_ten}`),
+      h("div", {}, `${p.lm} lm` + (o.ben === "chot" ? ` · ${p.cct} K` : "")),
+      vt ? h("div", { class: "den-vt" }, vt) : null,
+      CFG.ghi_den ? h("div", { class: "goi-y-keo" }, "Kéo đèn trên mặt bằng để dời — bước 10 mm. Phím Delete: bỏ đèn này.") : null));
+  }
+  async function chepMa(ma) {                                    
+    try { await navigator.clipboard.writeText(ma); }
+    catch { const t = h("textarea", {}, ma); document.body.append(t); t.select(); document.execCommand("copy"); t.remove(); }
+    const b = SD.el && SD.el.querySelector(".den-tt .chep-bao");
+    if (b) { b.textContent = `đã chép ${ma}`; b.classList.add("da"); setTimeout(() => { b.textContent = "bấm để chép mã"; b.classList.remove("da"); }, 1600); }
+  }
+  function xoaDen(key) {                                         
+    const o = SD.diem.get(key);
+    if (!o) return;
+    SD.xoa = SD.xoa || { chu_nha: new Set(), chot: new Set() };
+    SD.xoa[o.ben].add(o.p.ma);
+    SD.doi?.[o.ben]?.delete(o.p.ma);
+    const ds = o.ben === "chot" ? o.t.diem : o.t.chu_nha;
+    ds.splice(ds.indexOf(o.p), 1);
+    SD.chonDen = null; SD.el.querySelector(".den-tt")?.remove();
+    veLaiDen();
+  }
+  const miniDen = (p) => {                                       
+    if (!p) return h("span");
+    const to = p.kieu === "QUAT-DEN" ? 0.66 : 0.24;
+    const gia = { ...p, x: 0, y: 0, huong: p.huong == null ? null : 0, kt: [{ huong: "x-", mm: 0 }],
+      vet: p.vet ? (() => { const w = Math.min(0.42, p.vet[2] - p.vet[0]), h_ = Math.min(0.42, p.vet[3] - p.vet[1]); return [-w / 2, -h_ / 2, w / 2, h_ / 2]; })() : null };
+    return svgE("svg", { viewBox: `${-to} ${-to} ${2 * to} ${2 * to}`, width: 26, height: 26, "aria-hidden": "true" }, kyHieu(gia, 0, 0, (q) => q[0], (q) => -q[1]));
+  };
+  const mSo = (mm) => String(mm).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  function moDongDen(id) {                                        
+    const r = document.querySelector(`#than .den-hang[data-id="${id}"]`);
+    if (!r) return;
+    document.querySelectorAll("#than .den-ct").forEach((c) => { if (c.dataset.id !== id) c.hidden = true; });
+    const ct = r.nextElementSibling; if (ct) ct.hidden = false;
+    r.closest("details").open = true;
+    r.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  function veDenBen(v) {
+    const d = SD.du[v.so_do], t = $("than");
+    if (!d) return;
+    const base = new URL(CFG.xem, location.href);
+    const tang = d.tang.map((tg) => {
+      const phong = [...new Set(tg.diem.map((p) => p.phong))];
+      return h("details", { class: "den-tang", open: "" },
+        h("summary", {}, h("span", {}, tg.ten), h("span", { class: "dem-nho" }, `· ${tg.diem.length} đèn`)),
+        ...phong.flatMap((ph) => [h("h4", { class: "den-phong" }, ph), ...tg.diem.filter((p) => p.phong === ph).flatMap((p) => {
+          const vt = (p.kt || []).map((k) => `${mSo(k.mm)} mm tới mặt tường ${k.phia.replace(/^phía /, "")}`).join(" · ");
+          const cao = p.gan === "tran" ? "trên trần" : `${d.gan[p.gan].toLowerCase()}, tâm cao ${(p.z_mm / 1000).toFixed(2).replace(".", ",")} m trên sàn`;
+          const sp = p.san_pham;
+          const ct = h("div", { class: "den-ct", "data-id": p.id, hidden: "" },
+            sp && sp.anh.length ? h("img", { src: new URL(sp.anh[0], base).href, alt: sp.ten, loading: "lazy" }) : null,
+            h("dl", {},
+              h("dt", {}, "Loại"), h("dd", {}, `${p.ky_hieu} — ${p.kieu_ten}`),
+              h("dt", {}, "Lắp"), h("dd", {}, cao),
+              vt ? h("dt", {}, "Vị trí tâm") : null, vt ? h("dd", {}, vt) : null,
+              h("dt", {}, "Ánh sáng"), h("dd", {}, `${p.lm} lm · ${p.cct} K`),
+              h("dt", {}, "Bật"), h("dd", {}, p.dk),
+              sp ? h("dt", {}, "Sản phẩm") : null, sp ? h("dd", {}, sp.ten + (sp.quy_cach ? ` — ${sp.quy_cach}` : "")) : null),
+            h("button", { type: "button", class: "den-ma", title: `Chép mã ${p.ma}`, onclick: (e) => { chepMa(p.ma);
+              e.currentTarget.dataset.da = "1"; setTimeout(() => delete e.target.closest(".den-ma")?.dataset.da, 1600); } }, `${p.ma} · ${p.ten}`));
+          const hang = h("button", { type: "button", class: "den-hang", "data-id": p.id,
+            onclick: () => { const mo_ = ct.hidden; document.querySelectorAll("#than .den-ct").forEach((c) => (c.hidden = true)); ct.hidden = !mo_;
+              chonDen(mo_ ? p.id : null, mo_); if (mo_) requestAnimationFrame(() => ct.scrollIntoView({ block: "nearest", behavior: "smooth" })); } },
+            miniDen(p), h("b", { class: "ma-loai" }, p.ky_hieu), h("span", { class: "t" }, (([a, b_]) => b_ ? b_[0].toUpperCase() + b_.slice(1) : a)(p.ten.split(/\s+—\s+/))),
+            h("span", { class: "dem" }, p.gan === "tran" ? "" : "+" + (p.z_mm / 1000).toFixed(2).replace(".", ",")));
+          return [hang, ct];
+        })]));
+    });
+    t.replaceChildren(...(v.mo_dau ? [h("p", { class: "mo-dau" }, v.mo_dau)] : []), ...((v.lien_quan || []).length ? [lienQuan(v)] : []),
+      h("h3", { class: "den-dau" }, "Mọi đèn theo tầng"), ...tang);
+  }
+  function chonTran(id, ngay) {                                  
+    SD.chonId = id;
+    if (!SD.diem || !SD.tran) return;
+    for (const [k, o] of SD.diem) o.el.classList.toggle("chon", k === id);
+    const o = id && SD.diem.get(id);
+    if (!o) { bayToi(SD.ca, ngay); return; }
+    o.el.parentNode.append(o.el);                                 
+    bayToi([o.x - 2.4, o.x + 2.4, o.y - 2.0, o.y + 2.0], ngay);
+  }
+  function veSoDoBen(v) {                                        
+    const t = $("than");
+    t.replaceChildren();
+    if (v.mo_dau) t.append(h("p", { class: "mo-dau" }, v.mo_dau));
+    if ((v.lien_quan || []).length) t.append(lienQuan(v));
+    const m = v.muc[0];
+    if (m) { const k = chiTiet(m); k.querySelector("h2")?.remove(); t.append(k); }
+  }
+
+
+  let VIEC = [], NT = [];
+  let sua = false;
+  const ban = new Set();               
+  const moiTao = new Set();            
+  const tim = (v, id) => { for (const [, m] of duyet(v.muc)) if (m.id === id) return m; return null; };
+  function* duyet(ds, cha = []) { for (const m of ds || []) { yield [cha, m]; yield* duyet(m.con, [...cha, m]); } }
+  const dem = (m) => { let n = 0, x = 0; for (const [, c] of duyet([m])) for (const r of c.nghiem_thu || []) { n++; if (r.xong) x++; } return [x, n]; };
+  function doc() {
+    const [a, b] = decodeURIComponent(location.hash.slice(1)).split("?")[0].split("/");
+    return { viec: a || "", muc: b || "" };
+  }
+  addEventListener("hashchange", ve);
+
+  let phamVi = null, noiBo = false;
+  const trongPhamVi = (v) => {
+    if (sua || !phamVi || phamVi.viec !== v.id) return null;
+    for (const [cha, m] of duyet(v.muc)) if (m.id === phamVi.muc) {
+      const ds = cha.length ? cha[cha.length - 1].con : v.muc;
+      return ds.filter((x) => x === m || /^chung/.test(x.id));
+    }
+    return null;
+  };
+
+  function ve() {
+    const d = doc();
+    if (!noiBo) phamVi = d.muc && d.viec !== "nghiem-thu" ? { viec: d.viec, muc: d.muc } : null;
+    noiBo = false;
+    document.body.classList.toggle("bang", d.viec === "nghiem-thu");
+    document.body.classList.toggle("dt", d.viec !== "nghiem-thu");
+    if (d.viec !== viecDauTam) { viecDauTam = d.viec; moDs = false; }   
+    if (d.viec === "nghiem-thu") { veDauDt(null, null, false); return veBang(); }
+    const v = VIEC.find((x) => x.id === d.viec) || (VIEC.length === 1 || !d.viec ? VIEC[0] : null);
+    if (!v) { $("than").replaceChildren(h("p", { class: "trong" }, "Không có việc «" + d.viec + "»."), h("a", { href: CFG.goc }, "Về mô hình 3D cả nhà")); return; }
+    const m = v.mot_muc && !sua ? v.muc[0] || null : d.muc ? tim(v, d.muc) : null;
+    document.title = `${v.ten} · 383 Hải Phòng`;
+    viecDang = v;
+    const tr = laTran(v) && !sua;
+    const sd = !!v.so_do && !sua && (!tr || kichThuoc);
+    document.body.classList.toggle("so-do", sd);
+    document.body.classList.toggle("so-do-tran", tr);
+    if (sd && !tr) { veSoDoBen(v); veDauDt(v, null, false); moSoDo(v.so_do); return; }
+    if (sd && v.so_do === "ban-do-den") { veDauDt(v, null, false); if (SD.ten === v.so_do && SD.g) veDenBen(v); else moSoDo(v.so_do); return; }
+    if (sd) { SD.chonId = m ? m.id : null; if (SD.ten === v.so_do && SD.g) chonTran(SD.chonId); else moSoDo(v.so_do); }
+    const laCua = CUA_VIEC.has(v.id) && !sua;
+    if (laCua && (m ? m.id : null) !== cuaDang) { cuaDang = m ? m.id : null; gocCua = [GOC_DUNG]; iHuong = 0; }
+    veViec(v, m, laCua);
+    veDauDt(v, m, laCua);
+    const kb = m && m.kich_ban ? m.kich_ban.map((x) => (x.buoc === "noi_len" && !x.ten ? { ...x, ten: m.ten } : x)) : m && m.kich_ban;
+    const xong = apGoc(m && m.tt ? m.tt : v.mac_dinh, m ? m.bay : 1.0, kb, sua ? `sua|${v.id}|${m ? m.id : ""}` : undefined);
+    if (laCua && m) Promise.resolve(xong).then(() => taiGocCua(m));    
+  }
+
+  const CUA_VIEC = new Set(["cua-di", "cua-ngoai"]);
+  const tenCua = (m) => {
+    const [a] = m.ten.split(" — ");
+    if (/^(Cửa|Cổng)/.test(a)) return a;
+    const phong = a[1] && a[1] === a[1].toLowerCase() ? a[0].toLowerCase() + a.slice(1) : a;
+    return (/^w/i.test(m.id) ? "Cửa sổ " : "Cửa ") + phong;
+  };
+  const maCua = (m) => (m.ten.split(" — ")[1] || m.id.toUpperCase());
+  let moDs = false, coNT = false, viecDauTam = null;
+  const TEN_NT = "Nghiệm thu — mọi việc";
+  function veDauDt(v, m, laCua) {
+    const k = $("dau-dt");
+    const dsViec = VIEC.filter((x) => !x.an_hang_muc || x === v || sua);
+    const dong = (ten, dang, bam) => h("li", {}, h("button", { type: "button", class: "hang-muc", role: "option", "aria-current": String(dang),
+      onclick: () => { moDs = false; if (dang) veDauDt(v, m, laCua); else bam(); } }, h("span", { class: "t" }, ten)));
+    k.replaceChildren(h("div", { class: "hang" },
+      h("button", { type: "button", class: "ten-dt", "aria-expanded": String(moDs), "aria-haspopup": "listbox",
+        title: "Chọn việc khác", onclick: () => { moDs = !moDs; mo(true); veDauDt(v, m, laCua); } },
+        h("span", { class: "t" }, v ? v.ten.split(" — ")[0] : TEN_NT), h("span", { class: "mui", "aria-hidden": "true" }, "▼"))));
+    if (moDs) k.append(h("ol", { class: "muc ds-dt", role: "listbox" },
+      dsViec.map((x) => dong(x.ten.split(" — ")[0] + (ban.has(x.id) ? " ●" : ""), x === v, () => di(x, null))),
+      coNT ? dong(TEN_NT, !v, () => { location.hash = "#nghiem-thu"; }) : null,
+      sua ? dong("＋ Việc mới…", false, viecMoi) : null));
+    [...k.querySelectorAll("ol")].forEach((o) => [...o.childNodes].forEach((n) => { if (n.nodeType === 3) n.remove(); }));   
+  }
+  const mo = (bat) => { document.body.classList.toggle("thu", !bat); };
+  (() => {
+    const k = $("dau-dt");
+    let y0 = null, keo = false;
+    k.addEventListener("pointerdown", (e) => { y0 = e.clientY; keo = false; });
+    k.addEventListener("pointermove", (e) => { if (y0 != null && Math.abs(e.clientY - y0) > 10) keo = true; });
+    const tha = (e) => {
+      if (y0 == null) return;
+      const dy = e.clientY - y0; y0 = null;
+      if (!keo) { if (DT.matches && document.body.classList.contains("thu") && !e.target.closest("button")) mo(true); return; }
+      if (!DT.matches) return;                                     
+      if (dy > 40) { moDs = false; mo(false); } else if (dy < -40) mo(true);
+    };
+    k.addEventListener("pointerup", tha);
+    k.addEventListener("pointercancel", () => { y0 = null; });
+    k.addEventListener("click", (e) => { if (keo) { e.stopPropagation(); e.preventDefault(); keo = false; } }, true);   
+    DT.addEventListener("change", () => { if (!DT.matches) mo(true); ve(); });
+  })();
+  const di = (v, m) => { const h_ = "#" + v.id + (m ? "/" + m.id : ""); noiBo = true; if (location.hash !== h_) location.hash = h_; else ve(); };
+  const nhom = (tieuDe, chan, ...hang_) => h("section", { class: "nhom" }, tieuDe ? h("h3", { class: "nhom-dau" }, tieuDe) : null,
+    h("div", { class: "nhom-than" }, ...hang_), chan ? h("p", { class: "nhom-chan" }, chan) : null);
+
+  const moNhom = new Set();               
+  const nhomGap = (khoa, tieuDe, dem, chan, ...hang_) => {
+    const d = h("details", { class: "nhom", open: moNhom.has(khoa) },
+      h("summary", {}, h("span", {}, tieuDe), dem != null ? h("span", { class: "dem-nho" }, "· " + dem) : null),
+      h("div", { class: "nhom-than" }, ...hang_), chan ? h("p", { class: "nhom-chan" }, chan) : null);
+    d.addEventListener("toggle", () => (d.open ? moNhom.add(khoa) : moNhom.delete(khoa)));
+    return d;
+  };
+
+  const ICON_BAN_VE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V5l4-2v18M9 9h10v12M12 12h4M12 15h4M12 18h4"/></svg>';
+  const BT = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+  const BIEU_TUONG = {
+    cua: "M5 21V3h11v18M3 21h18M16 5h3v16M12.5 12v1",
+    mai: "M2 12l10-8 10 8M5 10v10h14V10",
+    gieng: "M4 20h16M6 20V9h12v11M12 2v3M5.6 4.6l1.4 1.4M18.4 4.6L17 6M9 13h6",
+    nha: "M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6M8 11h2M14 11h2",
+    tuong: "M3 4h18v16H3zM9 4v16M15 4v16",
+    san: "M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18",
+    nuoc: "M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z",
+    quat: "M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M12 10c0-4 1-7 4-7s1 5-4 7M14 12c4 0 7 1 7 4s-5 1-7-4M12 14c0 4-1 7-4 7s-1-5 4-7M10 12c-4 0-7-1-7-4s5-1 7 4",
+    doc: "M3 20h18L3 12zM3 20v-8",
+    dien: "M13 2L4 14h7l-1 8 9-12h-7z",
+    den: "M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z",
+    lanh: "M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2",
+    thang: "M3 21h5v-5h5v-5h5V6h3",
+    bep: "M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6zM2 11h20M9 7c0-2 2-2 2-4M14 7c0-2 2-2 2-4",
+    tai_lieu: "M6 2h9l5 5v15H6zM14 2v6h6M9 13h8M9 17h8",
+    lien: "M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1",
+  };
+  const LOAI_VIEC = {
+    "cua-di": "cua", "cua-ngoai": "cua", "cua-phong-lam-viec": "cua", "o-mo-tang-2": "cua", "loi-vao": "cua",
+    mai: "mai", "gieng-troi": "gieng", "mat-tien": "nha", "op-ton": "tuong", "san-tang-2": "san", "lat-gach-san": "san",
+    "wc-tang-2": "nuoc", "ong-hut-t1": "quat", "doc-vespa": "doc", "dien-mang": "dien", "chieu-sang": "den",
+    "tran-tang-1": "den", "tran-tang-2": "den", "dieu-hoa": "lanh", "cau-thang": "thang", bep: "bep",
+  };
+  const bieuTuong = (href) => {
+    const m = /^viec\.html#([^/?]+)/.exec(href || "");
+    return BT(BIEU_TUONG[m ? LOAI_VIEC[m[1]] || "lien" : /\.html(#|$)/.test(href || "") ? "tai_lieu" : "lien"]);
+  };
+  function nutLon(l, icon) {
+    const a = h("a", { class: "ban-ve", href: l.href },
+      h("span", { class: "ban-ve-chu" }, h("span", { class: "ban-ve-ten" }, l.ten), l.phu ? h("span", { class: "ban-ve-phu" }, l.phu) : null),
+      h("span", { class: "ban-ve-mui", "aria-hidden": "true" }, "›"));
+    a.insertAdjacentHTML("afterbegin", icon);
+    return a;
+  }
+  const lienQuan = (v) => h("div", { class: "lien-quan" }, v.lien_quan.map((l) => nutLon(l, bieuTuong(l.href))));
+
+  function veViec(v, chon, laCua = false) {
+    const t = $("than");
+    t.replaceChildren();
+    if (v.mot_muc && !sua && chon) { t.append(chiTiet(chon)); return; }   
+    if (sua) t.append(suaViec(v));
+    else if (!chon && !laCua) {
+      if (v.phu_de) t.append(h("p", { class: "phu-de" }, v.phu_de));
+      if (v.ban_ve && v.ban_ve.href) t.append(nutLon(v.ban_ve, ICON_BAN_VE));
+      if (v.chan) t.append(h("div", { class: "chan" }, v.chan));
+      if (v.mo_dau) t.append(h("p", { class: "mo-dau" }, v.mo_dau));
+      if ((v.lien_quan || []).length) t.append(lienQuan(v));
+    }
+    if (v.an_ds_muc && !sua) return;                             
+    const pv = laCua ? null : trongPhamVi(v);                      
+    const [x, n] = (pv || v.muc).reduce((a, m) => { const [p, q] = dem(m); return [a[0] + p, a[1] + q]; }, [0, 0]);
+    const caViec = pv && pv.length < v.muc.length ? h("a", { href: "#" + v.id }, `xem cả việc (${v.muc.length} mục)`) : null;
+    t.append(nhom("Mục", n ? h("span", {}, `Nghiệm thu của ${pv ? "phần này" : "việc này"}: ${x}/${n} ô đạt · `,
+      h("a", { href: "#nghiem-thu?viec=" + encodeURIComponent(v.id) }, "xem trong bảng nghiệm thu"), caViec ? h("span", {}, " · ", caViec) : null) : caViec,
+      cay(v, pv || v.muc, chon, [], null, laCua),
+      sua ? h("div", { class: "dong hang-nut" }, h("button", { type: "button", class: "nut nho to-mau", onclick: () => { const m = mucMoi(v); v.muc.push(m); doi(v, true); di(v, m); } }, "＋ Thêm mục")) : null));
+    const on = t.querySelector('.hang-muc[aria-current="true"]');
+    if (on) on.scrollIntoView({ block: "nearest" });
+  }
+  function cay(v, ds, chon, so, cha, laCua = false) {
+    const ol = h("ol", { class: so.length ? "con" : "muc" });
+    ds.forEach((m, i) => {
+      const s = [...so, i + 1];
+      const [x, n] = dem(m);
+      const dang = chon && chon.id === m.id;
+      const li = h("li", {},
+        h("button", { type: "button", class: "hang-muc", "aria-current": String(!!dang), "aria-expanded": String(!!dang),
+          onclick: () => di(v, dang ? null : m) },
+          laCua ? null : h("span", { class: "so" }, m.ma || s.join(".")), h("span", { class: "t" }, laCua ? tenCua(m) : m.ten),
+          laCua ? h("span", { class: "dem" }, maCua(m)) : null,
+          (m.kich_ban || []).length ? h("span", { class: "kb", title: "Mục có kịch bản chuyển động" }, "▶") : null,
+          n ? h("span", { class: "dem" }, `${x}/${n}`) : null));
+      const mr = dang && (sua ? suaMuc(v, m, ds, i, cha) : moRong(m, laCua));
+      if (mr) li.append(mr);                                       
+      if ((m.con || []).length) li.append(cay(v, m.con, chon, s, { ds, i }));
+      ol.append(li);
+    });
+    return ol;
+  }
+  function moRong(m, laCua) {
+    const k = chiTiet(m, false);
+    if ((m.lien_quan || []).length) k.prepend(lienQuan(m));
+    return k.children.length ? k : null;
+  }
+  function chiTiet(m, coTen = true) {
+    const k = h("div", { class: "chi-tiet" }, coTen ? h("h2", {}, (m.ma ? m.ma + " · " : "") + m.ten) : null);
+    [...k.childNodes].forEach((n) => { if (n.nodeType === 3) n.remove(); });
+    if ((m.anh || []).length) k.append(h("div", { class: "anh-muc" }, m.anh.map((a) => {
+      const src = new URL("san-pham/" + a.tep, new URL(CFG.xem, location.href)).href;
+      return h("figure", {}, h("a", { href: src, target: "_blank", rel: "noopener" }, h("img", { src, alt: a.ghi || "", loading: "lazy" })),
+        a.ghi ? h("figcaption", {}, a.ghi) : null);
+    })));
+    if ((m.mo_ta || []).length) k.append(h("ul", { class: "mo-ta" }, m.mo_ta.map((x) => h("li", {}, giau(x)))));
+    if ((m.nghiem_thu || []).length) {
+      k.append(h("div", { class: "nt-dau" }, "Nghiệm thu"), h("ul", { class: "chk" }, m.nghiem_thu.map((r) =>
+        h("li", { class: `${muc(r.loai)}${r.xong ? " xong" : ""}` },
+          h("strong", {}, muc(r.loai) === "goi-y" ? h("span", { class: "muc-nho" }, "gợi ý") : null, giau(r.dat)),
+          r.biet ? h("span", { class: "why" }, giau(r.biet)) : null))));
+    }
+    return k;
+  }
+
+  let sapTheo = null;
+  function gomNT() {
+    const ra = [];
+    for (const v of VIEC) for (const [cha, m] of duyet(v.muc)) (m.nghiem_thu || []).forEach((r, so) => ra.push({
+      viec: v.ten, viec_id: v.id, muc: [...cha, m].map((x) => x.ten).join(" › "), muc_id: m.id, so,
+      loai: r.loai, dat: r.dat || "", biet: r.biet || "", xong: !!r.xong }));
+    return ra.concat(NT.filter((r) => !r.viec_id));
+  }
+  function veBang() {
+    document.title = "Nghiệm thu · 383 Hải Phòng";
+    const q = new URLSearchParams(location.hash.split("?")[1] || "");
+    const t = $("than");
+    t.replaceChildren(h("p", { class: "mo-dau" }, "Mỗi dòng là một ô tick của một việc. Bấm một dòng để mở đúng việc và đúng mục."
+        + (sua ? " Đang sửa: bấm ô «Đạt» để đánh dấu (việc đã chuyển), rồi Lưu." : "")));
+    const nt = gomNT();
+    const viecDs = [...new Set(nt.map((r) => r.viec))];
+    const oTim = h("input", { type: "search", placeholder: "Tìm: tôn, chống thấm, 72 giờ…", "aria-label": "Tìm", value: q.get("tim") || "" });
+    const oViec = h("select", { "aria-label": "Việc" }, h("option", { value: "" }, "Mọi việc"), viecDs.map((x) => h("option", { value: x }, x)));
+    const vChon = VIEC.find((x) => x.id === q.get("viec")); if (vChon) oViec.value = vChon.ten;
+    const oMuc = h("select", { "aria-label": "Mức" }, h("option", { value: "" }, "Mọi mức"), Object.entries(TEN_MUC).map(([k, x]) => h("option", { value: k }, x)));
+    const oDat = h("select", { "aria-label": "Trạng thái" }, h("option", { value: "" }, "Đạt và chưa đạt"), h("option", { value: "chua" }, "Chưa đạt"), h("option", { value: "xong" }, "Đã đạt"));
+    const tong = h("span", { class: "tong" });
+    const tbody = h("tbody");
+    const cot = [["so", "#"], ["viec", "Việc"], ["muc", "Mục"], ["dat", "Tiêu chí"], ["biet", "Cách biết đã đạt"], ["loai", "Mức"], ["xong", "Đạt"]];
+    const thead = h("thead", {}, h("tr", {}, cot.map(([k, x]) => h("th", { scope: "col", onclick: () => { sapTheo = sapTheo === k ? "-" + k : k; loc(); } }, x))));
+    const csv = h("button", { type: "button", class: "nut nho", onclick: () => taiCsv(dsLoc()) }, "Tải CSV");
+    t.append(h("div", { class: "loc" }, oTim, oViec, oMuc, oDat, csv, tong), h("div", { class: "bang-cuon" }, h("table", { class: "nt" }, thead, tbody)));
+    const chu = (s) => khongDau(String(s || "").replace(/<[^>]+>/g, ""));
+    function dsLoc() {
+      const tu = chu(oTim.value);
+      let ds = nt.map((r, i) => ({ ...r, loai: muc(r.loai), i: i + 1 })).filter((r) => (!oViec.value || r.viec === oViec.value) && (!oMuc.value || r.loai === oMuc.value)
+        && (!oDat.value || (oDat.value === "xong") === r.xong) && (!tu || chu(`${r.viec} ${r.muc} ${r.dat} ${r.biet}`).includes(tu)));
+      if (sapTheo) { const k = sapTheo.replace("-", ""), d = sapTheo.startsWith("-") ? -1 : 1;
+        ds = ds.sort((a, b) => (String(a[k === "so" ? "i" : k]).localeCompare(String(b[k === "so" ? "i" : k]), "vi", { numeric: true })) * d); }
+      return ds;
+    }
+    const oDatSua = (r) => h("input", { type: "checkbox", checked: r.xong, "aria-label": "Đạt", onclick: (e) => e.stopPropagation(), onchange: (e) => {
+      const v = VIEC.find((x) => x.id === r.viec_id), m = v && tim(v, r.muc_id), dong = m && (m.nghiem_thu || [])[r.so];
+      if (!dong) return;
+      dong.xong = e.target.checked; if (!dong.xong) delete dong.xong;
+      nt[r.i - 1].xong = e.target.checked;
+      doi(v, true); loc();
+    } });
+    function loc() {
+      const ds = dsLoc();
+      tbody.replaceChildren(...ds.map((r) => h("tr", { onclick: () => moDong(r), title: r.viec_id ? "Mở việc và mục này" : "Mở trang việc" },
+        h("td", { class: "so" }, String(r.i)), h("td", { class: "viec" }, r.viec), h("td", {}, r.muc || "—"),
+        h("td", { class: "tc" }, giau(r.dat)), h("td", { class: "biet" }, giau(r.biet)),
+        h("td", {}, h("span", { class: "the-muc " + r.loai }, TEN_MUC[r.loai] || r.loai)),
+        h("td", { class: "dat" }, sua && r.viec_id ? oDatSua(r) : r.xong ? "☑" : "☐"))));
+      const x = ds.filter((r) => r.xong).length;
+      tong.textContent = `${ds.length} dòng · ${x} đạt · ${ds.length - x} chưa đạt`;
+    }
+    for (const o of [oTim, oViec, oMuc, oDat]) o.addEventListener("input", loc);
+    loc();
+  }
+  function moDong(r) {
+    if (r.viec_id) location.hash = `#${r.viec_id}/${r.muc_id}`;
+    else if (r.trang) location.href = r.trang + "#s2";
+  }
+  function taiCsv(ds) {
+    const bo = (s) => '"' + String(s || "").replace(/<[^>]+>/g, "").replace(/"/g, '""') + '"';
+    const dong = [["#", "Việc", "Mục", "Tiêu chí", "Cách biết đã đạt", "Mức", "Đạt"].map(bo).join(",")]
+      .concat(ds.map((r) => [r.i, r.viec, r.muc, r.dat, r.biet, TEN_MUC[r.loai] || r.loai, r.xong ? "đạt" : ""].map(bo).join(",")));
+    const a = h("a", { href: URL.createObjectURL(new Blob(["﻿" + dong.join("\n")], { type: "text/csv" })), download: "nghiem-thu-383.csv" });
+    a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  const bao = (chu, loi) => { $("bao").textContent = chu; $("bao").dataset.loi = loi ? "1" : ""; clearTimeout(bao.t); veLuu();
+    bao.t = setTimeout(() => { $("bao").textContent = ""; veLuu(); }, loi ? 12000 : 4000); };
+  const lui = [], toi = [], moc = new Map();
+  let hen = null, henV = null;
+  const chotHen = () => { if (!hen) return; clearTimeout(hen); hen = null; moc.set(henV.id, JSON.stringify(henV)); };
+  function doi(v, ngay) {
+    if (!hen || henV !== v) { chotHen(); if (moc.has(v.id)) { lui.push({ id: v.id, j: moc.get(v.id) }); if (lui.length > 200) lui.shift(); toi.length = 0; } }
+    clearTimeout(hen); henV = v;
+    hen = setTimeout(chotHen, 700);
+    if (ngay) chotHen();
+    ban.add(v.id); veLuu();
+  }
+  function hoanTac(lai) {
+    chotHen();
+    const tu = lai ? toi : lui, sang = lai ? lui : toi;
+    const b = tu.pop();
+    if (!b) return;
+    const k = VIEC.findIndex((x) => x.id === b.id);
+    if (k < 0) return;
+    sang.push({ id: b.id, j: JSON.stringify(VIEC[k]) });
+    VIEC[k] = JSON.parse(b.j); moc.set(b.id, b.j);
+    ban.add(b.id); veLuu();
+    const d = doc();
+    if (d.viec !== "nghiem-thu" && d.muc && !tim(VIEC[k], d.muc)) location.hash = "#" + b.id; else ve();
+    bao(lai ? "Đã làm lại" : "Đã hoàn tác");
+  }
+  function veLuu() {
+    const b = $("nut-luu"); b.disabled = !ban.size; b.textContent = ban.size ? "Lưu ●" : "Đã lưu";
+    $("thanh-sua").hidden = !sua && !ban.size && !$("bao").textContent;
+    for (const [id, ds] of [["nut-lui", lui], ["nut-toi", toi]]) { $(id).hidden = !sua; $(id).disabled = !ds.length; }
+  }
+  $("nut-lui").onclick = () => hoanTac(false);
+  $("nut-toi").onclick = () => hoanTac(true);
+  let soMoi = 0;
+  const idMoi = (goc_) => (goc_ ? goc_ + "-" : "muc-") + Date.now().toString(36).slice(-4) + (soMoi++);
+  const mucMoi = () => ({ id: idMoi("muc-moi"), ten: "Mục mới", nghiem_thu: [] });
+  const o = (gt, nhan, doiF, dai, lop) => h(dai ? "textarea" : "input", { class: "o" + (lop ? " " + lop : ""), value: gt || "", "aria-label": nhan, placeholder: nhan,
+    oninput: (e) => doiF(e.target.value) });
+  const truong = (nhan, ...con) => {        
+    for (const c of con) if (c.matches && c.matches("input, textarea")) c.setAttribute("aria-label", nhan);
+    return h("div", { class: "truong" }, h("span", { class: "nhan" }, nhan), ...con);
+  };
+  const nutNho = (chu, onclick, tuy = {}) => h("button", { type: "button", class: "nut nho" + (tuy.lop ? " " + tuy.lop : ""), onclick, title: tuy.title, disabled: tuy.tat, "aria-label": tuy.nhan }, chu);
+  const doiCho = (ds, a, b) => { [ds[a], ds[b]] = [ds[b], ds[a]]; };
+
+  function suaViec(v) {
+    const d = () => doi(v);
+    const veLai = () => { doi(v, true); ve(); };
+    v.lien_quan = v.lien_quan || [];
+    const lq = v.lien_quan.map((l, j) => h("div", { class: "dong-sua" },
+      h("div", { class: "hang-sua" }, o(l.ten, "Tên trang", (x) => { l.ten = x; d(); }),
+        nutNho("↑", () => { doiCho(v.lien_quan, j, j - 1); veLai(); }, { lop: "bieu", tat: j === 0, nhan: "Lên" }),
+        nutNho("↓", () => { doiCho(v.lien_quan, j, j + 1); veLai(); }, { lop: "bieu", tat: j === v.lien_quan.length - 1, nhan: "Xuống" }),
+        nutNho("✕", () => { v.lien_quan.splice(j, 1); veLai(); }, { lop: "bieu xoa", nhan: "Xoá liên kết" })),
+      o(l.href, "viec.html#việc/mục", (x) => { l.href = x.trim(); d(); }, false, "ma")));
+    return h("div", {},
+      nhom("Việc", null,
+        truong("Tên việc", o(v.ten, "Tên việc", (x) => { v.ten = x; d(); }, false, "lon")),
+        truong("Phụ đề", o(v.phu_de, "Một dòng dưới tên — trống thì không hiện", (x) => { v.phu_de = x; d(); })),
+        truong("Ô cửa chặn", o(v.chan, "Một câu — trống thì không hiện", (x) => { v.chan = x; d(); })),
+        truong("Mở đầu", o(v.mo_dau, "Vài câu giới thiệu việc", (x) => { v.mo_dau = x; d(); }, true))),
+      nhomGap("lien-quan|" + v.id, "Trang liên quan", v.lien_quan.length + " trang", "Hiện dưới phần mở đầu. Địa chỉ là tên tệp trong bộ hồ sơ.",
+        ...lq, h("div", { class: "dong hang-nut" }, nutNho("＋ Liên kết", () => { v.lien_quan.push({ ten: "", href: "" }); veLai(); }, { lop: "to-mau" }))),
+      nhom("Góc mở đầu", "Góc nhìn khi mở việc mà chưa chọn mục nào.",
+        h("div", { class: "dong hang-nut" },
+          nutNho("⤓ Lấy góc hiện tại", async () => { v.mac_dinh = await hoi("lay"); dongBo(); d(); bao("Đã đặt góc mở đầu — nhớ Lưu"); }, { lop: "to-mau" }),
+          nutNho("▶ Xem góc mở đầu", () => { ttCuoi = ""; apGoc(v.mac_dinh, 1.0); }),
+          moiTao.has(v.id) ? nutNho("Bỏ việc mới", () => { if (!confirm(`Bỏ việc «${v.ten}» (chưa lưu lần nào)?`)) return;
+            VIEC.splice(VIEC.indexOf(v), 1); ban.delete(v.id); moiTao.delete(v.id); veLuu(); location.hash = VIEC[0] ? "#" + VIEC[0].id : ""; }, { lop: "xoa" }) : null)));
+  }
+
+  function suaMuc(v, m, ds, i, cha) {
+    const d = () => doi(v);
+    const veLai = () => { doi(v, true); ve(); };
+    m.nghiem_thu = m.nghiem_thu || []; m.thong_so = m.thong_so || []; m.mo_ta = m.mo_ta || [];
+    const doiId = (moi) => {
+      if (!MA.test(moi)) { bao("Địa chỉ chỉ gồm chữ thường không dấu, số, gạch nối.", true); return false; }
+      if (moi !== m.id && tim(v, moi)) { bao(`Đã có mục mang địa chỉ «${moi}».`, true); return false; }
+      for (const g of v.trang_gop || []) if (g.muc === m.id) g.muc = moi;
+      m.id = moi; doi(v, true); history.replaceState(null, "", `#${v.id}/${moi}`); return true;
+    };
+    const oId = h("input", { class: "o ma", value: m.id, "aria-label": "Địa chỉ mục", onchange: (e) => { if (!doiId(e.target.value.trim())) e.target.value = m.id; } });
+
+    const nt = m.nghiem_thu.map((r, j) => h("div", { class: "dong-sua" + (r.xong ? " xong-roi" : "") },
+      h("div", { class: "hang-sua" },
+        h("select", { class: "o", style: "flex:0 0 120px", "aria-label": "Mức", onchange: (e) => { r.loai = e.target.value; d(); } },
+          Object.entries(TEN_MUC).map(([k, x]) => h("option", { value: k, selected: muc(r.loai) === k }, x))),
+        h("label", { class: "chon-ok" }, h("input", { type: "checkbox", checked: !!r.xong, onchange: (e) => { if (e.target.checked) r.xong = true; else delete r.xong; veLai(); } }), "Đã đạt"),
+        h("span", { class: "gian" }),
+        nutNho("↑", () => { doiCho(m.nghiem_thu, j, j - 1); veLai(); }, { lop: "bieu", tat: j === 0, nhan: "Lên" }),
+        nutNho("↓", () => { doiCho(m.nghiem_thu, j, j + 1); veLai(); }, { lop: "bieu", tat: j === m.nghiem_thu.length - 1, nhan: "Xuống" }),
+        nutNho("✕", () => { m.nghiem_thu.splice(j, 1); veLai(); }, { lop: "bieu xoa", nhan: "Xoá dòng" })),
+      o(r.dat, "Thứ phải đạt — một câu", (x) => { r.dat = x; d(); }),
+      o(r.biet, "Phép kiểm: nhìn gì, đo gì, thử gì, ngưỡng đạt", (x) => { r.biet = x; d(); }, true)));
+
+    const ts = m.thong_so.map((r, j) => h("div", { class: "dong-sua" },
+      h("div", { class: "hang-sua" },
+        h("input", { class: "o", style: "flex:0 1 38%", value: r[0], placeholder: "Nhãn", "aria-label": "Nhãn", oninput: (e) => { r[0] = e.target.value; d(); } }),
+        h("input", { class: "o", value: r[1], placeholder: "Giá trị", "aria-label": "Giá trị", oninput: (e) => { r[1] = e.target.value; d(); } }),
+        nutNho("↑", () => { doiCho(m.thong_so, j, j - 1); veLai(); }, { lop: "bieu", tat: j === 0, nhan: "Lên" }),
+        nutNho("✕", () => { m.thong_so.splice(j, 1); veLai(); }, { lop: "bieu xoa", nhan: "Xoá thông số" }))));
+
+    return h("div", { class: "chi-tiet", style: "background:var(--paper-deep);border-left:0;padding:0 12px 16px" },
+      nhom("Mục", null,
+        h("div", { class: "truong" }, h("span", { class: "nhan" }, "Mã lớp · tên mục"),
+          h("div", { class: "hang-sua" },
+            h("input", { class: "o ma", style: "flex:0 0 72px", value: m.ma || "", placeholder: "Mã", "aria-label": "Mã lớp", oninput: (e) => { m.ma = e.target.value; d(); } }),
+            o(m.ten, "Tên mục — danh từ ngắn", (x) => { m.ten = x; d(); }, false, "lon")))),
+      nhomGap("mo-ta|" + m.id, "Mô tả", (m.mo_ta || []).filter((x) => String(x).trim()).length + " dòng", null,
+        truong("Mỗi dòng một gạch đầu", o((m.mo_ta || []).join("\n"), "Chỉ điều bảng thông số không nói được", (x) => { m.mo_ta = x.split("\n"); d(); }, true))),
+      nhom("Góc nhìn", "Góc = đúng thứ đang thấy trong khung 3D (lớp, mặt cắt, làm nổi). ★ lấy vật đang chọn trong 3D — Shift+bấm chọn nhiều.",
+        h("div", { class: "dong hang-nut" },
+          nutNho("⤓ Chụp góc", async () => { m.tt = await hoi("lay"); dongBoKb(m); dongBo(); veLai(); bao("Đã chụp góc cho mục" + (m.kich_ban ? " (kịch bản theo góc mới)" : "") + " — nhớ Lưu"); }, { lop: "to-mau", title: "Góc nhìn của mục = đúng thứ đang thấy trong khung 3D" }),
+          nutNho("★ Vật", () => batNoi(v, m, false), { title: "Thêm vào / bỏ khỏi danh sách làm nổi: vật đang chọn trong 3D" }),
+          nutNho("★ Cả lớp", () => batNoi(v, m, true), { title: "Như trên, nhưng làm nổi CẢ LỚP của vật đang chọn" })),
+        h("div", { class: "dong hang-nut" },
+          nutNho("⧉ Chép góc", () => chepGoc(m), { tat: !m.tt && !m.kich_ban, title: "Chép góc nhìn, mặt cắt, lớp, tách, làm nổi, thời gian bay và kịch bản của mục này" }),
+          nutNho("Dán góc", () => danGoc(v, m, false), { tat: !banChep, title: banChep ? `Dán từ «${banChep.ten}» — thay cả danh sách làm nổi` : "Chưa chép góc nào" }),
+          nutNho("Dán, giữ ★", () => danGoc(v, m, true), { tat: !banChep, title: "Dán góc nhưng giữ danh sách làm nổi (★) của mục này" }),
+          h("label", { class: "chon-ok", title: "Giây bay camera tới góc của mục (khi mục không có kịch bản)" }, "Bay",
+            h("input", { type: "number", class: "o so-nho", min: 0, max: 5, step: 0.1, value: m.bay ?? 0.8, oninput: (e) => { m.bay = Number(e.target.value); d(); } }),
+            h("span", { class: "don-vi" }, "giây"))),
+        h("div", { class: "dong" }, chipNoi(v, m, (m.tt && m.tt.noi_bat) || [], (ds_) => { m.tt.noi_bat = ds_; }))),
+      suaKichBan(v, m, veLai, d),
+      nhomGap("thong-so|" + m.id, "Thông số — vật liệu, quy cách, mã, kích thước", m.thong_so.length + " dòng", null, ...ts,
+        h("div", { class: "dong hang-nut" }, nutNho("＋ Thông số", () => { m.thong_so.push(["", ""]); veLai(); }, { lop: "to-mau" }))),
+      nhomGap("nghiem-thu|" + m.id, "Nghiệm thu", `${m.nghiem_thu.filter((r) => r.xong).length}/${m.nghiem_thu.length} đạt`,
+        "Mỗi dòng một ô tick. Chỉ ghi thứ phải đạt và phép kiểm — không kê cách thi công.", ...nt,
+        h("div", { class: "dong hang-nut" }, nutNho("＋ Dòng nghiệm thu", () => { m.nghiem_thu.push({ loai: "yeu-cau", dat: "", biet: "" }); veLai(); }, { lop: "to-mau" }))),
+      nhomGap("sap-xep|" + m.id, "Sắp xếp · nhân bản · xoá", null, null,
+        h("div", { class: "dong hang-nut" },
+          nutNho("↑ Lên", () => { doiCho(ds, i, i - 1); veLai(); }, { tat: i === 0 }),
+          nutNho("↓ Xuống", () => { doiCho(ds, i, i + 1); veLai(); }, { tat: i === ds.length - 1 }),
+          nutNho("→ Vào mục trên", () => { (ds[i - 1].con = ds[i - 1].con || []).push(m); ds.splice(i, 1); veLai(); },
+            { tat: i === 0, title: "Thành mục con cuối của mục ngay trên" }),
+          nutNho("← Ra ngoài", () => { cha.ds.splice(cha.i + 1, 0, m); ds.splice(i, 1); if (!ds.length) delete cha.ds[cha.i].con; veLai(); },
+            { tat: !cha, title: "Ra một cấp, đứng ngay sau mục cha" })),
+        h("div", { class: "dong hang-nut" },
+          nutNho("＋ Mục con", () => { const c = mucMoi(); (m.con = m.con || []).push(c); doi(v, true); di(v, c); }, { lop: "to-mau" }),
+          nutNho("⧉ Nhân bản", () => {
+            const b = sao(m); b.ten = m.ten + " — bản sao";
+            for (const [, c] of duyet([b])) { let x = idMoi(c.id.replace(/-[a-z0-9]{5,6}$/, "").slice(0, 30).replace(/-+$/, "")); while (tim(v, x)) x = idMoi(c.id); c.id = x; }
+            ds.splice(i + 1, 0, b); doi(v, true); di(v, b); }, { title: "Chép mục này (kể cả mục con) đặt ngay dưới" }),
+          nutNho("Xoá mục", () => {
+            if (confirm(`Xoá mục «${m.ten}»${(m.con || []).length ? " và mọi mục con" : ""}? (hoàn tác được bằng ↶)`)) { ds.splice(i, 1); doi(v, true); di(v, null); } }, { lop: "xoa" })),
+        truong("Địa chỉ mục (sau dấu /)", oId)));
+  }
+
+  let banChep = null;
+  try { banChep = JSON.parse(localStorage.getItem("viec3d:chep") || "null"); } catch (_) {   }
+  function chepGoc(m) {
+    banChep = sao({ ten: m.ten, tt: m.tt || null, bay: m.bay, kich_ban: m.kich_ban || null });
+    try { localStorage.setItem("viec3d:chep", JSON.stringify(banChep)); } catch (_) {   }
+    ve(); bao(`Đã chép góc của «${m.ten}» — mở mục khác rồi bấm Dán góc`);
+  }
+  function danGoc(v, m, giuNoi) {
+    if (!banChep) return;
+    const noiCu = m.tt && m.tt.noi_bat;
+    const b = sao(banChep);
+    if (b.tt) m.tt = b.tt; else delete m.tt;
+    if (giuNoi) { if (!m.tt) m.tt = {}; if (noiCu) m.tt.noi_bat = noiCu; else delete m.tt.noi_bat; }
+    if (b.bay != null) m.bay = b.bay; else delete m.bay;
+    if (b.kich_ban) {
+      m.kich_ban = b.kich_ban;
+      if (giuNoi) for (const x of m.kich_ban) if (x.buoc === "noi_bat") x.ds = [...(noiCu || [])];
+    } else delete m.kich_ban;
+    doi(v, true); ttCuoi = ""; ve();
+    bao(`Đã dán góc của «${banChep.ten}»${giuNoi ? " (giữ ★ của mục)" : ""} — nhớ Lưu`);
+  }
+
+  function suaKichBan(v, m, veLai, d) {
+    const kb = m.kich_ban || [];
+    const them = async (buoc) => {
+      const b = { buoc };
+      if (buoc === "tach") Object.assign(b, { khe: 0.25, giay: 0.8 });
+      else if (buoc === "camera") Object.assign(b, { v: (await hoi("lay")).v, giay: 1 });
+      else if (buoc === "noi_bat") b.ds = [...((m.tt && m.tt.noi_bat) || [])];
+      else if (buoc === "cho") b.giay = 0.5;
+      else if (buoc === "noi_len") { const c = await hoi("chon"); b.ds = (c || []).map((x) => x.id); b.khe = 0.5; b.giay = 0.8;
+        if (!b.ds.length) bao("Bước «Xem rời» cần các bộ phận của cấu kiện: Shift+bấm chọn chúng trong khung 3D rồi bấm «⤓ Vật đang chọn».", true); }
+      (m.kich_ban = m.kich_ban || []).push(b); veLai();
+    };
+    const tuGoc = async () => {
+      const tt = m.tt || (m.tt = await hoi("lay"));
+      m.kich_ban = [{ buoc: "tach", khe: tt.tach || 0, giay: 0.8 }, { buoc: "camera", v: tt.v, giay: m.bay ?? 0.8 }];
+      if ((tt.noi_bat || []).length) m.kich_ban.push({ buoc: "noi_bat", ds: [...tt.noi_bat] });
+      veLai();
+    };
+    const chay = () => { ttCuoi = ""; apGoc(m.tt || v.mac_dinh, m.bay, m.kich_ban, `sua|${v.id}|${m.id}`); };
+    const so = (b, k, nhan, max) => h("label", { class: "chon-ok" }, nhan,
+      h("input", { type: "number", class: "o so-nho", min: 0, max, step: 0.05, value: b[k] ?? 0, "aria-label": nhan, oninput: (e) => { b[k] = Number(e.target.value); d(); } }));
+    const dong = kb.map((b, j) => {
+      const noi = [];
+      if (b.buoc === "tach") noi.push(h("div", { class: "hang-sua" }, so(b, "khe", "Khe", 0.6), h("span", { class: "don-vi" }, "m"), so(b, "giay", "trong", 10), h("span", { class: "don-vi" }, "giây")));
+      else if (b.buoc === "camera") noi.push(
+        h("div", { class: "hang-sua" }, nutNho("⤓ Lấy camera hiện tại", async () => { b.v = (await hoi("lay")).v; dongBo(); veLai(); bao("Đã lấy camera cho bước " + (j + 1)); }, { lop: "to-mau" }),
+          so(b, "giay", "trong", 10), h("span", { class: "don-vi" }, "giây")),
+        h("div", { class: "v" }, b.v || "chưa có góc"));
+      else if (b.buoc === "noi_bat") noi.push(
+        h("div", { class: "hang-sua" },
+          nutNho("⤓ Lấy ★ của mục", () => { b.ds = [...((m.tt && m.tt.noi_bat) || [])]; veLai(); }),
+          nutNho("★ Vật đang chọn", async () => { const c = await hoi("chon"); if (!c || !c.length) return bao("Bấm chọn vật trong khung 3D trước.", true);
+            for (const x of c) tenNoi.set(x.id, x.ten); b.ds = [...new Set([...(b.ds || []), ...c.map((x) => x.id)])]; veLai(); }),
+          nutNho("∅ Bỏ hết", () => { b.ds = []; veLai(); }, { lop: "xoa", title: "Bước này tắt làm nổi — mọi vật hiện bình thường" })),
+        chipNoi(v, m, b.ds || [], (x) => { b.ds = x; }, true));
+      else if (b.buoc === "cho") noi.push(h("div", { class: "hang-sua" }, so(b, "giay", "Chờ", 10), h("span", { class: "don-vi" }, "giây")));
+      else if (b.buoc === "noi_len") noi.push(
+        h("div", { class: "hang-sua" },
+          nutNho("⤓ Vật đang chọn", async () => { const c = await hoi("chon"); if (!c || !c.length) return bao("Shift+bấm chọn các bộ phận trong khung 3D trước.", true);
+            b.ds = c.map((x) => x.id); d(); veLai(); }),
+          so(b, "khe", "Tách rời", 1), so(b, "giay", "trong", 10), h("span", { class: "don-vi" }, "giây")),
+        h("div", { class: "v" }, (b.ds || []).length ? b.ds.length + " bộ phận: " + b.ds.join(", ") : "chưa chọn bộ phận"));
+      return h("div", { class: "buoc-kb" }, h("span", { class: "stt" }, String(j + 1)),
+        h("div", {}, h("div", { class: "hang-sua" }, h("strong", {}, TEN_BUOC[b.buoc] || b.buoc), h("span", { class: "gian" }),
+          nutNho("↑", () => { doiCho(kb, j, j - 1); veLai(); }, { lop: "bieu", tat: j === 0, nhan: "Lên" }),
+          nutNho("↓", () => { doiCho(kb, j, j + 1); veLai(); }, { lop: "bieu", tat: j === kb.length - 1, nhan: "Xuống" }),
+          nutNho("✕", () => { kb.splice(j, 1); if (!kb.length) delete m.kich_ban; veLai(); }, { lop: "bieu xoa", nhan: "Xoá bước" })), ...noi));
+    });
+    return nhomGap("kich-ban|" + m.id, "Kịch bản chuyển động", kb.length ? kb.length + " bước" : "mặc định",
+      kb.length ? "Mở mục: cảnh nền (góc đã chụp, trừ camera và khe tách) đặt ngay, rồi các bước chạy lần lượt từ trên xuống."
+        : "Chưa có kịch bản — mục chạy mặc định: tách lớp → bay camera tới góc đã chụp → làm nổi.",
+      ...dong,
+      h("div", { class: "dong hang-nut" },
+        ...Object.entries(TEN_BUOC).map(([k, x]) => nutNho("＋ " + x, () => them(k), { lop: "to-mau" }))),
+      h("div", { class: "dong hang-nut" },
+        kb.length ? nutNho("▶ Chạy", chay, { lop: "chinh", title: "Chạy kịch bản từ đầu trong khung 3D" }) : nutNho("Tạo từ góc đã chụp", tuGoc, { title: "Ba bước: tách → camera → làm nổi, lấy từ góc của mục" }),
+        kb.length ? nutNho("Xoá kịch bản", () => { delete m.kich_ban; veLai(); }, { lop: "xoa" }) : null));
+  }
+
+  function dongBoKb(m) {
+    const kb = m.kich_ban || [], tt = m.tt || {};
+    const cuoi = (buoc) => kb.filter((b) => b.buoc === buoc).pop();
+    const c = cuoi("camera"), t = cuoi("tach"), n = cuoi("noi_bat");
+    if (c && tt.v) c.v = tt.v;
+    if (t) t.khe = Number(tt.tach) || 0;
+    if (n) n.ds = [...(tt.noi_bat || [])];
+  }
+  const tenNoi = new Map();
+  async function batNoi(v, m, theoLop) {
+    const ds = await hoi("chon");
+    if (!ds || !ds.length) { bao("Bấm chọn một vật trong khung 3D trước (Shift+bấm để chọn nhiều), rồi bấm ★.", true); return; }
+    if (!m.tt) m.tt = await hoi("lay");
+    const cu = new Set(m.tt.noi_bat || []);
+    const khoa = [...new Set(ds.map((x) => (theoLop ? x.nhom : x.id)))];
+    for (const x of ds) tenNoi.set(theoLop ? x.nhom : x.id, theoLop ? x.nhom : x.ten);
+    const coHet = khoa.every((k) => cu.has(k));
+    for (const k of khoa) coHet ? cu.delete(k) : cu.add(k);
+    m.tt.noi_bat = [...cu];
+    if (!m.tt.noi_bat.length) delete m.tt.noi_bat;
+    dongBoKb(m);
+    await hoi("noi_bat_dat", { ds: m.tt.noi_bat || [] });
+    dongBo(); ttDang = m.tt;
+    doi(v, true); ve();
+    bao(coHet ? `Đã bỏ ${khoa.length} khỏi danh sách làm nổi` : `Đã làm nổi ${khoa.length} ${theoLop ? "lớp" : "vật"} — nhớ Lưu`);
+  }
+  function chipNoi(v, m, ds, dat, laBuoc) {
+    if (!ds.length) return h("div", { class: "trong" }, laBuoc ? "Bước này tắt làm nổi." : "Chưa làm nổi gì — chọn vật trong 3D rồi bấm ★.");
+    return h("div", {}, ds.map((k) => h("span", { class: "chip", title: k }, (tenNoi.get(k) || k).slice(0, 48),
+      h("button", { type: "button", "aria-label": "Bỏ", onclick: async () => {
+        const con = ds.filter((x) => x !== k);
+        if (laBuoc) { dat(con); doi(v, true); ve(); return; }
+        dat(con); if (!m.tt.noi_bat.length) delete m.tt.noi_bat; dongBoKb(m);
+        await hoi("noi_bat_dat", { ds: m.tt.noi_bat || [] }); dongBo(); ttDang = m.tt; doi(v, true); ve(); } }, "✕"))));
+  }
+
+  function viecMoi() {
+    const ten = (prompt("Tên việc mới (vd «Bếp — tủ, đá, thoát khói»):") || "").trim();
+    if (!ten) { ve(); return; }
+    let id = slug(ten.split(" — ")[0]) || "viec";
+    while (VIEC.some((x) => x.id === id)) id += "-2";
+    const v = { id, ten, muc: [mucMoi()] };
+    VIEC.push(v); moiTao.add(id); moc.set(id, JSON.stringify(v));
+    ban.add(id); veLuu();
+    location.hash = "#" + id;
+    bao(`Đã tạo việc «${ten}» (địa chỉ #${id}) — nhớ Lưu`);
+  }
+
+  $("nut-sua").onclick = () => {
+    sua = !sua;
+    document.body.classList.toggle("dang-sua", sua);
+    $("nut-sua").setAttribute("aria-pressed", String(sua));
+    $("nut-sua").textContent = sua ? "✓ Xong" : "✎ Sửa";
+    veNutKt();
+    if (sanSang) xem.contentWindow.postMessage({ nguon: "khung3d", lenh: "sua", bat: sua }, "*");
+    veLuu(); ve();
+  };
+  $("nut-luu").onclick = async () => {
+    chotHen();
+    $("nut-luu").disabled = true; $("nut-luu").textContent = "Đang lưu…";
+    const canhBao = [];
+    for (const id of [...ban]) {
+      const v = VIEC.find((x) => x.id === id);
+      if (!v) { ban.delete(id); continue; }
+      let kq;
+      try { kq = await (await fetch(`${CFG.ghi}?viec=${encodeURIComponent(id)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(v) })).json(); }
+      catch (e) { kq = { ok: false, loi: String(e) }; }
+      if (!kq.ok) { veLuu(); bao("Không lưu được: " + kq.loi, true); return; }
+      ban.delete(id); moiTao.delete(id); canhBao.push(...(kq.canh_bao || []));
+    }
+    await nap(); veLuu(); ve();
+    bao(canhBao.length ? `Đã lưu — ⚠ ${canhBao.length} câu chưa đạt luật hồ sơ: ${canhBao[0]}` : "Đã lưu vào data/viec-3d.yaml", canhBao.length > 0);
+  };
+  addEventListener("beforeunload", (e) => { if (ban.size) { e.preventDefault(); e.returnValue = ""; } });
+  addEventListener("keydown", (e) => {
+    if ((e.key === "Delete" || e.key === "Backspace") && SD.den && SD.chonDen && CFG.ghi_den && !e.metaKey && !e.ctrlKey
+        && !/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName) && !(document.activeElement || {}).isContentEditable) {
+      e.preventDefault(); xoaDen(SD.chonDen); return;
+    }
+    if (!(e.metaKey || e.ctrlKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === "s" && ban.size) { e.preventDefault(); $("nut-luu").click(); }
+    else if (k === "z" && sua && !/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName)) { e.preventDefault(); hoanTac(e.shiftKey); }
+  });
+
+  async function nap() {
+    const d = await (await fetch(CFG.json, { cache: "no-cache" })).json();
+    const giu = VIEC.filter((v) => moiTao.has(v.id));
+    VIEC = (d.viec || []).concat(giu); NT = d.nghiem_thu || [];
+    coNT = !!NT.length || VIEC.some((v) => [...duyet(v.muc)].some(([, m]) => (m.nghiem_thu || []).length));   
+    for (const v of VIEC) { v.muc = v.muc || []; if (!ban.has(v.id)) moc.set(v.id, JSON.stringify(v)); }
+  }
+  if (CFG.ghi) $("nut-sua").hidden = false;
+  nap().then(ve).catch((e) => { $("than").textContent = "Không đọc được dữ liệu việc: " + e; });
+})();
+</script>
+</body>
+</html>
